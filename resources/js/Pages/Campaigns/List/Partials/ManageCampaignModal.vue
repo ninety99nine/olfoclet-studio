@@ -678,6 +678,7 @@ import { isArray, isInteger } from "lodash";
                     name: this.hasCampaign ? this.campaign.name : null,
                     active: this.hasCampaign ? this.campaign.active : true,
                     description: this.hasCampaign ? this.campaign.description : null,
+                    can_send_messages: this.hasCampaign ? this.campaign.can_send_messages : false,
                     schedule_type: this.hasCampaign ? this.campaign.schedule_type : this.scheduleTypeOptions[0],
                     recurring_duration: this.hasCampaign ? this.campaign.recurring_duration : 1,
                     recurring_frequency: this.hasCampaign ? this.campaign.recurring_frequency : 'Days',
