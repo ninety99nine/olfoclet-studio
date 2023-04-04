@@ -2,6 +2,7 @@
 
 namespace App\Jobs;
 
+use smpp\SMPP;
 use Carbon\Carbon;
 use App\Models\Message;
 use App\Models\Campaign;
@@ -98,7 +99,7 @@ class SendSubscriptionSms implements ShouldQueue
             info('SENDING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
             (new \App\Services\SmsBuilder($this->sender, $ip_address, $port, $this->username, $this->password, $timeout))
-            ->setRecipient($recipient, \smpp\SMPP::TON_INTERNATIONAL)
+            ->setRecipient($recipient, SMPP::TON_INTERNATIONAL)
             ->sendMessage($message);
 
             info('!!!!!!!!!!!!!!!!!!!!!!!! SMS SENT TO: ' . $recipient . ' - ' . $message);
