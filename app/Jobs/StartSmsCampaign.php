@@ -184,6 +184,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                 // Get the ids of subscribers to this campaign (Those who have received content before but are not ready for the next round of content)
                 $subscriberIdsNotReadyForNextSms = $this->campaign->subscribersNotReadyForNextSms()->pluck('subscribers.id');
 
+                info('Total subscribers not ready for next sms: ' . $subscriberIdsNotReadyForNextSms->count());
+
                 //  Get the project subscribers (Those who have received or have not received content before)
                 $subscribers = $this->project->subscribers()->with(['messages' => function($query) {
 
@@ -191,6 +193,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     return $query->select('messages.id', 'sent_sms_count')->orderBy('sent_sms_count');
 
                 }])->select('subscribers.id', 'subscribers.msisdn');
+
+                info('Total subscribers before limiting: ' . $subscribers->count());
 
                 //  If this campaign has subscribers not ready for the next sms message
                 if( count($subscriberIdsNotReadyForNextSms) ) {
@@ -208,7 +212,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                 }
 
-                info('Total subscribers: ' . $subscribers->count());
+                info('Total subscribers after limiting: ' . $subscribers->count());
 
                 //  If this campaign has subscribers to send messages
                 if( $subscribers->count() > 0 ) {
