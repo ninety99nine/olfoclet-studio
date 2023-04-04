@@ -261,6 +261,8 @@
 
                         </div>
 
+                        {{ form.errors }}
+
                     </template>
 
                 </template>
