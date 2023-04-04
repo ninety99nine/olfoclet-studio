@@ -96,15 +96,16 @@ class SendSubscriptionSms implements ShouldQueue
             $port = config('app.sms_config.port');
 
             if(App::environment('production')) {
+                info('PRODUCTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
                 (new \App\Services\SmsBuilder($this->sender, $ip_address, $port, $this->username, $this->password, $timeout))
                 ->setRecipient($recipient, \smpp\SMPP::TON_INTERNATIONAL)
                 ->sendMessage($message);
 
-                info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
                 info('!!!!!!!!!!!!!!!!!!!!!!!! SMS SENT TO: ' . $recipient . ' - ' . $message);
-                info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
+            }else{
+                info('NOT PRODUCTION !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
 
             }
 
