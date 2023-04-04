@@ -95,9 +95,13 @@ class SendSubscriptionSms implements ShouldQueue
             $timeout = config('app.sms_config.timeout');
             $port = config('app.sms_config.port');
 
+            info('SENDING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
             (new \App\Services\SmsBuilder($this->sender, $ip_address, $port, $this->username, $this->password, $timeout))
             ->setRecipient($recipient, \smpp\SMPP::TON_INTERNATIONAL)
             ->sendMessage($message);
+
+            info('!!!!!!!!!!!!!!!!!!!!!!!! SMS SENT TO: ' . $recipient . ' - ' . $message);
 
             //  Find a matching subscriber message
             $matchingSubscriberMessage = DB::table('subscriber_messages')->where([
