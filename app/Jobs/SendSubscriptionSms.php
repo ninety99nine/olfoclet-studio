@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\Subscriber;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
+use Illuminate\Support\Facades\App;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -94,11 +95,18 @@ class SendSubscriptionSms implements ShouldQueue
             $timeout = config('app.sms_config.timeout');
             $port = config('app.sms_config.port');
 
-            /*
-            (new \App\Services\SmsBuilder($this->sender, $ip_address, $port, $this->username, $this->password, $timeout))
+            if(App::environment('production')) {
+
+                (new \App\Services\SmsBuilder($this->sender, $ip_address, $port, $this->username, $this->password, $timeout))
                 ->setRecipient($recipient, \smpp\SMPP::TON_INTERNATIONAL)
                 ->sendMessage($message);
-            */
+
+                info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+                info('!!!!!!!!!!!!!!!!!!!!!!!! SMS SENT TO: ' . $recipient . ' - ' . $message);
+                info('!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!');
+
+
+            }
 
             //  Find a matching subscriber message
             $matchingSubscriberMessage = DB::table('subscriber_messages')->where([
