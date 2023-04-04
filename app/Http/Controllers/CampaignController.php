@@ -185,6 +185,7 @@ class CampaignController extends Controller
             'name' => ['required', 'string', 'min:3', 'max:50', Rule::unique('campaigns')->where('project_id', $project->id)],
             'description' => ['nullable', 'string', 'min:10', 'max:500'],
             'active' => ['required', 'boolean'],
+            'can_send_messages' => ['required', 'boolean'],
             'schedule_type' => ['required', 'string', Rule::in(Campaign::SCHEDULE_TYPE)],
             'recurring_duration' => $isSendingNow || $isSendingLater ? [] : [
                 'required', 'integer', 'numeric', 'min:1'
@@ -368,6 +369,7 @@ class CampaignController extends Controller
             'name' => ['required', 'string', 'min:3', 'max:50', Rule::unique('campaigns')->where('project_id', $project->id)->ignore($campaign->id)],
             'description' => ['nullable', 'string', 'min:10', 'max:500'],
             'active' => ['required', 'boolean'],
+            'can_send_messages' => ['required', 'boolean'],
             'schedule_type' => ['required', 'string', Rule::in(Campaign::SCHEDULE_TYPE)],
             'recurring_duration' => $isSendingNow || $isSendingLater ? [] : [
                 'required', 'integer', 'numeric', 'min:1'
