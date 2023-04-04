@@ -98,7 +98,7 @@ class Project extends Model
      */
     public function campaignsThatCanSendMessages()
     {
-        return $this->hasMany(Campaign::class)->where('can_send_messages', '1');
+        return $this->campaigns()->where('campaigns.can_send_messages', '1');
     }
 
     /**

@@ -47,7 +47,7 @@ class Kernel extends ConsoleKernel
                 info('schedule->call');
 
                 //  Get projects that can send messages and have campaigns
-                $projects = Project::where('can_send_messages', '1')->has('campaignsThatCanSendMessages')->with(['campaignsThatCanSendMessages' => function($query) {
+                $projects = Project::where('projects.can_send_messages', '1')->has('campaignsThatCanSendMessages')->with(['campaignsThatCanSendMessages' => function($query) {
 
                     //  Get campaigns that can send messagse with their total batch jobs
                     return $query->withCount('campaignBatchJobs');
