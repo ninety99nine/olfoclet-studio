@@ -23,7 +23,11 @@ class TopicController extends Controller
         $cacheName = "projects-$project->id-$searchWord-$perPage-$pageNumber";
 
         /// Retrieve the result from the cache or make a request and cache the response for one day
-        $response = $project->topics()->whereIsRoot()->withCount('children')->search($searchWord)->latest()->paginate();;
+        $response = Cache::remember($cacheName, $time, function () use($project, $searchWord) {
+
+            return $project->topics()->whereIsRoot()->withCount('children')->search($searchWord)->latest()->paginate();
+
+        });
 
         return new TopicResources($response);
     }
@@ -40,29 +44,31 @@ class TopicController extends Controller
         $cacheName = "projects-$project->id-topics-$topic->id-$type-$searchWord-$perPage-$pageNumber";
 
         /// Retrieve the result from the cache or make a request and cache the response for one day
+        $response = Cache::remember($cacheName, $time, function () use($topic, $type, $searchWord, $perPage) {
 
-        if( $type == 'children') {
+            if( $type == 'children') {
 
-            $response = $topic->children()->withCount('children')->search($searchWord)->orderBy('id', 'DESC')->paginate($perPage);
+                return $topic->children()->withCount('children')->search($searchWord)->latest()->paginate($perPage);
 
-        }else if( $type == 'descendants') {
+            }else if( $type == 'descendants') {
 
-            $response = $topic->descendants()->withCount('descendants')->search($searchWord)->orderBy('id', 'DESC')->paginate($perPage);
+                return $topic->descendants()->withCount('descendants')->search($searchWord)->latest()->paginate($perPage);
 
-        }else if( $type == 'ancestors') {
+            }else if( $type == 'ancestors') {
 
-            $response = $topic->ancestors()->withCount('ancestors')->search($searchWord)->orderBy('id', 'DESC')->paginate($perPage);
+                return $topic->ancestors()->withCount('ancestors')->search($searchWord)->latest()->paginate($perPage);
 
-        }else if( $type == 'parent') {
+            }else if( $type == 'parent') {
 
-            $response = $topic->parent;
+                return $topic->parent;
 
-        }else{
+            }else{
 
-            $response = $topic;
+                return $topic;
 
-        }
+            }
 
+        });
 
         if($response instanceOf Topic) {
 

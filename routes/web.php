@@ -11,6 +11,7 @@ use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
 use App\Jobs\StartSmsCampaign;
 use App\Models\Campaign;
 use Inertia\Inertia;
@@ -172,8 +173,6 @@ Route::get('testing', function() {
 });
 
 Route::get('/upload', function(){
-
-    dd(\Carbon\Carbon::now()->englishDayOfWeek);
 
     $projectId = 3;
 
@@ -404,7 +403,23 @@ Route::get('/upload', function(){
         }
     }
 
-    return 'DONE!';
+    //  Set the created_at and updated_at so that each topic is 1 second apart
+    foreach(\App\Models\Topic::all() as $key => $topic){
+        DB::table('topics')->where('id', $topic->id)->update([
+            'created_at' => now()->addSeconds($key)->format('Y-m-d H:i:s'),
+            'updated_at' => now()->addSeconds($key)->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    //  Set the created_at and updated_at so that each message is 1 second apart
+    foreach(\App\Models\Message::all() as $key => $message){
+        DB::table('messages')->where('id', $message->id)->update([
+            'created_at' => now()->addSeconds($key)->format('Y-m-d H:i:s'),
+            'updated_at' => now()->addSeconds($key)->format('Y-m-d H:i:s'),
+        ]);
+    }
+
+    return $times;
 
 });
 
