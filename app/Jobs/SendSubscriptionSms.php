@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use smpp\SMPP;
 use Carbon\Carbon;
 use App\Models\Message;
 use App\Models\Campaign;
@@ -18,6 +17,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
+use smpp\{Address, Client as SmppClient, Smpp, transport\Socket};
 
 class SendSubscriptionSms implements ShouldQueue
 {

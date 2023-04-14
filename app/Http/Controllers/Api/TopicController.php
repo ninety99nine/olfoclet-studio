@@ -16,9 +16,11 @@ class TopicController extends Controller
         $searchWord = request()->input('search');
         $hasSearchWord = request()->filled('search');
         $time = $hasSearchWord ? now()->addHour() : now()->addDay();
+        $pageNumber = ($number = (int) request()->input('page')) > 0 ? $number : 1;
+        $perPage = ($number = (int) request()->input('per_page')) > 0 ? $number : 15;
 
         /// Set the cache name
-        $cacheName = "projects-$project->id-$searchWord";
+        $cacheName = "projects-$project->id-$searchWord-$perPage-$pageNumber";
 
         /// Retrieve the result from the cache or make a request and cache the response for one day
         $response = Cache::remember($cacheName, $time, function () use($project, $searchWord) {
@@ -35,10 +37,11 @@ class TopicController extends Controller
         $searchWord = request()->input('search');
         $hasSearchWord = request()->filled('search');
         $time = $hasSearchWord ? now()->addHour() : now()->addDay();
+        $pageNumber = ($number = (int) request()->input('page')) > 0 ? $number : 1;
         $perPage = ($number = (int) request()->input('per_page')) > 0 ? $number : 15;
 
         /// Set the cache name
-        $cacheName = "projects-$project->id-topics-$topic->id-$type-$searchWord-$perPage";
+        $cacheName = "projects-$project->id-topics-$topic->id-$type-$searchWord-$perPage-$pageNumber";
 
         /// Retrieve the result from the cache or make a request and cache the response for one day
         $response = Cache::remember($cacheName, $time, function () use($topic, $type, $searchWord, $perPage) {
