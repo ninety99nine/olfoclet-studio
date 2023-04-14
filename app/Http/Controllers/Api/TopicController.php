@@ -43,15 +43,15 @@ class TopicController extends Controller
 
         if( $type == 'children') {
 
-            $response = $topic->children()->withCount('children')->search($searchWord)->latest()->paginate($perPage);
+            $response = $topic->children()->withCount('children')->search($searchWord)->orderBy('id', 'DESC')->paginate($perPage);
 
         }else if( $type == 'descendants') {
 
-            $response = $topic->descendants()->withCount('descendants')->search($searchWord)->latest()->paginate($perPage);
+            $response = $topic->descendants()->withCount('descendants')->search($searchWord)->orderBy('id', 'DESC')->paginate($perPage);
 
         }else if( $type == 'ancestors') {
 
-            $response = $topic->ancestors()->withCount('ancestors')->search($searchWord)->latest()->paginate($perPage);
+            $response = $topic->ancestors()->withCount('ancestors')->search($searchWord)->orderBy('id', 'DESC')->paginate($perPage);
 
         }else if( $type == 'parent') {
 
