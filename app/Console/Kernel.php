@@ -31,6 +31,7 @@ class Kernel extends ConsoleKernel
              *  then do the following:
              *
              *  (1) Stop running the queue service (i.e stop running the php artisan queue:work)
+             *      On production run: "sudo supervisorctl stop all" to stop the supervisor queue service
              *  (2) Run: php artisan config:clear && php artisan cache:clear
              *  (3) Run: php artisan queue:work
              *  (4) Run: php artisan schedule:work on local server
