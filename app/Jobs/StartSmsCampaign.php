@@ -10,6 +10,7 @@ use App\Models\Campaign;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -88,8 +89,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
-        info('Event Handle Campaign # '.$this->campaign->id);
-        info('canStartSmsCampaign(): '.$this->campaign->canStartSmsCampaign());
+        Log::channel('slack')->info('Event Handle Campaign # '.$this->campaign->id);
+        Log::channel('slack')->info('canStartSmsCampaign(): '.$this->campaign->canStartSmsCampaign());
 
         //  If this campaign can be started
         if( $this->campaign->canStartSmsCampaign() ) {
@@ -198,7 +199,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                 }
 
-                info('Found '.$subscribers->count().($subscribers->count() == 1 ? ' subscriber' : ' subscribers'));
+                Log::channel('slack')->info('Found '.$subscribers->count().($subscribers->count() == 1 ? ' subscriber' : ' subscribers'));
 
                 //  If this campaign has subscribers to send messages
                 if( $subscribers->count() > 0 ) {
@@ -266,7 +267,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                             }
 
-                            info('send Subscriber # '.$subscriber->id.' a message');
+                            Log::channel('slack')->info('send Subscriber # '.$subscriber->id.' a message');
 
                             //  If we have a message to send
                             if( $message ) {
@@ -278,7 +279,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                 //  If this project has the sms credentials then continue
                                 if( $this->project->hasSmsCredentials() ) {
 
-                                    info('Dispatch SendCampaignSms() on Campaign # '.$subscriber->id);
+                                    Log::channel('slack')->info('Dispatch SendCampaignSms() on Campaign # '.$subscriber->id);
 
                                     //  Create a job to send this message
                                     $jobs[] = new SendCampaignSms($subscriber, $message, $this->campaign, $senderName, $senderNumber, $clientCredentials);
