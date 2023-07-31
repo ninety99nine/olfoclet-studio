@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Message;
 use App\Models\Campaign;
 use App\Models\Subscriber;
+use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
 use Illuminate\Support\Facades\DB;
@@ -82,7 +83,7 @@ class SendCampaignSms implements ShouldQueue
         try {
 
             //  Return true if the SMS sent and false if the SMS failed to send
-            $status = true; // SmsService::sendSms($this->message, $this->senderName, $this->senderNumber, $this->subscriber->msisdn, $this->clientCredentials);
+            $status = SmsService::sendSms($this->message, $this->senderName, $this->senderNumber, $this->subscriber->msisdn, $this->clientCredentials);
 
             if($status) {
 
