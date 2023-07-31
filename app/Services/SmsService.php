@@ -4,6 +4,7 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use App\Models\Message;
+use App\Models\Subscriber;
 
 class SmsService
 {
@@ -11,12 +12,13 @@ class SmsService
      *  Send the Orange SMS
      *
      *  @param Message $message - The message Model
+     *  @param Subscriber $subscriber - The message Model
      *  @param string $senderName - The name of the sender sending the sms e.g Company XYZ
      *  @param string $senderNumber - The number of the sender sending the sms e.g 26772000001
      *  @param string $recipientNumber - The number of the recipient to receive the sms e.g 26772000001
      *  @param $clientCredentials - The client credentials used for authentication (Provided by Orange BW)
      */
-    public static function sendSms($message, $senderName, $senderNumber, $recipientNumber, $clientCredentials): bool
+    public static function sendSms($message, $subscriber, $senderName, $senderNumber, $clientCredentials): bool
     {
         //  Acquire the access token
         $accessToken = self::requestSmsAccessToken($clientCredentials);
@@ -25,6 +27,8 @@ class SmsService
         if($accessToken) {
 
             $httpClient = new Client();
+
+            $recipientNumber = $subscriber->msisdn;
 
             /**
              *  Note the following:
@@ -88,7 +92,9 @@ class SmsService
                         'outboundSMSTextMessage' => [
                             'message' => $message->content
                         ],
-                        'clientCorrelator' => $message->id              // A unique id to identify this SMS
+                        'clientCorrelator' => $subscriber->id.'-'.$message->id.'-'.now()
+
+                        // A unique id to identify this SMS
                     ]
                 ],
                 'verify' => false,  // Disable SSL certificate verification
