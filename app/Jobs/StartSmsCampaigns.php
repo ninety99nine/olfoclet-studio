@@ -21,6 +21,8 @@ class StartSmsCampaigns implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
+        info('Event Handle: SmsCampaignService::startSmsCampaigns()');
+
         //  Start the sms campaigns
         SmsCampaignService::startSmsCampaigns();
     }

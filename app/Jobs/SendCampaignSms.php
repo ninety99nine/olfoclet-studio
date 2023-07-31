@@ -82,8 +82,12 @@ class SendCampaignSms implements ShouldQueue
     {
         try {
 
+            info('Event Handle SendCampaignSms()');
+
             //  Return true if the SMS sent and false if the SMS failed to send
             $status = SmsService::sendSms($this->message, $this->senderName, $this->senderNumber, $this->subscriber->msisdn, $this->clientCredentials);
+
+            info('Sms sent status'.$status);
 
             if($status) {
 
@@ -104,6 +108,8 @@ class SendCampaignSms implements ShouldQueue
             return $status;
 
         } catch (\Throwable $th) {
+
+            info('Sms send failed: '. $th->getMessage());
 
             // Send error report here
 

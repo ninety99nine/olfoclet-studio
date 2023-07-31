@@ -88,6 +88,9 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
+        info('Event Handle Campaign # '.$this->campaign->id);
+        info('canStartSmsCampaign(): '.$this->campaign->canStartSmsCampaign());
+
         //  If this campaign can be started
         if( $this->campaign->canStartSmsCampaign() ) {
 
@@ -195,6 +198,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                 }
 
+                info('Found '.$subscribers->count().($subscribers->count() == 1 ? ' subscriber' : ' subscribers'));
+
                 //  If this campaign has subscribers to send messages
                 if( $subscribers->count() > 0 ) {
 
@@ -261,6 +266,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                             }
 
+                            info('send Subscriber # '.$subscriber->id.' a message');
+
                             //  If we have a message to send
                             if( $message ) {
 
@@ -270,6 +277,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                                 //  If this project has the sms credentials then continue
                                 if( $this->project->hasSmsCredentials() ) {
+
+                                    info('Dispatch SendCampaignSms() on Campaign # '.$subscriber->id);
 
                                     //  Create a job to send this message
                                     $jobs[] = new SendCampaignSms($subscriber, $message, $this->campaign, $senderName, $senderNumber, $clientCredentials);

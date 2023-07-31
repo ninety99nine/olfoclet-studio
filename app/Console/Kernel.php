@@ -19,6 +19,8 @@ class Kernel extends ConsoleKernel
         //  If we can run the SMS campaigns
         if(config('app.CAN_RUN_SMS_CAMPAIGNS')) {
 
+            info('Schedule run');
+
             //  Add this job to the queue for processing
             $schedule->job(new StartSmsCampaigns)->name('StartSmsCampaignsJob')->everyMinute()->withoutOverlapping();
 

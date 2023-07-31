@@ -18,8 +18,12 @@ class SmsCampaignService
         //  Get the project that can run campaigns
         $projects = self::getProjectsForSmsCampaigns();
 
+        info('Found '.count($projects).(count($projects) == 1 ? ' project' : ' projects'));
+
         // Foreach project
         foreach ($projects as $project) {
+
+            info('Project # '.$project->id .' hasSmsCredentials():'. $project->hasSmsCredentials());
 
             // If this project has the sms credentials then continue
             if ($project->hasSmsCredentials()) {
@@ -29,6 +33,8 @@ class SmsCampaignService
                  * @var Campaign $campaign
                  */
                 foreach ($project->campaigns as $campaign) {
+
+                    info('Dispatch StartSmsCampaign() on Campaign # '.$campaign->id);
 
                     //  Add this SMS campaign to the queue for processing
                     StartSmsCampaign::dispatch($project, $campaign, $campaign->campaign_batch_jobs_count);
