@@ -193,8 +193,6 @@ trait CampaignTrait
              */
             $isWithinStartDate = now()->greaterThanOrEqualTo($this->start_datetime);
 
-            info('$isWithinStartDate: '.$isWithinStartDate);
-
             if( $isWithinStartDate ) {
 
                 if($this->schedule_type == 'Send Later') {
@@ -216,9 +214,6 @@ trait CampaignTrait
                     $isWithinEndDate = now()->lessThanOrEqualTo($this->end_datetime);
 
                     if( $isWithinEndDate ) {
-
-                        info('$this->days_of_the_week');
-                        info($this->days_of_the_week);
 
                         /**
                          *  Do we satisfy the day of the week requirement?

@@ -67,28 +67,24 @@
                         <div class="grid grid-cols-6 gap-6">
 
                             <div class="col-span-6 sm:col-span-12">
-                                <jet-label for="username" value="Sender Name" />
-                                <jet-input id="username" type="text" class="mt-1 block w-full" v-model="form.settings.sms_sender" />
-                                <jet-input-error :message="form.errors['settings.sms_sender']" class="mt-2" />
+                                <jet-label for="sms_sender_name" value="Sender Name" />
+                                <jet-input id="sms_sender_name" type="text" placeholder="Company XYZ" :maxlength="20" class="mt-1 block w-full" v-model="form.settings.sms_sender_name" />
+                                <jet-input-error :message="form.errors['settings.sms_sender_name']" class="mt-2" />
                             </div>
 
                             <div class="col-span-6 sm:col-span-12">
-                                <jet-label for="username" value="Account Username" />
-                                <jet-input id="username" :type="showUsername ? 'text' : 'password'" class="mt-1 block w-full" v-model="form.settings.sms_username" />
-                                <jet-input-error :message="form.errors['settings.sms_username']" class="mt-2" />
-                                <div class="flex items-center mt-2">
-                                    <input v-model="showUsername" id="show-username" name="show-username" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                    <label for="show-username" class="ml-3 block text-sm font-medium text-gray-700">Show username</label>
-                                </div>
+                                <jet-label for="sms_sender_number" value="Sender Number" />
+                                <jet-input id="sms_sender_number" type="text" placeholder="26772012345" :maxlength="11" class="mt-1 block w-full" v-model="form.settings.sms_sender_number" />
+                                <jet-input-error :message="form.errors['settings.sms_sender_number']" class="mt-2" />
                             </div>
 
                             <div class="col-span-6 sm:col-span-12">
-                                <jet-label for="password" value="Account Password" />
-                                <jet-input id="password" :type="showPassword ? 'text' : 'password'" class="mt-1 block w-full" v-model="form.settings.sms_password" />
-                                <jet-input-error :message="form.errors['settings.sms_password']" class="mt-2" />
+                                <jet-label for="sms_client_credentials" value="Client Credentials" />
+                                <jet-input id="sms_client_credentials" :type="showClientCredentials ? 'text' : 'password'" placeholder="*************************" class="mt-1 block w-full" v-model="form.settings.sms_client_credentials" />
+                                <jet-input-error :message="form.errors['settings.sms_client_credentials']" class="mt-2" />
                                 <div class="flex items-center mt-2">
-                                    <input v-model="showPassword" id="show-password" name="show-password" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                    <label for="show-password" class="ml-3 block text-sm font-medium text-gray-700">Show password</label>
+                                    <input v-model="showClientCredentials" id="show_password" name="show_password" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                                    <label for="show_password" class="ml-3 block text-sm font-medium text-gray-700">Show credentials</label>
                                 </div>
                             </div>
                         </div>
@@ -127,8 +123,7 @@
             return {
                 showSuccessMessage: false,
                 showErrorMessage: false,
-                showPassword: false,
-                showUsername: false,
+                showClientCredentials: false,
                 moment: moment,
                 form: null,
             }

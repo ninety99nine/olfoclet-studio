@@ -9,16 +9,11 @@ return [
     | Custom Configurations - By Julian Tabona
     |--------------------------------------------------------------------------
     |
-    | This value is the name of your application. This value is used when the
-    | framework needs to place the application's name in a notification or
-    | any other location as required by the application or its packages.
+    | These are custom configurations specific to our application
     |
     */
-    'sms_config' => [
-        'ip_address' => env('SMS_IP_ADDRESS',),
-        'timeout' => env('SMS_TIMEOUT',),
-        'port' => env('SMS_PORT',),
-    ],
+    'SMS_NUMBER_EXTENSION' => env('SMS_NUMBER_EXTENSION', '267'),
+    'CAN_RUN_SMS_CAMPAIGNS' => env('CAN_RUN_SMS_CAMPAIGNS', true),
 
     /*
     |--------------------------------------------------------------------------

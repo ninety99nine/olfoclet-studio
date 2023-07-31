@@ -20,7 +20,7 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Content</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Actions</span>
                             </th>
                         </tr>
@@ -68,7 +68,6 @@
     import Pagination from '../../../../Partials/Pagination.vue'
     import ManageTopicModal from './ManageTopicModal.vue'
     import { defineComponent } from 'vue'
-    import moment from "moment";
 
     export default defineComponent({
         components: {
@@ -83,8 +82,7 @@
             return {
                 isShowingModal: false,
                 modalAction: null,
-                topic: null,
-                moment: moment
+                topic: null
             }
         },
         methods: {

@@ -69,16 +69,16 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Status</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Total</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Pending</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Processed</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Progress</span>
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -94,7 +94,7 @@
                                 </td>
                                 <!-- Status -->
                                 <td class="px-6 py-4">
-                                    <CampaignBadge :campaignBatchJob="campaignBatchJob"></CampaignBadge>
+                                    <CampaignStatusBadge :campaignBatchJob="campaignBatchJob"></CampaignStatusBadge>
                                 </td>
                                 <!-- Total -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
@@ -111,7 +111,7 @@
                                 <!-- Progress -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
                                     <span v-if="campaignBatchJob.progress == 100" class="text-lg text-green-600">{{ campaignBatchJob.progress }} {{ campaignBatchJob.progress ? '%' : '' }}</span>
-                                    <div v-else class="w-full bg-gray-200 rounded-full bg-blue-100">
+                                    <div v-else class="w-full bg-gray-200 rounded-full">
                                         <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" :style="'width: '+campaignBatchJob.progress+'%'"> {{ campaignBatchJob.progress }}%</div>
                                     </div>
                                 </td>
@@ -147,13 +147,13 @@
 
     import Pagination from '../../../../../../Partials/Pagination.vue'
     import JetSecondaryButton from '@/Components/SecondaryButton.vue'
-    import CampaignBadge from './CampaignBadge.vue'
+    import CampaignStatusBadge from './CampaignStatusBadge.vue'
     import { defineComponent } from 'vue'
     import moment from "moment";
 
     export default defineComponent({
         components: {
-            Pagination, CampaignBadge, JetSecondaryButton
+            Pagination, CampaignStatusBadge, JetSecondaryButton
         },
         props: {
             campaign: Object,

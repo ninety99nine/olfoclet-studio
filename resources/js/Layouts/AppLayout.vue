@@ -97,12 +97,6 @@ const logout = () => {
                                     </NavLink>
                                 </div>
 
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View project settings')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show-project', { project: route().params.project })" :active="route().current('show-project', { project: route().params.project })">
-                                        Settings
-                                    </NavLink>
-                                </div>
-
                             </template>
 
                         </div>
@@ -195,6 +189,10 @@ const logout = () => {
                                             Profile
                                         </DropdownLink>
 
+                                        <DropdownLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show-project', { project: route().params.project })">
+                                            Settings
+                                        </DropdownLink>
+
                                         <DropdownLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">
                                             API Tokens
                                         </DropdownLink>
@@ -271,7 +269,7 @@ const logout = () => {
                             <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View users')" :href="route('users', { project: route().params.project })" :active="route().current('users', { project: route().params.project }) || route().current('show-user', { project: route().params.project, user: route().params.user })">
                                 Users
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings')" :href="route('show-project', { project: route().params.project })" :active="route().current('show-project', { project: route().params.project })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show-project', { project: route().params.project })" :active="route().current('show-project', { project: route().params.project })">
                                 Settings
                             </ResponsiveNavLink>
 
@@ -298,6 +296,10 @@ const logout = () => {
                         <div class="mt-3 space-y-1">
                             <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
                                 Profile
+                            </ResponsiveNavLink>
+
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show-project', { project: route().params.project })" :active="route().current('show-project', { project: route().params.project })">
+                                Settings
                             </ResponsiveNavLink>
 
                             <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">

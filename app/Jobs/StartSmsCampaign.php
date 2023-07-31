@@ -11,18 +11,18 @@ use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Bus;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Queue\InteractsWithQueue;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Queue\ShouldBeUnique;
 
 class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The campaign instance.
+     * The project instance.
      *
      * @var \App\Models\Project
      */
@@ -36,7 +36,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     protected $campaign;
 
     /**
-     * The campaign instance.
+     * The total batch jobs for the specified campaign instance.
      *
      * @var int
      */
@@ -62,14 +62,13 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     /**
      * Create a new job instance.
      *
-     * @param  App\Models\Project  $project
-     * @param  App\Models\Campaign  $campaign
+     * @param App\Models\Project $project
+     * @param App\Models\Campaign $campaign
+     * @param int $campaignBatchJobsCount
      * @return void
      */
-    public function __construct(Project $project, Campaign $campaign)
+    public function __construct(Project $project, Campaign $campaign, int $campaignBatchJobsCount)
     {
-        info('Dispatch: StartSmsCampaign - construct()');
-
         $this->project = $project;
         $this->campaign = $campaign;
 
@@ -77,13 +76,9 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
          *  It appears that the eager loaded withCount('campaignBatchJobs')
          *  is not accessible using $campaign->campaign_batch_jobs_count
          *  within the handle() method. Therefore we will set this as
-         *  its own variable.
+         *  its own parameter.
          */
-        $this->campaignBatchJobsCount = $this->campaign->campaign_batch_jobs_count;
-
-        info($this->project);
-        info($this->campaign);
-        info($this->campaignBatchJobsCount);
+        $this->campaignBatchJobsCount = $campaignBatchJobsCount;
     }
 
     /**
@@ -93,14 +88,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
-        info('Dispatch: StartSmsCampaign - handle()');
-
-        info('canStartSmsCampaign:' . ($this->campaign->canStartSmsCampaign() ? 'Yes' : 'No'));
-
         //  If this campaign can be started
         if( $this->campaign->canStartSmsCampaign() ) {
-
-            info('Starting Campaign: ' . $this->campaign->name);
 
             /*******************************
              *  GET THE SENDABLE MESSAGES  *
@@ -172,8 +161,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
             //  Convert to collection
             $messages = collect($messages);
 
-            info('Total messages: ' . $messages->count());
-
             //  If this campaign has messages to send
             if( $messages->count() > 0 ) {
 
@@ -184,8 +171,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                 // Get the ids of subscribers to this campaign (Those who have received content before but are not ready for the next round of content)
                 $subscriberIdsNotReadyForNextSms = $this->campaign->subscribersNotReadyForNextSms()->pluck('subscribers.id');
 
-                info('Total subscribers not ready for next sms: ' . $subscriberIdsNotReadyForNextSms->count());
-
                 //  Get the project subscribers (Those who have received or have not received content before)
                 $subscribers = $this->project->subscribers()->with(['messages' => function($query) {
 
@@ -193,8 +178,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     return $query->select('messages.id', 'sent_sms_count')->orderBy('sent_sms_count');
 
                 }])->select('subscribers.id', 'subscribers.msisdn');
-
-                info('Total subscribers before limiting: ' . $subscribers->count());
 
                 //  If this campaign has subscribers not ready for the next sms message
                 if( count($subscriberIdsNotReadyForNextSms) ) {
@@ -212,8 +195,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                 }
 
-                info('Total subscribers after limiting: ' . $subscribers->count());
-
                 //  If this campaign has subscribers to send messages
                 if( $subscribers->count() > 0 ) {
 
@@ -225,8 +206,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         //  Foreach subscriber we retrieved from the query
                         foreach ($chunked_subscribers as $subscriber) {
 
-                            info('subscriber: ' . $subscriber);
-
                             //  Determine if we can repeat messages
                             $canRepeatMessage = true;
 
@@ -236,12 +215,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                              *  subscriber with the message "id" and "sent_sms_count".
                              */
                             $sentMessageIds = collect($subscriber->messages)->pluck('id');
-
-                            info([
-                                '$sentMessageIds->count()' => $sentMessageIds->count(),
-                                '$messages->count()' => $messages->count(),
-                                'gettype($messages)' => gettype($messages)
-                            ]);
 
                             /**
                              *  Check if the subscriber has seen every message.
@@ -261,8 +234,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                             //  If we have not seen every message
                             if( $hasSeenEveryMessage == false ) {
 
-                                info('hasSeenEveryMessage: No');
-
                                 /**
                                  *  Get the first message.
                                  *
@@ -272,8 +243,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                             //  If we have seen every message
                             }elseif($hasSeenEveryMessage == true && $canRepeatMessage == true) {
-
-                                info('hasSeenEveryMessage: Yes, we can repeat');
 
                                 /**
                                  *  Get the first message with the lowest views
@@ -287,27 +256,23 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                             //  If we don't have a new message to send
                             }else{
 
-                                info('hasSeenEveryMessage: Yes, but we cannot repeat');
-
                                 //  Stop execution of futher code
                                 return;
 
                             }
 
-                            info('Message: ' . $message);
-
                             //  If we have a message to send
                             if( $message ) {
 
-                                $sender = $this->project->settings['sms_sender'];
-                                $username = $this->project->settings['sms_username'];
-                                $password = $this->project->settings['sms_password'];
+                                $senderName = $this->project->settings['sms_sender_name'];
+                                $senderNumber = $this->project->settings['sms_sender_number'];
+                                $clientCredentials = $this->project->settings['sms_client_credentials'];
 
                                 //  If this project has the sms credentials then continue
                                 if( $this->project->hasSmsCredentials() ) {
 
                                     //  Create a job to send this message
-                                    $jobs[] = new SendSubscriptionSms($subscriber, $message, $this->campaign, $sender, $username, $password);
+                                    $jobs[] = new SendCampaignSms($subscriber, $message, $this->campaign, $senderName, $senderNumber, $clientCredentials);
 
                                 }
 
@@ -316,8 +281,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         }
 
                     });
-
-                    info('Total jobs: ' . count($jobs));
 
                     //  If this campaign has jobs to process
                     if( count($jobs) > 0 ) {
@@ -329,12 +292,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                          */
                         $campaign = $this->campaign;
 
-                        info('$campaign');
-                        info($campaign);
-
-                        info('$this->campaignBatchJobsCount');
-                        info($this->campaignBatchJobsCount);
-
                         //  Set the campaign name
                         $campaignName = 'Campaign #' . ($this->campaignBatchJobsCount + 1);
 
@@ -342,19 +299,11 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         $batch = Bus::batch($jobs
                             )->then(function (Batch $batch) use ($campaign) {
 
-                                info('Job successful');
-
                             })->catch(function (Batch $batch, Throwable $e) use ($campaign) {
-
-                                info('Job failed');
 
                             })->finally(function (Batch $batch) use ($campaign) {
 
-                                info('All jobs completed');
-
                             })->name($campaignName)->allowFailures()->dispatch();
-
-                        info('Batch id: ' . $batch->id);
 
                         //  Create a new campaign job batch record
                         DB::table('campaign_job_batches')->insert([
@@ -385,8 +334,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
         //  Get the last id in the cascade of message ids
         $id = collect($ids)->last();
 
-        info('Extract $id: ' . $id);
-
         /**
          *  Check if the item already exists in the list
          *  of previously qualified sendable messages.
@@ -402,18 +349,11 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
             return $selectedMessage->id == $id;
         });
 
-        info('Message exists: ' . ($exists ? 'Yes' : 'No'));
-
         //  If the message does not yet exist
         if( $exists == false ) {
 
-            info('Get messages');
-
             //  Get the project message descendants that do not have nested children (Must be leaf messages i.e at the tips of the tree)
             $result = $this->project->messages()->whereDescendantOrSelf($id)->doesntHave('children')->get();
-
-            info('Get messages type 1: ' .gettype($result));
-            info('Get messages type 2: ' .gettype($result->toArray()));
 
             /**
              *  Laravel all() vs toArray()

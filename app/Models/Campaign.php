@@ -54,6 +54,14 @@ class Campaign extends Model
     ];
 
     /**
+     *  Scope campaigns that can send messages
+     */
+    public function scopeCanSendMessages($query)
+    {
+        return $query->where('can_send_messages', '1');
+    }
+
+    /**
      * Get the project associated with the campaign.
      */
     public function project()

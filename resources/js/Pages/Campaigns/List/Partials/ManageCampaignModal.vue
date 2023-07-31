@@ -95,7 +95,11 @@
                                 </template>
                                 <template #default>
                                     <span class="break-normal">
-                                        {{ form.cancel_batch_jobs ? 'This will cancel the sending of queud messages (Running sprints will be stopped)' : 'This will not cancel the sending of queud messages (Running sprints will continue)' }}
+                                        <span class="font-bold">Checked: </span>This will cancel the sending of queued messages (Running sprints will be stopped)
+                                    </span>
+                                    <hr class="my-2" />
+                                    <span class="break-normal">
+                                        <span class="font-bold">Unchecked: </span>This will not cancel the sending of queued messages (Running sprints will continue)
                                     </span>
                                 </template>
                             </el-popover>
@@ -676,7 +680,6 @@ import { isArray, isInteger } from "lodash";
             reset() {
                 this.form = this.$inertia.form({
                     name: this.hasCampaign ? this.campaign.name : null,
-                    active: this.hasCampaign ? this.campaign.active : true,
                     description: this.hasCampaign ? this.campaign.description : null,
                     can_send_messages: this.hasCampaign ? this.campaign.can_send_messages : false,
                     schedule_type: this.hasCampaign ? this.campaign.schedule_type : this.scheduleTypeOptions[0],
@@ -699,7 +702,7 @@ import { isArray, isInteger } from "lodash";
 
                     days_of_the_week: this.daysOfTheWeekOptions,
 
-                    cancel_batch_jobs: false
+                    cancel_batch_jobs: this.hasCampaign ? this.campaign.cancel_batch_jobs : false,
                 });
             }
         },

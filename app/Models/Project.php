@@ -41,6 +41,14 @@ class Project extends Model
     protected $fillable = ['name', 'description', 'can_send_messages', 'settings'];
 
     /**
+     *  Scope projects that can send messages
+     */
+    public function scopeCanSendMessages($query)
+    {
+        return $query->where('can_send_messages', '1');
+    }
+
+    /**
      *  Get the Users that have been assigned to this Project as a team member
      *
      *  @return Illuminate\Database\Eloquent\Concerns\HasRelationships::belongsToMany
@@ -90,15 +98,6 @@ class Project extends Model
     public function campaigns()
     {
         return $this->hasMany(Campaign::class);
-    }
-
-    /**
-     * Get the campaigns associated with the project
-     * that can send messages
-     */
-    public function campaignsThatCanSendMessages()
-    {
-        return $this->campaigns()->where('campaigns.can_send_messages', '1');
     }
 
     /**

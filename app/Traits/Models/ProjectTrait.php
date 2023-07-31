@@ -6,8 +6,8 @@ trait ProjectTrait
 {
     public function hasSmsCredentials()
     {
-        return !empty($this->settings['sms_username']) &&
-               !empty($this->settings['sms_password']) &&
-               !empty($this->settings['sms_sender']);
+        return !empty($this->settings['sms_sender_name']) &&
+               !empty($this->settings['sms_sender_number']) &&
+               !empty($this->settings['sms_client_credentials']);
     }
 }

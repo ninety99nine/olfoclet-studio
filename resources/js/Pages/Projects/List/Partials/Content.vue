@@ -10,7 +10,7 @@
         </div>
         <div class="w-full mt-12 relative lg:mt-0" role="list">
 
-            <img src="https://i.ibb.co/0n6DSS3/bgimg.png" class="absolute right-0 w-80" alt="background circle images" />
+            <img src="/images/flow-bg.png" class="absolute right-0 w-1/4" alt="background circle images" />
 
             <div class="grid grid-cols-3 gap-4 mt-12 mb-12 relative z-30">
 

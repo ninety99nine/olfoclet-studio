@@ -44,27 +44,30 @@
                                 <span>Name</span>
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <span>Send Messages</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Status</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Sprints</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Total</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Pending</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Processed</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center bg-indigo-100">
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
                                 <span>Progress</span>
                             </th>
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Last Sprint Date</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
+                            <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Actions</span>
                             </th>
                         </tr>
@@ -75,9 +78,13 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ campaign.name }}</div>
                                 </td>
+                                <!-- Send SMS -->
+                                <td class="px-6 py-4">
+                                    <CampaignCanSendSmsBadge :campaign="campaign"></CampaignCanSendSmsBadge>
+                                </td>
                                 <!-- Status -->
                                 <td class="px-6 py-4">
-                                    <CampaignBadge :campaignBatchJob="getLatestCampaignBatchJob(campaign)"></CampaignBadge>
+                                    <CampaignStatusBadge :campaignBatchJob="getLatestCampaignBatchJob(campaign)"></CampaignStatusBadge>
                                 </td>
                                 <!-- Sprints -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
@@ -133,8 +140,8 @@
 
 </template>
 <script>
-
-    import CampaignBadge from './../JobBatches/List/Partials/CampaignBadge.vue'
+    import CampaignCanSendSmsBadge from '../JobBatches/List/Partials/CampaignCanSendSmsBadge.vue'
+    import CampaignStatusBadge from '../JobBatches/List/Partials/CampaignStatusBadge.vue'
     import Pagination from '../../../../Partials/Pagination.vue'
     import ManageCampaignModal from './ManageCampaignModal.vue'
     import { defineComponent } from 'vue'
@@ -142,7 +149,7 @@
 
     export default defineComponent({
         components: {
-            ManageCampaignModal, Pagination, CampaignBadge
+            ManageCampaignModal, Pagination, CampaignCanSendSmsBadge, CampaignStatusBadge
         },
         props: {
             contentToSendOptions: Array,
