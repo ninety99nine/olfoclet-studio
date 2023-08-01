@@ -613,7 +613,7 @@ import { isArray, isInteger } from "lodash";
 
                 };
 
-                this.form.post(route('create-campaign', { project: route().params.project }), options);
+                this.form.post(route('create.campaign', { project: route().params.project }), options);
             },
             update() {
                 var options = {
@@ -633,7 +633,7 @@ import { isArray, isInteger } from "lodash";
                     },
                 };
 
-                this.form.put(route('update-campaign', { project: route().params.project, campaign: this.campaign.id }), options);
+                this.form.put(route('update.campaign', { project: route().params.project, campaign: this.campaign.id }), options);
             },
             destroy() {
 
@@ -654,7 +654,7 @@ import { isArray, isInteger } from "lodash";
                     },
                 };
 
-                this.form.delete(route('delete-campaign', { project: route().params.project, campaign: this.campaign.id }), options);
+                this.form.delete(route('delete.campaign', { project: route().params.project, campaign: this.campaign.id }), options);
             },
             handleOnSuccess(){
 

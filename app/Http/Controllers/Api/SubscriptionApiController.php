@@ -28,7 +28,7 @@ class SubscriptionApiController extends Controller
         $this->subscriptionRepository = new SubscriptionRepository($project, $subscription);
     }
 
-    public function index(): JsonResponse
+    public function showSubscriptions(): JsonResponse
     {
         // Fetch the subscriptions using the repository with the required relationships and pagination
         $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan:id,name']);
@@ -37,7 +37,7 @@ class SubscriptionApiController extends Controller
         return SubscriptionResource::collection($subscriptions)->response();
     }
 
-    public function create(CreateSubscriptionRequest $request): JsonResponse
+    public function createSubscription(CreateSubscriptionRequest $request): JsonResponse
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
@@ -53,7 +53,7 @@ class SubscriptionApiController extends Controller
         return (new SubscriptionResource($subscription))->response()->setStatusCode(201);
     }
 
-    public function update(UpdateSubscriptionRequest $request, Subscription $subscription): JsonResponse
+    public function updateSubscription(UpdateSubscriptionRequest $request, Subscription $subscription): JsonResponse
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
@@ -69,7 +69,7 @@ class SubscriptionApiController extends Controller
         return response()->json(['message' => 'Updated Successfully']);
     }
 
-    public function delete(Subscription $subscription): JsonResponse
+    public function deleteSubscription(Subscription $subscription): JsonResponse
     {
         // Delete the subscription using the repository
         $this->subscriptionRepository->deleteProjectSubscription($subscription);

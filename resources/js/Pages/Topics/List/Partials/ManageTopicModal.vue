@@ -257,11 +257,11 @@
             nagivateToTopic(topic = null){
                 if( topic ){
 
-                    this.$inertia.get(route('show-topic', { project: route().params.project, topic: topic.id }));
+                    this.$inertia.get(route('show.topic', { project: route().params.project, topic: topic.id }));
 
                 }else{
 
-                    this.$inertia.get(route('topics', { project: route().params.project }));
+                    this.$inertia.get(route('show.topics', { project: route().params.project }));
 
                 }
             },
@@ -300,7 +300,7 @@
 
                 };
 
-                this.form.post(route('create-topic', { project: route().params.project }), options);
+                this.form.post(route('create.topic', { project: route().params.project }), options);
             },
             update() {
                 var options = {
@@ -320,7 +320,7 @@
                     },
                 };
 
-                this.form.put(route('update-topic', { project: route().params.project, topic: this.topic.id }), options);
+                this.form.put(route('update.topic', { project: route().params.project, topic: this.topic.id }), options);
             },
             destroy() {
 
@@ -341,7 +341,7 @@
                     },
                 };
 
-                this.form.delete(route('delete-topic', { project: route().params.project, topic: this.topic.id }), options);
+                this.form.delete(route('delete.topic', { project: route().params.project, topic: this.topic.id }), options);
             },
             handleOnSuccess(){
 

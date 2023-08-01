@@ -4,17 +4,14 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Project;
 use App\Models\Subscriber;
-use App\Models\Subscription;
-use App\Models\SubscriptionPlan;
-use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Repositories\MessageRepository;
 use App\Repositories\SubscriberRepository;
 use App\Http\Resources\SubscriptionResource;
-use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
-use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
+use App\Http\Requests\Subscribers\CreateSubscriberRequest;
+use App\Http\Requests\Subscribers\UpdateSubscriberRequest;
 
-class SubscriptionApiController extends Controller
+class SubscriberApiController extends Controller
 {
     protected $messageRepository;
     protected $subscriberRepository;
@@ -28,51 +25,43 @@ class SubscriptionApiController extends Controller
         $this->subscriberRepository = new SubscriberRepository($project, $subscriber);
     }
 
-    public function index(): JsonResponse
+    public function showSubscribers()
     {
-        // Fetch the subscriptions using the repository with the required relationships and pagination
-        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan:id,name']);
+        // Get the subscribers using the repository with the required relationships and pagination
+        $subscribers = $this->subscriberRepository->getProjectSubscribers(['latestSubscription', 'latestMessage'], ['messages', 'subscriptions']);
 
-        // Return subscriptions as a JSON response using SubscriptionResource
-        return SubscriptionResource::collection($subscriptions)->response();
+        // Return subscribers as a JSON response using SubscriptionResource
+        return SubscriptionResource::collection($subscribers)->response();
     }
 
-    public function create(CreateSubscriptionRequest $request): JsonResponse
+    public function createSubscriber(CreateSubscriberRequest $request)
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
 
-        // Fetch the subscriber from the subscriber repository
-        $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
+        // Create new subscriber using the repository
+        $subscriber = $this->subscriberRepository->createProjectSubscriber($msisdn);
 
-        // Create a new subscription using the repository
-        $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
-        $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan);
-
-        // Return the created subscription as a JSON response using SubscriptionResource
-        return (new SubscriptionResource($subscription))->response()->setStatusCode(201);
+        // Return the created subscriber as a JSON response using SubscriptionResource
+        return (new SubscriptionResource($subscriber))->response()->setStatusCode(201);
     }
 
-    public function update(UpdateSubscriptionRequest $request, Subscription $subscription): JsonResponse
+    public function updateSubscriber(UpdateSubscriberRequest $request)
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
 
-        // Fetch the subscriber from the subscriber repository
-        $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
-
-        // Update the subscription using the repository
-        $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
-        $this->subscriptionRepository->updateProjectSubscription($subscriber, $subscriptionPlan);
+        // Update subscriber using the repository
+        $this->subscriberRepository->updateProjectSubscriber($msisdn);
 
         // Return a success JSON response
         return response()->json(['message' => 'Updated Successfully']);
     }
 
-    public function delete(Subscription $subscription): JsonResponse
+    public function deleteSubscriber()
     {
-        // Delete the subscription using the repository
-        $this->subscriptionRepository->deleteProjectSubscription($subscription);
+        // Delete subscriber using the repository
+        $this->subscriberRepository->deleteProjectSubscriber();
 
         // Return a success JSON response
         return response()->json(['message' => 'Deleted Successfully']);

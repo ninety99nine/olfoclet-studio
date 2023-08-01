@@ -231,7 +231,7 @@
 
                 };
 
-                this.form.post(route('create-project'), options);
+                this.form.post(route('create.project'), options);
             },
             update() {
                 var options = {
@@ -251,7 +251,7 @@
                     },
                 };
 
-                this.form.put(route('update-project', { project: this.project.id }), options);
+                this.form.put(route('update.project', { project: this.project.id }), options);
             },
             destroy() {
 
@@ -272,7 +272,7 @@
                     },
                 };
 
-                this.form.delete(route('delete-project', { project: this.project.id }), options);
+                this.form.delete(route('delete.project', { project: this.project.id }), options);
             },
             handleOnSuccess(){
 

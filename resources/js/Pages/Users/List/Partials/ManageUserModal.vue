@@ -255,7 +255,7 @@
 
                 };
 
-                this.form.post(route('create-user', { project: route().params.project }), options);
+                this.form.post(route('create.user', { project: route().params.project }), options);
             },
             update() {
                 var options = {
@@ -275,7 +275,7 @@
                     },
                 };
 
-                this.form.put(route('update-user', { project: route().params.project, user: this.user.id }), options);
+                this.form.put(route('update.user', { project: route().params.project, user: this.user.id }), options);
             },
             destroy() {
 
@@ -296,7 +296,7 @@
                     },
                 };
 
-                this.form.delete(route('delete-user', { project: route().params.project, user: this.user.id }), options);
+                this.form.delete(route('delete.user', { project: route().params.project, user: this.user.id }), options);
             },
             handleOnSuccess(){
 

@@ -219,11 +219,11 @@
             nagivateToCampaign(campaign = null){
                 if( campaign ){
 
-                    this.$inertia.get(route('show-campaign-job-batches', { project: route().params.project, campaign: campaign.id }))
+                    this.$inertia.get(route('show.campaign.job.batches', { project: route().params.project, campaign: campaign.id }))
 
                 }else{
 
-                    this.$inertia.get(route('campaigns', { project: route().params.project }));
+                    this.$inertia.get(route('show.campaigns', { project: route().params.project }));
 
                 }
             },

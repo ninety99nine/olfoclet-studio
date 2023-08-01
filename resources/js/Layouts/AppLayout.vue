@@ -41,14 +41,14 @@ const logout = () => {
                         <div class="flex">
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
-                                <Link :href="route('projects')">
+                                <Link :href="route('show.projects')">
                                     <ApplicationMark class="block h-9 w-auto" />
                                 </Link>
                             </div>
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink :href="route('projects')" :active="route().current('projects')">
+                                <NavLink :href="route('show.projects')" :active="route().current('show.projects')">
                                     Projects
                                 </NavLink>
                             </div>
@@ -56,43 +56,43 @@ const logout = () => {
                             <template v-if="route().params.project">
 
                                 <div v-if="$inertia.page.props.projectPermissions.includes('View topics')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('topics', { project: route().params.project })" :active="route().current('topics', { project: route().params.project }) || route().current('show-topic', { project: route().params.project, topic: route().params.topic })">
+                                    <NavLink :href="route('show.topics', { project: route().params.project })" :active="route().current('show.topics', { project: route().params.project }) || route().current('show.topic', { project: route().params.project, topic: route().params.topic })">
                                         Topics
                                     </NavLink>
                                 </div>
 
                                 <div v-if="$inertia.page.props.projectPermissions.includes('View messages')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('messages', { project: route().params.project })" :active="route().current('messages', { project: route().params.project }) || route().current('show-message', { project: route().params.project, message: route().params.message })">
+                                    <NavLink :href="route('show.messages', { project: route().params.project })" :active="route().current('show.messages', { project: route().params.project }) || route().current('show.message', { project: route().params.project, message: route().params.message })">
                                         Messages
                                     </NavLink>
                                 </div>
 
                                 <div v-if="$inertia.page.props.projectPermissions.includes('View campaigns')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('campaigns', { project: route().params.project })" :active="route().current('campaigns', { project: route().params.project }) || route().current('show-campaign-job-batches', { project: route().params.project, campaign: route().params.campaign })">
+                                    <NavLink :href="route('show.campaigns', { project: route().params.project })" :active="route().current('show.campaigns', { project: route().params.project }) || route().current('show.campaign-job-batches', { project: route().params.project, campaign: route().params.campaign })">
                                         Campaigns
                                     </NavLink>
                                 </div>
 
                                 <div v-if="$inertia.page.props.projectPermissions.includes('View subscribers')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('subscribers', { project: route().params.project })" :active="route().current('subscribers', { project: route().params.project })">
+                                    <NavLink :href="route('show.subscribers', { project: route().params.project })" :active="route().current('show.subscribers', { project: route().params.project })">
                                         Subscribers
                                     </NavLink>
                                 </div>
 
                                 <div v-if="$inertia.page.props.projectPermissions.includes('View subscriptions')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('subscriptions', { project: route().params.project })" :active="route().current('subscriptions', { project: route().params.project })">
+                                    <NavLink :href="route('show.subscriptions', { project: route().params.project })" :active="route().current('show.subscriptions', { project: route().params.project })">
                                         Subscriptions
                                     </NavLink>
                                 </div>
 
                                 <div v-if="$inertia.page.props.projectPermissions.includes('View subscription plans')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('subscription-plans', { project: route().params.project })" :active="route().current('subscription-plans', { project: route().params.project })">
+                                    <NavLink :href="route('show.subscription.plans', { project: route().params.project })" :active="route().current('show.subscription.plans', { project: route().params.project })">
                                         Subscription Plans
                                     </NavLink>
                                 </div>
 
                                 <div v-if="$inertia.page.props.projectPermissions.includes('View users')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('users', { project: route().params.project })" :active="route().current('users', { project: route().params.project }) || route().current('show-user', { project: route().params.project, user: route().params.user })">
+                                    <NavLink :href="route('show.users', { project: route().params.project })" :active="route().current('show.users', { project: route().params.project }) || route().current('show.user', { project: route().params.project, user: route().params.user })">
                                         Users
                                     </NavLink>
                                 </div>
@@ -189,7 +189,7 @@ const logout = () => {
                                             Profile
                                         </DropdownLink>
 
-                                        <DropdownLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show-project', { project: route().params.project })">
+                                        <DropdownLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show.project', { project: route().params.project })">
                                             Settings
                                         </DropdownLink>
 
@@ -242,34 +242,34 @@ const logout = () => {
                 <!-- Responsive Navigation Menu -->
                 <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden">
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('projects')" :active="route().current('projects')">
+                        <ResponsiveNavLink :href="route('show.projects')" :active="route().current('show.projects')">
                             Projects
                         </ResponsiveNavLink>
 
                         <template v-if="route().params.project">
 
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View topics')" :href="route('topics', { project: route().params.project })" :active="route().current('topics', { project: route().params.project }) || route().current('show-topic', { project: route().params.project, topic: route().params.topic })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View topics')" :href="route('show.topics', { project: route().params.project })" :active="route().current('show.topics', { project: route().params.project }) || route().current('show.topic', { project: route().params.project, topic: route().params.topic })">
                                 Topics
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View messages')" :href="route('messages', { project: route().params.project })" :active="route().current('messages', { project: route().params.project }) || route().current('show-message', { project: route().params.project, message: route().params.message })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View messages')" :href="route('show.messages', { project: route().params.project })" :active="route().current('show.messages', { project: route().params.project }) || route().current('show.message', { project: route().params.project, message: route().params.message })">
                                 Messages
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View campaigns')" :href="route('campaigns', { project: route().params.project })" :active="route().current('campaigns', { project: route().params.project }) || route().current('show-campaign-job-batches', { project: route().params.project, campaign: route().params.campaign })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View campaigns')" :href="route('show.campaigns', { project: route().params.project })" :active="route().current('show.campaigns', { project: route().params.project }) || route().current('show.campaign-job-batches', { project: route().params.project, campaign: route().params.campaign })">
                                 Campaigns
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscribers')" :href="route('subscribers', { project: route().params.project })" :active="route().current('subscribers', { project: route().params.project })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscribers')" :href="route('show.subscribers', { project: route().params.project })" :active="route().current('show.subscribers', { project: route().params.project })">
                                 Subscribers
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscriptions')" :href="route('subscriptions', { project: route().params.project })" :active="route().current('subscriptions', { project: route().params.project })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscriptions')" :href="route('show.subscriptions', { project: route().params.project })" :active="route().current('show.subscriptions', { project: route().params.project })">
                                 Subscriptions
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscription plans')" :href="route('subscription-plans', { project: route().params.project })" :active="route().current('subscription-plans', { project: route().params.project })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscription plans')" :href="route('show.subscription.plans', { project: route().params.project })" :active="route().current('show.subscription.plans', { project: route().params.project })">
                                 Subscription Plans
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View users')" :href="route('users', { project: route().params.project })" :active="route().current('users', { project: route().params.project }) || route().current('show-user', { project: route().params.project, user: route().params.user })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View users')" :href="route('show.users', { project: route().params.project })" :active="route().current('show.users', { project: route().params.project }) || route().current('show.user', { project: route().params.project, user: route().params.user })">
                                 Users
                             </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show-project', { project: route().params.project })" :active="route().current('show-project', { project: route().params.project })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show.project', { project: route().params.project })" :active="route().current('show.project', { project: route().params.project })">
                                 Settings
                             </ResponsiveNavLink>
 
@@ -298,7 +298,7 @@ const logout = () => {
                                 Profile
                             </ResponsiveNavLink>
 
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show-project', { project: route().params.project })" :active="route().current('show-project', { project: route().params.project })">
+                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show.project', { project: route().params.project })" :active="route().current('show.project', { project: route().params.project })">
                                 Settings
                             </ResponsiveNavLink>
 

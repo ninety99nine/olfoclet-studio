@@ -250,11 +250,11 @@
             nagivateToMessage(message = null){
                 if( message ){
 
-                    this.$inertia.get(route('show-message', { project: route().params.project, message: message.id }));
+                    this.$inertia.get(route('show.message', { project: route().params.project, message: message.id }));
 
                 }else{
 
-                    this.$inertia.get(route('messages', { project: route().params.project }));
+                    this.$inertia.get(route('show.messages', { project: route().params.project }));
 
                 }
             },
@@ -293,7 +293,7 @@
 
                 };
 
-                this.form.post(route('create-message', { project: route().params.project }), options);
+                this.form.post(route('create.message', { project: route().params.project }), options);
             },
             update() {
                 var options = {
@@ -313,7 +313,7 @@
                     },
                 };
 
-                this.form.put(route('update-message', { project: route().params.project, message: this.message.id }), options);
+                this.form.put(route('update.message', { project: route().params.project, message: this.message.id }), options);
             },
             destroy() {
 
@@ -334,7 +334,7 @@
                     },
                 };
 
-                this.form.delete(route('delete-message', { project: route().params.project, message: this.message.id }), options);
+                this.form.delete(route('delete.message', { project: route().params.project, message: this.message.id }), options);
             },
             handleOnSuccess(){
 

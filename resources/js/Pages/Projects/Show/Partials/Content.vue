@@ -147,7 +147,7 @@
                     },
                 };
 
-                this.form.put(route('update-project', { project: this.project.id }), options);
+                this.form.put(route('update.project', { project: this.project.id }), options);
             },
             handleOnSuccess(){
 

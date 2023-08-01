@@ -14,7 +14,7 @@
 
             <div class="grid grid-cols-3 gap-4 mt-12 mb-12 relative z-30">
 
-                <a :href="route('topics', { project: project.id })" v-for="project in projectsPayload.data" :key="project.id" role="listitem" class="bg-white cursor-pointer shadow rounded-lg p-8 w-full aspect-video relative">
+                <a :href="route('show.topics', { project: project.id })" v-for="project in projectsPayload.data" :key="project.id" role="listitem" class="bg-white cursor-pointer shadow rounded-lg p-8 w-full aspect-video relative">
 
                     <h2 class="text-2xl font-semibold leading-6 text-gray-800">{{ project.name }}</h2>
                     <p class="md:w-80 text-base leading-6 mt-4 text-gray-600">{{ project.description }}</p>

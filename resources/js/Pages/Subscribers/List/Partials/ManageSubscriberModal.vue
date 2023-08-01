@@ -223,7 +223,7 @@
 
                 };
 
-                this.form.post(route('create-subscriber', { project: route().params.project }), options);
+                this.form.post(route('create.subscriber', { project: route().params.project }), options);
             },
             update() {
                 var options = {
@@ -243,7 +243,7 @@
                     },
                 };
 
-                this.form.put(route('update-subscriber', { project: route().params.project, subscriber: this.subscriber.id }), options);
+                this.form.put(route('update.subscriber', { project: route().params.project, subscriber: this.subscriber.id }), options);
             },
             destroy() {
 
@@ -264,7 +264,7 @@
                     },
                 };
 
-                this.form.delete(route('delete-subscriber', { project: route().params.project, subscriber: this.subscriber.id }), options);
+                this.form.delete(route('delete.subscriber', { project: route().params.project, subscriber: this.subscriber.id }), options);
             },
             handleOnSuccess(){
 

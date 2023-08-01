@@ -7,7 +7,7 @@
             <div class="bg-gray-50 pt-3 pl-6 border-b rounded-t">
                 <div class="text-sm text-gray-500 my-2">
                     <span class="font-bold mr-2">GET:</span>
-                    <span class="text-green-500 font-semibold">{{ route('api.subscription_plans', { project: route().params.project}) }}</span>
+                    <span class="text-green-500 font-semibold">{{ route('api.show.subscription.plans', { project: route().params.project}) }}</span>
                 </div>
             </div>
 
@@ -296,7 +296,7 @@
 
                 };
 
-                this.form.post(route('create-subscription-plan', { project: route().params.project }), options);
+                this.form.post(route('create.subscription.plan', { project: route().params.project }), options);
             },
             update() {
                 var options = {
@@ -316,7 +316,7 @@
                     },
                 };
 
-                this.form.put(route('update-subscription-plan', { project: route().params.project, subscription_plan: this.subscriptionPlan.id }), options);
+                this.form.put(route('update.subscription.plan', { project: route().params.project, subscription_plan: this.subscriptionPlan.id }), options);
             },
             destroy() {
 
@@ -337,7 +337,7 @@
                     },
                 };
 
-                this.form.delete(route('delete-subscription-plan', { project: route().params.project, subscription_plan: this.subscriptionPlan.id }), options);
+                this.form.delete(route('delete.subscription.plan', { project: route().params.project, subscription_plan: this.subscriptionPlan.id }), options);
             },
             handleOnSuccess(){
 

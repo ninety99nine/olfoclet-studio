@@ -111,7 +111,7 @@
                                     {{ getLatestCampaignBatchJob(campaign).created_at == null ? '...' : moment(getLatestCampaignBatchJob(campaign).created_at).format('lll') }}
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <a v-if="$inertia.page.props.projectPermissions.includes('View campaigns')" href="#" @click.prevent="$inertia.get(route('show-campaign-job-batches', { project: route().params.project, campaign: campaign.id }))" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
+                                    <a v-if="$inertia.page.props.projectPermissions.includes('View campaigns')" href="#" @click.prevent="$inertia.get(route('show.campaign.job.batches', { project: route().params.project, campaign: campaign.id }))" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
                                     <a v-if="$inertia.page.props.projectPermissions.includes('Manage campaigns')" href="#" @click.prevent="showModal(campaign, 'update')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                                     <a v-if="$inertia.page.props.projectPermissions.includes('Manage campaigns')" href="#" @click.prevent="showModal(campaign, 'delete')" class="text-red-600 hover:text-red-900">Delete</a>
                                 </td>
