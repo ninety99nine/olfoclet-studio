@@ -26,9 +26,8 @@ class Kernel extends ConsoleKernel
              *  IMPORTANT NOTE:
              *  ---------------
              *
-             *  If the job queue appears to dispatch the jobs, but no
-             *  jobs are being saved on the database for processing
-             *  then do the following:
+             *  If the job queue appears to dispatch the jobs, but no jobs are being
+             *  saved on the database for processing then do the following:
              *
              *  (1) Stop running the queue service (i.e stop running the php artisan queue:work)
              *      On production run: "sudo supervisorctl stop all" to stop the supervisor queue service
@@ -46,6 +45,15 @@ class Kernel extends ConsoleKernel
              *  (1) php artisan config:cache
              *  (2) php artisan config:clear
              *  (3) php artisan cache:clear
+             *
+             *  or everything in this order if you are on production using supervisor:
+             *
+             *  sudo supervisorctl stop all
+             *  sudo php artisan config:cache
+             *  sudo php artisan config:clear
+             *  sudo php artisan cache:clear
+             *  sudo supervisorctl reread
+             *  sudo supervisorctl start all
              */
 
             //  Add this job to the queue for processing
