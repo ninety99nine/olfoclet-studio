@@ -22,9 +22,21 @@ class StartSmsCampaigns implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
-        Log::channel('slack')->info('Event Handle: SmsCampaignService::startSmsCampaigns()');
+        try{
 
-        //  Start the sms campaigns
-        SmsCampaignService::startSmsCampaigns();
+            Log::channel('slack')->info('Event Handle: SmsCampaignService::startSmsCampaigns()');
+
+            //  Start the sms campaigns
+            SmsCampaignService::startSmsCampaigns();
+
+        } catch (\Throwable $th) {
+
+            // Send error report here
+            Log::channel('slack')->error('StartSmsCampaigns Job Failed: '. $th->getMessage());
+
+            // The job failed
+            return false;
+
+        }
     }
 }

@@ -111,9 +111,9 @@ class SendCampaignSms implements ShouldQueue
         } catch (\Throwable $th) {
 
             // Send error report here
-            Log::channel('slack')->error('Sms send failed: '. $th->getMessage());
+            Log::channel('slack')->error('SendCampaignSms Job Failed: '. $th->getMessage());
 
-            // The sms failed to send
+            // The job failed
             return false;
 
         }

@@ -36,6 +36,8 @@ class Kernel extends ConsoleKernel
              *  (3) Run: php artisan queue:work
              *  (4) Run: php artisan schedule:work on local server
              *      but use cron jobs on production server
+             *  (5) Start running the queue service (i.e start running the php artisan queue:work)
+             *      On production run: "sudo supervisorctl start all" to start the supervisor queue service
              *
              *  Make sure you have set the "QUEUE_CONNECTION=database" in the .env file
              *  Remember to clear the cache after changes to the .env file. Consider
