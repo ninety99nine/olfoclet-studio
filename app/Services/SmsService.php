@@ -111,6 +111,9 @@ class SmsService
                 $jsonString = $response->getBody();
                 $statusCode = $response->getStatusCode();
 
+                Log::channel('slack')->info($statusCode);
+                Log::channel('slack')->info($jsonString);
+
                 // Handle the response as needed
                 if ($statusCode === 201) {
 
@@ -188,6 +191,9 @@ class SmsService
             $jsonString = $response->getBody();
             $statusCode = $response->getStatusCode();
             $responseData = json_decode($jsonString, true);
+
+            Log::channel('slack')->info($statusCode);
+            Log::channel('slack')->info($jsonString);
 
             // Handle the response as needed
             if ($statusCode === 200) {
