@@ -92,7 +92,7 @@ class SmsService
                         'outboundSMSMessageRequest' => [
                             'address' => ['tel:+'.$recipientNumber],        //  Recepient number to send the SMS message
                             'senderAddress' => 'tel:+'.$senderNumber,       //  Sender number that will be displayed if senderName is not included
-                            'senderName' => 'FAC',                    //  Sender name e.g "Company XYZ"
+                            'senderName' => $senderName,                    //  Sender name e.g "Company XYZ"
                             'outboundSMSTextMessage' => [
                                 'message' => $message->content
                             ],
