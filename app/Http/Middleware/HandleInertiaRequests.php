@@ -55,7 +55,7 @@ class HandleInertiaRequests extends Middleware
              *
              *  @var Project $project
              */
-            $project = $user->projectsAsTeamMember()->where('project_id', request()->project->id)->first();
+            $project = $user->projectsAsTeamMember()->where('project_id', request()->project->id ?? request()->project)->first();
 
             /**
              *  Get the current authenticated user's project permissions

@@ -51,7 +51,7 @@
                                 </td>
                                 <!-- Last Subscription -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ getLastSubscriptionDate(subscriber.latest_subscriptions) }}
+                                    {{ getLastSubscriptionDate(subscriber.latest_subscription) }}
                                 </td>
                                 <!-- Messages -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
@@ -63,7 +63,7 @@
                                 </td>
                                 <!-- Last Message -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ getLastMessageDate(subscriber.latest_messages) }}
+                                    {{ getLastMessageDate(subscriber.latest_message) }}
                                 </td>
                                 <!-- Created Date -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -126,25 +126,11 @@
             {
                 this.$inertia.reload();
             },
-            getLastSubscriptionDate(latestSubscriptions){
-                if( latestSubscriptions.length > 0 ){
-                    if( latestSubscriptions[0].created_at ){
-                        return this.moment(latestSubscriptions[0].created_at).fromNow();
-                    }
-                }
-
-                return '...';
+            getLastSubscriptionDate(latestSubscription){
+                return latestSubscription.length ? this.moment(latestSubscription[0].created_at).fromNow() : '...';
             },
-            getLastMessageDate(latestMessages){
-                if( latestMessages.length > 0 ){
-                    if( latestMessages[0].pivot ){
-                        if( latestMessages[0].pivot.created_at ){
-                            return this.moment(latestMessages[0].pivot.created_at).fromNow();
-                        }
-                    }
-                }
-
-                return '...';
+            getLastMessageDate(latestMessage){
+                return latestMessage.length ? this.moment(latestMessage[0].pivot.created_at).fromNow() : '...';
             },
             getPercentageOfCoverage(MessagesCount){
                 if( this.totalMessages > 0 ){

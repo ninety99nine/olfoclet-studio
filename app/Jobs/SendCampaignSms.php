@@ -83,20 +83,26 @@ class SendCampaignSms implements ShouldQueue
     {
         try {
 
-            Log::channel('slack')->info('Event Handle SendCampaignSms()');
+            //  Log::channel('slack')->info('Event Handle SendCampaignSms()');
 
             //  Return true if the SMS sent and false if the SMS failed to send
             $status = SmsService::sendSms($this->message, $this->subscriber, $this->senderName, $this->senderNumber, $this->clientCredentials);
 
-            Log::channel('slack')->info('Sms sent status'.$status);
+            //  Log::channel('slack')->info('Sms sent status'.$status);
 
             if($status) {
+
+                Log::channel('slack')->info('Message: "'. $this->message->content.'" sent successfully to '.$this->subscriber->msisdn);
 
                 // Update the subscriber message
                 $this->updateSubscriberMessage();
 
                 // Update the campaign subscriber
                 $this->updateCampaignSubscriber();
+
+            }else{
+
+                Log::channel('slack')->error('Message: "'. $this->message->content.'" failed to send to '.$this->subscriber->msisdn);
 
             }
 

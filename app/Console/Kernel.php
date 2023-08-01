@@ -20,7 +20,7 @@ class Kernel extends ConsoleKernel
         //  If we can run the SMS campaigns
         if(config('app.CAN_RUN_SMS_CAMPAIGNS')) {
 
-            Log::channel('slack')->info('Schedule run');
+            //  Log::channel('slack')->info('Schedule run');
 
             /**
              *  IMPORTANT NOTE:

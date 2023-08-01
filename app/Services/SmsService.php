@@ -104,7 +104,7 @@ class SmsService
                     'verify' => false,  // Disable SSL certificate verification
                 ];
 
-                Log::channel('slack')->info(json_encode($form));
+                //  Log::channel('slack')->info(json_encode($form));
 
                 $response = $httpClient->request('POST', $smsEndpoint, $form);
 
@@ -112,9 +112,9 @@ class SmsService
                 $statusCode = $response->getStatusCode();
                 $reasonPhrase = $response->getReasonPhrase();
 
-                Log::channel('slack')->info($statusCode);
-                Log::channel('slack')->info($jsonString);
-                Log::channel('slack')->info($reasonPhrase);
+                //  Log::channel('slack')->info($statusCode);
+                //  Log::channel('slack')->info($jsonString);
+                //  Log::channel('slack')->info($reasonPhrase);
 
                 // Handle the response as needed
                 if ($statusCode === 201) {
@@ -186,7 +186,7 @@ class SmsService
                 'verify' => false,  // Disable SSL certificate verification
             ];
 
-            Log::channel('slack')->info(json_encode($form));
+            //  Log::channel('slack')->info(json_encode($form));
 
             $response = $httpClient->request('POST', $tokenEndpoint, $form);
 
@@ -194,8 +194,8 @@ class SmsService
             $statusCode = $response->getStatusCode();
             $responseData = json_decode($jsonString, true);
 
-            Log::channel('slack')->info($statusCode);
-            Log::channel('slack')->info($jsonString);
+            //  Log::channel('slack')->info($statusCode);
+            //  Log::channel('slack')->info($jsonString);
 
             // Handle the response as needed
             if ($statusCode === 200) {

@@ -1,18 +1,19 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
-use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
 use App\Repositories\SubscriberRepository;
 use App\Repositories\SubscriptionRepository;
+use App\Http\Resources\SubscriptionResource;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
 
-class SubscriptionController extends Controller
+class SubscriptionApiController extends Controller
 {
     protected $project;
     protected $subscriberRepository;
@@ -27,26 +28,16 @@ class SubscriptionController extends Controller
         $this->subscriptionRepository = new SubscriptionRepository($project, $subscription);
     }
 
-    public function showSubscriptions()
+    public function index(): JsonResponse
     {
-        //  Get the total subscribers
-        $totalSubscribers = $this->subscriberRepository->countProjectSubscribers();
-
-        // Get the subscription plans
-        $subscriptionPlans = $this->subscriptionRepository->getProjectSubscriptionPlans();
-
         // Fetch the subscriptions using the repository with the required relationships and pagination
         $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan:id,name']);
 
-        // Render the subscriptions view
-        return Inertia::render('Subscriptions/List/Main', [
-            'totalSubscribers' => $totalSubscribers,
-            'subscriptionsPayload' => $subscriptions,
-            'subscriptionPlans' => $subscriptionPlans
-        ]);
+        // Return subscriptions as a JSON response using SubscriptionResource
+        return SubscriptionResource::collection($subscriptions)->response();
     }
 
-    public function createSubscription(CreateSubscriptionRequest $request)
+    public function create(CreateSubscriptionRequest $request): JsonResponse
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
@@ -56,12 +47,13 @@ class SubscriptionController extends Controller
 
         // Create a new subscription using the repository
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
-        $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan);
+        $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan);
 
-        return redirect()->back()->with('message', 'Created Successfully');
+        // Return the created subscription as a JSON response using SubscriptionResource
+        return (new SubscriptionResource($subscription))->response()->setStatusCode(201);
     }
 
-    public function updateSubscription(UpdateSubscriptionRequest $request)
+    public function update(UpdateSubscriptionRequest $request, Subscription $subscription): JsonResponse
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
@@ -73,14 +65,16 @@ class SubscriptionController extends Controller
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
         $this->subscriptionRepository->updateProjectSubscription($subscriber, $subscriptionPlan);
 
-        return redirect()->back()->with('message', 'Updated Successfully');
+        // Return a success JSON response
+        return response()->json(['message' => 'Updated Successfully']);
     }
 
-    public function deleteSubscription()
+    public function delete(Subscription $subscription): JsonResponse
     {
         // Delete the subscription using the repository
-        $this->subscriptionRepository->deleteProjectSubscription();
+        $this->subscriptionRepository->deleteProjectSubscription($subscription);
 
-        return redirect()->back()->with('message', 'Deleted Successfully');
+        // Return a success JSON response
+        return response()->json(['message' => 'Deleted Successfully']);
     }
 }

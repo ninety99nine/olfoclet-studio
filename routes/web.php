@@ -94,23 +94,23 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
             //  Subscribers
             Route::prefix('subscribers')->group(function () {
-                Route::get('/', [SubscriberController::class, 'index'])->middleware(['project.permission:View subscribers'])->name('subscribers');
-                Route::post('/', [SubscriberController::class, 'create'])->middleware(['project.permission:Manage subscribers'])->name('create-subscriber');
+                Route::get('/', [SubscriberController::class, 'showSubscribers'])->middleware(['project.permission:View subscribers'])->name('subscribers');
+                Route::post('/', [SubscriberController::class, 'createSubscriber'])->middleware(['project.permission:Manage subscribers'])->name('create-subscriber');
 
                 Route::prefix('{subscriber}')->middleware(['project.permission:Manage subscribers'])->group(function () {
-                    Route::put('/', [SubscriberController::class, 'update'])->name('update-subscriber');
-                    Route::delete('/', [SubscriberController::class, 'delete'])->name('delete-subscriber');
+                    Route::put('/', [SubscriberController::class, 'updateSubscriber'])->name('update-subscriber');
+                    Route::delete('/', [SubscriberController::class, 'deleteSubscriber'])->name('delete-subscriber');
                 });
             });
 
             //  Subscriptions
             Route::prefix('subscriptions')->group(function () {
-                Route::get('/', [SubscriptionController::class, 'index'])->middleware(['project.permission:View subscriptions'])->name('subscriptions');
-                Route::post('/', [SubscriptionController::class, 'create'])->middleware(['project.permission:Manage subscriptions'])->name('create-subscription');
+                Route::get('/', [SubscriptionController::class, 'showSubscriptions'])->middleware(['project.permission:View subscriptions'])->name('subscriptions');
+                Route::post('/', [SubscriptionController::class, 'createSubscription'])->middleware(['project.permission:Manage subscriptions'])->name('create-subscription');
 
                 Route::prefix('{subscription}')->middleware(['project.permission:Manage subscriptions'])->group(function () {
-                    Route::put('/', [SubscriptionController::class, 'update'])->name('update-subscription');
-                    Route::delete('/', [SubscriptionController::class, 'delete'])->name('delete-subscription');
+                    Route::put('/', [SubscriptionController::class, 'updateSubscription'])->name('update-subscription');
+                    Route::delete('/', [SubscriptionController::class, 'deleteSubscription'])->name('delete-subscription');
                 });
             });
 
@@ -419,7 +419,7 @@ Route::get('/upload', function(){
         ]);
     }
 
-    return $times;
+    return 'UPLOADED';
 
 });
 

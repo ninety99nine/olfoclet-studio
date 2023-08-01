@@ -4,7 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\MessageController;
-use App\Http\Controllers\Api\SubscriptionController;
+use App\Http\Controllers\Api\SubscriptionApiController;
 use App\Http\Controllers\Api\SubscriptionPlanController;
 
 /*
@@ -28,5 +28,5 @@ Route::get('projects/{project}/topics/{topic}/{type?}', [TopicController::class,
 Route::get('projects/{project}/messages', [MessageController::class, 'get'])->name('api.messages');
 Route::get('projects/{project}/messages/{message}/{type?}', [MessageController::class, 'show'])->name('api.message');
 
-Route::post('projects/{project}/subscriptions', [SubscriptionController::class, 'create'])->name('api.create.subscription');
+Route::post('projects/{project}/subscriptions', [SubscriptionApiController::class, 'create'])->name('api.create.subscription');
 Route::get('projects/{project}/subscription-plans', [SubscriptionPlanController::class, 'get'])->name('api.subscription_plans');

@@ -77,9 +77,9 @@ class Subscriber extends Model
     /**
      * Get the latest message that this subscriber received
      */
-    public function latestMessages()
+    public function latestMessage()
     {
-        return $this->messages()->latest();
+        return $this->messages()->latest()->take(1);
     }
 
     /**
@@ -95,9 +95,9 @@ class Subscriber extends Model
     /**
      * Get the latest topic that this subscriber read
      */
-    public function latestTopics()
+    public function latestTopic()
     {
-        return $this->topics()->latest();
+        return $this->topics()->latest()->take(1);
     }
 
     /**
@@ -119,9 +119,9 @@ class Subscriber extends Model
     /**
      * Get the latest subscription that this subscriber received
      */
-    public function latestSubscriptions()
+    public function latestSubscription()
     {
-        return $this->subscriptions()->latest();
+        return $this->subscriptions()->latest()->take(1);
     }
 
     //  ON DELETE EVENT

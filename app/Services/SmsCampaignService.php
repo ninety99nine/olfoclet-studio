@@ -19,12 +19,12 @@ class SmsCampaignService
         //  Get the project that can run campaigns
         $projects = self::getProjectsForSmsCampaigns();
 
-        Log::channel('slack')->info('Found '.count($projects).(count($projects) == 1 ? ' project' : ' projects'));
+        //  Log::channel('slack')->info('Found '.count($projects).(count($projects) == 1 ? ' project' : ' projects'));
 
         // Foreach project
         foreach ($projects as $project) {
 
-            Log::channel('slack')->info('Project # '.$project->id .' hasSmsCredentials():'. $project->hasSmsCredentials());
+            //  Log::channel('slack')->info('Project # '.$project->id .' hasSmsCredentials():'. $project->hasSmsCredentials());
 
             // If this project has the sms credentials then continue
             if ($project->hasSmsCredentials()) {
@@ -35,7 +35,7 @@ class SmsCampaignService
                  */
                 foreach ($project->campaigns as $campaign) {
 
-                    Log::channel('slack')->info('Dispatch StartSmsCampaign() on Campaign # '.$campaign->id);
+                    //  Log::channel('slack')->info('Dispatch StartSmsCampaign() on Campaign # '.$campaign->id);
 
                     //  Add this SMS campaign to the queue for processing
                     StartSmsCampaign::dispatch($project, $campaign, $campaign->campaign_batch_jobs_count);

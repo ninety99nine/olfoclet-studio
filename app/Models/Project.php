@@ -2,11 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\Pivots\ProjectUserAsTeamMember;
-use App\Traits\Models\ProjectTrait;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use App\Traits\Models\ProjectTrait;
+use Illuminate\Database\Eloquent\Model;
+use App\Models\Pivots\ProjectUserAsTeamMember;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Project extends Model
 {
