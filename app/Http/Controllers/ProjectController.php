@@ -44,8 +44,8 @@ class ProjectController extends Controller
 
         //  Project settings
         $settings = [
-            //  The sender name must be strictly 20 characters or less
-            'sms_sender_name' => strlen($name) <= 20 ? $name : '',
+            //  The sender name must be strictly 11 characters or less
+            'sms_sender_name' => strlen($name) <= 11 ? $name : '',
             'sms_sender_number' => '',
             'sms_client_credentials' => ''
         ];
@@ -83,7 +83,7 @@ class ProjectController extends Controller
         Validator::make($request->all(), [
             'name' => ['required', 'string', 'min:3', 'max:500'],
             'can_send_messages' => ['required', 'boolean'],
-            'settings.sms_sender_name' => ['string', 'max:20'],
+            'settings.sms_sender_name' => ['string', 'max:11'],
             'settings.sms_client_credentials' => ['string', 'max:255'],
             'settings.sms_sender_number' => ['bail', 'required', 'string', 'starts_with:'.config('app.SMS_NUMBER_EXTENSION', '267'), 'regex:/^[0-9]+$/', 'size:11'],
         ])->validate();

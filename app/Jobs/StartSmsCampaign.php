@@ -92,7 +92,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
         try{
 
             Log::channel('slack')->info('Event Handle Campaign # '.$this->campaign->id);
-            Log::channel('slack')->info('canStartSmsCampaign(): '.$this->campaign->canStartSmsCampaign());
+            Log::channel('slack')->info('canStartSmsCampaign() # '.$this->campaign->id.': '.$this->campaign->canStartSmsCampaign());
 
             //  If this campaign can be started
             if( $this->campaign->canStartSmsCampaign() ) {
@@ -328,6 +328,10 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         }
 
                     }
+                }else{
+
+                    Log::channel('slack')->info('No messages for campaign # '.$this->campaign->id);
+
                 }
             }
 
