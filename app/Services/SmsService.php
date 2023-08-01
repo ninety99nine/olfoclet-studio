@@ -92,7 +92,7 @@ class SmsService
                         'outboundSMSMessageRequest' => [
                             'address' => ['tel:+'.$recipientNumber],        //  Recepient number to send the SMS message
                             'senderAddress' => 'tel:+'.$senderNumber,       //  Sender number that will be displayed if senderName is not included
-                            'senderName' => $senderName,                    //  Sender name e.g "Company XYZ"
+                            'senderName' => 'FAC',                    //  Sender name e.g "Company XYZ"
                             'outboundSMSTextMessage' => [
                                 'message' => $message->content
                             ],
@@ -110,9 +110,11 @@ class SmsService
 
                 $jsonString = $response->getBody();
                 $statusCode = $response->getStatusCode();
+                $reasonPhrase = $response->getReasonPhrase();
 
                 Log::channel('slack')->info($statusCode);
                 Log::channel('slack')->info($jsonString);
+                Log::channel('slack')->info($reasonPhrase);
 
                 // Handle the response as needed
                 if ($statusCode === 201) {
