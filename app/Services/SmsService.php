@@ -82,7 +82,7 @@ class SmsService
                  *  }
                  * }
                  */
-                $response = $httpClient->request('POST', $smsEndpoint, [
+                $form = [
                     'headers' => [
                         'Authorization' => 'Bearer ' . $accessToken,
                         'Content-Type' => 'application/json',
@@ -102,7 +102,11 @@ class SmsService
                         ]
                     ],
                     'verify' => false,  // Disable SSL certificate verification
-                ]);
+                ];
+
+                Log::channel('slack')->info(json_encode($form));
+
+                $response = $httpClient->request('POST', $smsEndpoint, $form);
 
                 $jsonString = $response->getBody();
                 $statusCode = $response->getStatusCode();
@@ -166,7 +170,7 @@ class SmsService
              *  }
              *
              */
-            $response = $httpClient->request('POST', $tokenEndpoint, [
+            $form = [
                 'headers' => [
                     'Authorization' => 'Basic '.$clientCredentials,
                     'Content-Type' => 'application/x-www-form-urlencoded'
@@ -175,7 +179,11 @@ class SmsService
                     'grant_type' => 'client_credentials'
                 ],
                 'verify' => false,  // Disable SSL certificate verification
-            ]);
+            ];
+
+            Log::channel('slack')->info(json_encode($form));
+
+            $response = $httpClient->request('POST', $tokenEndpoint, $form);
 
             $jsonString = $response->getBody();
             $statusCode = $response->getStatusCode();
