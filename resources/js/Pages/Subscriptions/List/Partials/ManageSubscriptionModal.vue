@@ -206,6 +206,9 @@
             hasSubscription(){
                 return this.subscription == null ? false : true;
             },
+            hasSubscriber(){
+                return this.hasSubscription && (this.subscription.subscriber == null ? false : true);
+            },
             wantsToUpdate(){
                 return (this.hasSubscription && this.action == 'update') ? true : false;
             },
@@ -321,7 +324,7 @@
             },
             reset() {
                 this.form = this.$inertia.form({
-                    msisdn: this.hasSubscription ? this.subscription.subscriber.msisdn : null,
+                    msisdn: this.hasSubscriber ? (this.subscription.subscriber.msisdn ?? null) : null,
                     subscription_plan_id: this.hasSubscription ? this.subscription.subscription_plan_id : (this.subscriptionPlanOptions.length ? this.subscriptionPlanOptions[0].value: null)
                 });
             },
