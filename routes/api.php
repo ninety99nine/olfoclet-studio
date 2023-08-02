@@ -23,7 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::middleware('verify.api.bearer.token')->prefix('/projects')->name('api.')->group(function () {
+Route::/*middleware('verify.api.bearer.token')->*/prefix('/projects')->name('api.')->group(function () {
 
     Route::prefix('{project}')->group(function () {
 
