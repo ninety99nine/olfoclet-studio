@@ -69,6 +69,7 @@ class Kernel extends HttpKernel
         /**
          *  Custom Middleware -  By Julian B Tabona
          */
+        'verify.api.bearer.token' => \App\Http\Middleware\VerifyApiBearerToken::class,
         'project.permission' => \App\Http\Middleware\CheckIfHasProjectPermissions::class
     ];
 }

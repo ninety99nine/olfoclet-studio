@@ -3,13 +3,34 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Project;
-use Illuminate\Http\Request;
+use App\Models\SubscriptionPlan;
+use Illuminate\Http\JsonResponse;
 use App\Http\Controllers\Controller;
+use App\Repositories\SubscriptionRepository;
+use App\Http\Resources\SubscriptionPlanResource;
+use App\Repositories\SubscriptionPlanRepository;
 
 class SubscriptionPlanApiController extends Controller
 {
-    public function get(Request $request, Project $project)
+    protected $project;
+    protected $subscriptionRepository;
+    protected $subscriptionPlanRepository;
+
+    public function __construct()
     {
-        return $project->subscriptionPlans()->paginate();
+        $project = Project::findOrFail(request()->route('project'));
+        $subscriptionPlan = request()->route('subscription_plan') ? SubscriptionPlan::findOrFail(request()->route('subscription_plan')) : null;
+
+        $this->subscriptionRepository = new SubscriptionRepository($project, null);
+        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($project, $subscriptionPlan);
+    }
+
+    public function showSubscriptionPlans(): JsonResponse
+    {
+        // Fetch the subscription plans using the repository with the required relationships and pagination
+        $subscriptionPlans = $this->subscriptionPlanRepository->getProjectSubscriptionPlans();
+
+        // Return subscription plans as a JSON response using SubscriptionPlanResource
+        return SubscriptionPlanResource::collection($subscriptionPlans)->response();
     }
 }

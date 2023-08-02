@@ -7,8 +7,6 @@ use App\Models\Project;
 use App\Models\Subscriber;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
-use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -37,23 +35,13 @@ class SubscriptionRepository
     }
 
     /**
-     *  Query the subscription plans for the project.
+     *  Count the total number of subscriptions for the associated project.
      *
-     *  @return HasMany The relationship to the subscription plans of the project.
+     *  @return int The total number of subscriptions.
      */
-    public function queryProjectSubscriptionPlans(): HasMany
+    public function countProjectSubscriptions(): int
     {
-        return $this->project->subscriptionPlans();
-    }
-
-    /**
-     *  Get the subscription plans for the project.
-     *
-     *  @return Collection A collection of subscription plans associated with the project.
-     */
-    public function getProjectSubscriptionPlans(): Collection
-    {
-        return $this->queryProjectSubscriptionPlans()->get();
+        return $this->project->subscriptions()->count();
     }
 
     /**

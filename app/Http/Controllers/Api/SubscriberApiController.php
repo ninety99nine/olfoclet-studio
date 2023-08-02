@@ -10,6 +10,7 @@ use App\Repositories\SubscriberRepository;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Requests\Subscribers\CreateSubscriberRequest;
 use App\Http\Requests\Subscribers\UpdateSubscriberRequest;
+use App\Http\Resources\SubscriberResource;
 
 class SubscriberApiController extends Controller
 {
@@ -28,10 +29,10 @@ class SubscriberApiController extends Controller
     public function showSubscribers()
     {
         // Get the subscribers using the repository with the required relationships and pagination
-        $subscribers = $this->subscriberRepository->getProjectSubscribers(['latestSubscription', 'latestMessage'], ['messages', 'subscriptions']);
+        $subscribers = $this->subscriberRepository->getProjectSubscribers();
 
         // Return subscribers as a JSON response using SubscriptionResource
-        return SubscriptionResource::collection($subscribers)->response();
+        return SubscriberResource::collection($subscribers)->response();
     }
 
     public function createSubscriber(CreateSubscriberRequest $request)

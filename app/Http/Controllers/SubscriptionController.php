@@ -9,6 +9,7 @@ use App\Models\SubscriptionPlan;
 use App\Http\Controllers\Controller;
 use App\Repositories\SubscriberRepository;
 use App\Repositories\SubscriptionRepository;
+use App\Repositories\SubscriptionPlanRepository;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
 
@@ -17,6 +18,7 @@ class SubscriptionController extends Controller
     protected $project;
     protected $subscriberRepository;
     protected $subscriptionRepository;
+    protected $subscriptionPlanRepository;
 
     public function __construct()
     {
@@ -25,6 +27,7 @@ class SubscriptionController extends Controller
 
         $this->subscriberRepository = new SubscriberRepository($project, null);
         $this->subscriptionRepository = new SubscriptionRepository($project, $subscription);
+        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($project, $subscription);
     }
 
     public function showSubscriptions()
@@ -32,8 +35,8 @@ class SubscriptionController extends Controller
         //  Get the total subscribers
         $totalSubscribers = $this->subscriberRepository->countProjectSubscribers();
 
-        // Get the subscription plans
-        $subscriptionPlans = $this->subscriptionRepository->getProjectSubscriptionPlans();
+        // Fetch the subscription plans using the repository with the required relationships and pagination
+        $subscriptionPlans = $this->subscriptionPlanRepository->getProjectSubscriptionPlans();
 
         // Fetch the subscriptions using the repository with the required relationships and pagination
         $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan:id,name']);
@@ -54,8 +57,10 @@ class SubscriptionController extends Controller
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Create a new subscription using the repository
+        // Get the subscription plan to be used when creating this subscription
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+
+        // Create a new subscription using the repository
         $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan);
 
         return redirect()->back()->with('message', 'Created Successfully');
@@ -69,8 +74,10 @@ class SubscriptionController extends Controller
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Update the subscription using the repository
+        // Get the subscription plan to be used when updating this subscription
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+
+        // Update existing subscription using the repository
         $this->subscriptionRepository->updateProjectSubscription($subscriber, $subscriptionPlan);
 
         return redirect()->back()->with('message', 'Updated Successfully');

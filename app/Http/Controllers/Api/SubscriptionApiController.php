@@ -45,8 +45,10 @@ class SubscriptionApiController extends Controller
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Create a new subscription using the repository
+        // Get the subscription plan to be used when creating this subscription
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+
+        // Create a new subscription using the repository
         $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan);
 
         // Return the created subscription as a JSON response using SubscriptionResource
@@ -61,8 +63,10 @@ class SubscriptionApiController extends Controller
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Update the subscription using the repository
+        // Get the subscription plan to be used when updating this subscription
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+
+        // Update existing subscription using the repository
         $this->subscriptionRepository->updateProjectSubscription($subscriber, $subscriptionPlan);
 
         // Return a success JSON response

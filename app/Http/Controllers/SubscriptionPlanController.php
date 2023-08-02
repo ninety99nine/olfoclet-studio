@@ -4,110 +4,86 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Project;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use App\Models\SubscriptionPlan;
-use Illuminate\Support\Facades\Validator;
+use App\Repositories\SubscriptionRepository;
+use App\Repositories\SubscriptionPlanRepository;
+use App\Http\Requests\SubscriptionPlans\CreateSubscriptionPlanRequest;
+use App\Http\Requests\SubscriptionPlans\UpdateSubscriptionPlanRequest;
 
 class SubscriptionPlanController extends Controller
 {
-    public function index(Project $project)
+    protected $project;
+    protected $subscriptionRepository;
+    protected $subscriptionPlanRepository;
+
+    public function __construct()
     {
-        //  Get the subscriptions
-        $totalSubscriptions = $project->subscriptions()->count();
+        $project = Project::findOrFail(request()->route('project'));
+        $subscriptionPlan = request()->route('subscription_plan') ? SubscriptionPlan::findOrFail(request()->route('subscription_plan')) : null;
 
-        //  Get the subscription plans
-        $subscriptionPlans = $project->subscriptionPlans()->latest()->withCount('subscriptions')->paginate(10);
+        $this->subscriptionRepository = new SubscriptionRepository($project, null);
+        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($project, $subscriptionPlan);
+    }
 
-        //  Render the subscription plans view
+    public function showSubscriptionPlans()
+    {
+        //  Get the total subscriptions
+        $totalSubscriptions = $this->subscriptionRepository->countProjectSubscriptions();
+
+        // Fetch the subscription plans using the repository with the required relationships and pagination
+        $subscriptionPlans = $this->subscriptionPlanRepository->getProjectSubscriptionPlans([], ['subscriptions']);
+
+        // Render the subscriptions view
         return Inertia::render('SubscriptionPlans/List/Main', [
             'totalSubscriptions' => $totalSubscriptions,
             'subscriptionPlansPayload' => $subscriptionPlans
         ]);
     }
 
-    public function create(Request $request, Project $project)
+    public function createSubscriptionPlan(CreateSubscriptionPlanRequest $request)
     {
-        //  Validate the request inputs
-        Validator::make($request->all(), [
-            'name' => ['required', 'string', 'min:3', 'max:20', Rule::unique('subscription_plans')->where(function ($query) use ($request, $project) {
-
-                //  Make sure that this project does not already have this subscription plan
-                return $query->where('name', $request->input('name'))->where('project_id', $project->id);
-
-            })],
-            'price' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
-            'frequency' => ['required', 'string'],
-            'duration' => ['required', 'integer']
-        ])->validate();
-
-        //  Set name
+        //  Get the subscription plan name
         $name = $request->input('name');
 
-        //  Set price
+        //  Get the subscription plan price
         $price = $request->input('price');
 
-        //  Set frequency
+        //  Get the subscription plan duration
         $duration = $request->input('duration');
 
-        //  Set frequency
+        //  Get the subscription plan frequency
         $frequency = $request->input('frequency');
 
-        //  Create new subscription plan
-        SubscriptionPlan::create([
-            'name' => $name,
-            'price' => $price,
-            'duration' => $duration,
-            'frequency' => $frequency,
-            'project_id' => $project->id,
-        ]);
+        // Create a new subscription plan using the repository
+        $this->subscriptionPlanRepository->createProjectSubscriptionPlan($name, $price, $duration, $frequency);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
 
-    public function update(Request $request, Project $project, SubscriptionPlan $subscription_plan)
+    public function updateSubscriptioPlan(UpdateSubscriptionPlanRequest $request)
     {
-        //  Validate the request inputs
-        Validator::make($request->all(), [
-            'name' => ['required', 'string', 'min:3', 'max:20', Rule::unique('subscription_plans')->where(function ($query) use ($request, $project) {
-
-                //  Make sure that this project does not already have this subscription plan name
-                return $query->where('name', $request->input('name'))->where('project_id', $project->id);
-
-            })],
-            'price' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
-            'frequency' => ['required', 'string'],
-            'duration' => ['required', 'integer']
-        ])->validate();
-
-        //  Set name
+        //  Get the subscription plan name
         $name = $request->input('name');
 
-        //  Set price
+        //  Get the subscription plan price
         $price = $request->input('price');
 
-        //  Set frequency
+        //  Get the subscription plan duration
         $duration = $request->input('duration');
 
-        //  Set frequency
+        //  Get the subscription plan frequency
         $frequency = $request->input('frequency');
 
-        //  Update existing subscription plan
-        $subscription_plan->update([
-            'name' => $name,
-            'price' => $price,
-            'duration' => $duration,
-            'frequency' => $frequency,
-            'project_id' => $project->id,
-        ]);
+        // Update existing subscription plan using the repository
+        $this->subscriptionPlanRepository->updateProjectSubscriptionPlan($name, $price, $duration, $frequency);
 
         return redirect()->back()->with('message', 'Updated Successfully');
     }
 
-    public function delete(Project $project, SubscriptionPlan $subscription_plan)
+    public function deleteSubscriptionPlan()
     {
-        //  Delete subscription plan
-        $subscription_plan->delete();
+        // Delete the subscription plan using the repository
+        $this->subscriptionPlanRepository->deleteProjectSubscriptionPlan();
 
         return redirect()->back()->with('message', 'Deleted Successfully');
     }

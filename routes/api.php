@@ -23,7 +23,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::prefix('/projects')->name('api.')->group(function () {
+Route::middleware('verify.api.bearer.token')->prefix('/projects')->name('api.')->group(function () {
 
     Route::prefix('{project}')->group(function () {
 
@@ -35,6 +35,7 @@ Route::prefix('/projects')->name('api.')->group(function () {
 
         //  Subscribers
         Route::prefix('subscribers')->group(function () {
+            Route::get('/', [SubscriberApiController::class, 'showSubscribers'])->name('show.subscriber');
             Route::post('/', [SubscriberApiController::class, 'createSubscriber'])->name('create.subscriber');
         });
 

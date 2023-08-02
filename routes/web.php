@@ -116,12 +116,12 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
             //  Subscription Plans
             Route::prefix('subscription-plans')->group(function () {
-                Route::get('/', [SubscriptionPlanController::class, 'index'])->middleware(['project.permission:View subscription plans'])->name('show.subscription.plans');
-                Route::post('/', [SubscriptionPlanController::class, 'create'])->middleware(['project.permission:Manage subscription plans'])->name('create.subscription.plan');
+                Route::get('/', [SubscriptionPlanController::class, 'showSubscriptionPlans'])->middleware(['project.permission:View subscription plans'])->name('show.subscription.plans');
+                Route::post('/', [SubscriptionPlanController::class, 'createSubscriptionPlan'])->middleware(['project.permission:Manage subscription plans'])->name('create.subscription.plan');
 
                 Route::prefix('{subscription_plan}')->middleware(['project.permission:Manage subscription plans'])->group(function () {
-                    Route::put('/', [SubscriptionPlanController::class, 'update'])->name('update.subscription-plan');
-                    Route::delete('/', [SubscriptionPlanController::class, 'delete'])->name('delete.subscription-plan');
+                    Route::put('/', [SubscriptionPlanController::class, 'updateSubscriptionPlan'])->name('update.subscription-plan');
+                    Route::delete('/', [SubscriptionPlanController::class, 'deleteSubscriptionPlan'])->name('delete.subscription-plan');
                 });
             });
 

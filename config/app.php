@@ -12,6 +12,7 @@ return [
     | These are custom configurations specific to our application
     |
     */
+    'API_BEARER_TOKEN' => env('API_BEARER_TOKEN'),
     'SMS_NUMBER_EXTENSION' => env('SMS_NUMBER_EXTENSION', '267'),
     'CAN_RUN_SMS_CAMPAIGNS' => env('CAN_RUN_SMS_CAMPAIGNS', true),
 
