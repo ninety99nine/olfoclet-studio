@@ -26,8 +26,8 @@ class SubscriptionController extends Controller
         $subscription = request()->route('subscription') ? Subscription::findOrFail(request()->route('subscription')) : null;
 
         $this->subscriberRepository = new SubscriberRepository($project, null);
+        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($project, null);
         $this->subscriptionRepository = new SubscriptionRepository($project, $subscription);
-        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($project, $subscription);
     }
 
     public function showSubscriptions()

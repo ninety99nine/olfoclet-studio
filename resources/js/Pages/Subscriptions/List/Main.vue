@@ -3,7 +3,7 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                <create-subscription-modal :showAddbutton="true" :subscriptionPlans="subscriptionPlans" />
+                <manage-subscription-modal :showAddbutton="true" :subscriptionPlans="subscriptionPlans" />
 
                 <subscriptions-content :subscriptionsPayload="subscriptionsPayload" :subscriptionPlans="subscriptionPlans" :totalSubscribers="totalSubscribers" />
 
@@ -16,13 +16,13 @@
     import { defineComponent } from 'vue'
     import AppLayout from '@/Layouts/AppLayout.vue'
     import SubscriptionsContent from './Partials/Content.vue'
-    import CreateSubscriptionModal from './Partials/ManageSubscriptionModal.vue'
+    import ManageSubscriptionModal from './Partials/ManageSubscriptionModal.vue'
 
     export default defineComponent({
         components: {
             AppLayout,
             SubscriptionsContent,
-            CreateSubscriptionModal
+            ManageSubscriptionModal
         },
         props: {
             subscriptionPlans: Array,
