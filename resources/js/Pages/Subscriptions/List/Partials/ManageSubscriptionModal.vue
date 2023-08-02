@@ -67,7 +67,7 @@
 
                         <span class="block mt-6 mb-6">Are you sure you want to delete this subscription?</span>
 
-                        <p class="text-sm text-gray-500">{{ subscription.subscriber.msisdn }}</p>
+                        <p class="text-sm text-gray-500">{{ subscription.subscriber.msisdn ?? 'Unknown' }}</p>
 
                     </template>
 
