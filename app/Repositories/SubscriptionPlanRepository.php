@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Project;
 use App\Models\SubscriptionPlan;
+use \Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -36,9 +37,9 @@ class SubscriptionPlanRepository
      *
      *  @param array $relationships The relationships to eager load on the subscription plans.
      *  @param array $countableRelationships The relationships to count on the subscription plans.
-     *  @return \Illuminate\Database\Eloquent\Relations\HasMany
+     *  @return HasMany
      */
-    public function queryProjectSubscriptionPlans($relationships = [], $countableRelationships = []): LengthAwarePaginator
+    public function queryProjectSubscriptionPlans($relationships = [], $countableRelationships = []): HasMany
     {
         return $this->project->subscriptionPlans()->with($relationships)->withCount($countableRelationships)->latest();
     }
