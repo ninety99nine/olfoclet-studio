@@ -53,7 +53,7 @@ class SubscriptionPlanRepository
      */
     public function getProjectSubscriptionPlans($relationships = [], $countableRelationships = []): LengthAwarePaginator
     {
-        return $this->project->queryProjectSubscriptionPlans($relationships, $countableRelationships)->paginate();
+        return $this->queryProjectSubscriptionPlans($relationships, $countableRelationships)->paginate();
     }
 
     /**
