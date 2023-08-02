@@ -36,7 +36,7 @@ class SubscriptionController extends Controller
         $totalSubscribers = $this->subscriberRepository->countProjectSubscribers();
 
         // Fetch the subscription plans using the repository with the required relationships and pagination
-        $subscriptionPlans = $this->subscriptionPlanRepository->getProjectSubscriptionPlans();
+        $subscriptionPlans = $this->subscriptionPlanRepository->queryProjectSubscriptionPlans()->get();
 
         // Fetch the subscriptions using the repository with the required relationships and pagination
         $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan:id,name']);

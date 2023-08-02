@@ -36,11 +36,23 @@ class SubscriptionPlanRepository
      *
      *  @param array $relationships The relationships to eager load on the subscription plans.
      *  @param array $countableRelationships The relationships to count on the subscription plans.
+     *  @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function queryProjectSubscriptionPlans($relationships = [], $countableRelationships = []): LengthAwarePaginator
+    {
+        return $this->project->subscriptionPlans()->with($relationships)->withCount($countableRelationships)->latest();
+    }
+
+    /**
+     *  Get the subscription plans for the project with optional relationships and pagination.
+     *
+     *  @param array $relationships The relationships to eager load on the subscription plans.
+     *  @param array $countableRelationships The relationships to count on the subscription plans.
      *  @return LengthAwarePaginator The paginated list of project subscription plans.
      */
     public function getProjectSubscriptionPlans($relationships = [], $countableRelationships = []): LengthAwarePaginator
     {
-        return $this->project->subscriptionPlans()->with($relationships)->withCount($countableRelationships)->latest()->paginate();
+        return $this->project->queryProjectSubscriptionPlans($relationships, $countableRelationships)->paginate();
     }
 
     /**
