@@ -27,8 +27,11 @@ class SubscriptionPlanApiController extends Controller
 
     public function showSubscriptionPlans(): JsonResponse
     {
+        //  Get the subscription plan categories
+        $categories = request()->filled('categories') ? array_map('trim', explode(',', request()->input('categories'))) : [];
+
         // Fetch the subscription plans using the repository with the required relationships and pagination
-        $subscriptionPlans = $this->subscriptionPlanRepository->getProjectSubscriptionPlans();
+        $subscriptionPlans = $this->subscriptionPlanRepository->getProjectSubscriptionPlans([], [], $categories);
 
         // Return subscription plans as a JSON response using SubscriptionPlanResource
         return SubscriptionPlanResource::collection($subscriptionPlans)->response();

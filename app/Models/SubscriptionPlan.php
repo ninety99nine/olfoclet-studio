@@ -9,12 +9,16 @@ class SubscriptionPlan extends Model
 {
     use HasFactory;
 
+    protected $casts = [
+        'categories' => 'array',
+    ];
+
     /**
      * The attributes that are mass assignable.
      *
      * @var array
      */
-    protected $fillable = ['name', 'price', 'frequency', 'duration', 'project_id'];
+    protected $fillable = ['name', 'price', 'frequency', 'duration', 'categories', 'project_id'];
 
     /**
      * Get the project associated with the subscription plan.
@@ -48,5 +52,11 @@ class SubscriptionPlan extends Model
     public function setPriceAttribute($value)
     {
         $this->attributes['price'] = number_format($value, 2);
+    }
+
+    public function getCategoriesAttribute($value)
+    {
+        //  Convert the categories into an empty array if null
+        return json_decode($value ?? '[]');
     }
 }

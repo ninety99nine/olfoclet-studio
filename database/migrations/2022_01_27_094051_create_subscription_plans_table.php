@@ -20,6 +20,7 @@ class CreateSubscriptionPlansTable extends Migration
             $table->unsignedInteger('duration');
             $table->float('price')->default(0);
             $table->unsignedInteger('project_id');
+            $table->json('categories')->nullable();
             $table->timestamps();
         });
     }

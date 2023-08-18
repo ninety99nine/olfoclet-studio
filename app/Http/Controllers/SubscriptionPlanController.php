@@ -54,13 +54,16 @@ class SubscriptionPlanController extends Controller
         //  Get the subscription plan frequency
         $frequency = $request->input('frequency');
 
+        //  Get the subscription plan categories
+        $categories = $request->input('categories');
+
         // Create a new subscription plan using the repository
-        $this->subscriptionPlanRepository->createProjectSubscriptionPlan($name, $price, $duration, $frequency);
+        $this->subscriptionPlanRepository->createProjectSubscriptionPlan($name, $price, $duration, $frequency, $categories);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
 
-    public function updateSubscriptioPlan(UpdateSubscriptionPlanRequest $request)
+    public function updateSubscriptionPlan(UpdateSubscriptionPlanRequest $request)
     {
         //  Get the subscription plan name
         $name = $request->input('name');
@@ -74,8 +77,11 @@ class SubscriptionPlanController extends Controller
         //  Get the subscription plan frequency
         $frequency = $request->input('frequency');
 
+        //  Get the subscription plan categories
+        $categories = $request->input('categories');
+
         // Update existing subscription plan using the repository
-        $this->subscriptionPlanRepository->updateProjectSubscriptionPlan($name, $price, $duration, $frequency);
+        $this->subscriptionPlanRepository->updateProjectSubscriptionPlan($name, $price, $duration, $frequency, $categories);
 
         return redirect()->back()->with('message', 'Updated Successfully');
     }

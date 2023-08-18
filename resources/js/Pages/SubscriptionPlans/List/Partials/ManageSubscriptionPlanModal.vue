@@ -85,7 +85,7 @@
                             <!-- Duration -->
                             <div class="mb-4">
                                 <jet-label for="duration" value="Duration" />
-                                <jet-input id="duration" type="text" class="mt-1 block w-full" v-model="form.duration" placeholder="1"/>
+                                <jet-input id="duration" type="text" class="mt-1 block w-full" v-model.string="form.duration" placeholder="1"/>
                                 <jet-input-error :message="form.errors.duration" class="mt-2" />
                             </div>
 
@@ -94,6 +94,24 @@
                                 <jet-select-input placeholder="Select frequency" :options="frequencyOptions" v-model="form.frequency" class="mt-6" />
                                 <jet-input-error :message="form.errors.frequency" class="mt-2" />
                             </div>
+
+                        </div>
+
+                        <div class="flex bg-slate-50 rounded-lg p-4 mb-4">
+
+                            <span class="font-bold mr-2">Category</span>
+
+                            <el-tag v-for="tag in form.categories" :key="tag" class="mx-1" closable :disable-transitions="false" @close="handleRemoveTag(tag)">{{ tag }}</el-tag>
+
+                            <span v-if="showAddTagInput" class="w-20">
+                                <el-input ref="addTagInputRef" v-model="addTagInput" size="small"
+                                    @keyup.enter="handleAddTag"
+                                    @blur="handleAddTag"/>
+                            </span>
+
+                            <el-button v-else class="button-new-tag ml-1" size="small" @click="showInput">
+                                + New Tag
+                            </el-button>
 
                         </div>
 
@@ -139,7 +157,7 @@
 
 <script>
 
-    import { defineComponent } from 'vue'
+    import { ref, nextTick, defineComponent } from 'vue';
 
     import JetInput from '@/Components/TextInput.vue'
     import JetLabel from '@/Components/InputLabel.vue'
@@ -184,6 +202,9 @@
 
                 //  Form attributes
                 form: null,
+
+                addTagInput: '',
+                showAddTagInput: false,
 
                 //  Modal attributes
                 showModal: this.modelValue,
@@ -272,6 +293,29 @@
             },
             closeModal() {
                 this.showModal = false;
+            },
+
+            /**
+             *  TAG METHODS
+             */
+             handleAddTag() {
+                if (this.addTagInput) {
+                    const newTag = this.addTagInput.trim();
+                    if (!this.form.categories.includes(newTag)) {
+                        this.form.categories.push(newTag);
+                    }
+                }
+                this.showAddTagInput = false;
+                this.addTagInput = '';
+            },
+            handleRemoveTag(tag) {
+                this.form.categories.splice(this.form.categories.indexOf(tag), 1);
+            },
+            showInput() {
+                this.showAddTagInput = true;
+                nextTick(() => {
+                    this.$refs.addTagInputRef.focus();
+                });
             },
 
             /**
@@ -364,8 +408,9 @@
                 this.form = this.$inertia.form({
                     name: this.hasSubscriptionPlan ? this.subscriptionPlan.name : null,
                     price: this.hasSubscriptionPlan ? this.subscriptionPlan.price : null,
-                    duration: this.hasSubscriptionPlan ? this.subscriptionPlan.duration : '1',
-                    frequency: this.hasSubscriptionPlan ? this.subscriptionPlan.frequency : 'Days'
+                    frequency: this.hasSubscriptionPlan ? this.subscriptionPlan.frequency : 'Days',
+                    categories: this.hasSubscriptionPlan ? this.subscriptionPlan.categories ?? [] : [],
+                    duration: this.hasSubscriptionPlan ? this.subscriptionPlan.duration.toString() : '1',
                 });
             },
         },

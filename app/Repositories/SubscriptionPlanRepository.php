@@ -37,11 +37,22 @@ class SubscriptionPlanRepository
      *
      *  @param array $relationships The relationships to eager load on the subscription plans.
      *  @param array $countableRelationships The relationships to count on the subscription plans.
+     *  @param array $categories The categories to filter the subscription plans.
      *  @return HasMany
      */
-    public function queryProjectSubscriptionPlans($relationships = [], $countableRelationships = []): HasMany
+    public function queryProjectSubscriptionPlans($relationships = [], $countableRelationships = [], $categories = []): HasMany
     {
-        return $this->project->subscriptionPlans()->with($relationships)->withCount($countableRelationships)->latest();
+        $subscriptionPlans = $this->project->subscriptionPlans()->with($relationships)->withCount($countableRelationships)->latest();
+
+        if (count($categories)) {
+            $subscriptionPlans->where(function ($query) use ($categories) {
+                foreach ($categories as $category) {
+                    $query->orWhereJsonContains('categories', $category);
+                }
+            });
+        }
+
+        return $subscriptionPlans;
     }
 
     /**
@@ -49,11 +60,12 @@ class SubscriptionPlanRepository
      *
      *  @param array $relationships The relationships to eager load on the subscription plans.
      *  @param array $countableRelationships The relationships to count on the subscription plans.
+     *  @param array $categories The categories to filter the subscription plans.
      *  @return LengthAwarePaginator The paginated list of project subscription plans.
      */
-    public function getProjectSubscriptionPlans($relationships = [], $countableRelationships = []): LengthAwarePaginator
+    public function getProjectSubscriptionPlans($relationships = [], $countableRelationships = [], $categories = []): LengthAwarePaginator
     {
-        return $this->queryProjectSubscriptionPlans($relationships, $countableRelationships)->paginate();
+        return $this->queryProjectSubscriptionPlans($relationships, $countableRelationships, $categories)->paginate();
     }
 
     /**
@@ -65,10 +77,11 @@ class SubscriptionPlanRepository
      *  @param string $frequency The frequency of the subscription plan to be created.
      *  @return SubscriptionPlan The newly created subscription plan instance.
      */
-    public function createProjectSubscriptionPlan(string $name, string $price, string $duration, string $frequency): SubscriptionPlan
+    public function createProjectSubscriptionPlan(string $name, string $price, string $duration, string $frequency, array $categories): SubscriptionPlan
     {
         return SubscriptionPlan::create([
             'project_id' => $this->project->id,
+            'categories' => $categories,
             'frequency' => $frequency,
             'duration' => $duration,
             'price' => $price,
@@ -87,7 +100,7 @@ class SubscriptionPlanRepository
      *  @throws ModelNotFoundException If the associated subscription is not found or does not belong to the project.
      *  @throws \Exception If an error occurs during the update process.
      */
-    public function updateProjectSubscriptionPlan(string $name, string $price, string $duration, string $frequency): bool
+    public function updateProjectSubscriptionPlan(string $name, string $price, string $duration, string $frequency, array $categories): bool
     {
         // Make sure the subscription plan exists and belongs to the project
         if ($this->subscriptionPlan === null || $this->subscriptionPlan->project_id !== $this->project->id) {
@@ -96,6 +109,7 @@ class SubscriptionPlanRepository
 
         return $this->subscriptionPlan->update([
             'project_id' => $this->project->id,
+            'categories' => $categories,
             'frequency' => $frequency,
             'duration' => $duration,
             'price' => $price,

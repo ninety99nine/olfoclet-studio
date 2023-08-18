@@ -120,8 +120,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::post('/', [SubscriptionPlanController::class, 'createSubscriptionPlan'])->middleware(['project.permission:Manage subscription plans'])->name('create.subscription.plan');
 
                 Route::prefix('{subscription_plan}')->middleware(['project.permission:Manage subscription plans'])->group(function () {
-                    Route::put('/', [SubscriptionPlanController::class, 'updateSubscriptionPlan'])->name('update.subscription-plan');
-                    Route::delete('/', [SubscriptionPlanController::class, 'deleteSubscriptionPlan'])->name('delete.subscription-plan');
+                    Route::put('/', [SubscriptionPlanController::class, 'updateSubscriptionPlan'])->name('update.subscription.plan');
+                    Route::delete('/', [SubscriptionPlanController::class, 'deleteSubscriptionPlan'])->name('delete.subscription.plan');
                 });
             });
 
