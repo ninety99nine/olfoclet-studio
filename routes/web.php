@@ -172,9 +172,9 @@ Route::get('testing', function() {
 
 });
 
-Route::get('/upload', function(){
+Route::get('/upload', function() {
 
-    $projectId = 3;
+    $projectId = 1;
 
     //  English Parent topic
     $englishLanguage = \App\Models\Topic::create([
@@ -191,6 +191,7 @@ Route::get('/upload', function(){
     /************************
      *  SELF HELP TOPICS    *
      ***********************/
+
 
     $template = [];
 
@@ -229,14 +230,13 @@ Route::get('/upload', function(){
     }
 
     //  Create topics
-    foreach($selfHelpTopics as $key => $selfHelpTopic){
+    foreach($selfHelpTopics as $key => $selfHelpTopic) {
 
         $template['title'] = trim($selfHelpTopic[0]);
         $template['content'] = trim($selfHelpTopic[1]);
         $template['project_id'] = $projectId;
 
         $selfHelpTopicModel = \App\Models\Topic::create($template);
-        $selfHelpTopics[$key] = $selfHelpTopicModel;
 
         //  Set the English parent
         if( trim($selfHelpTopic[2]) == 'English' ){
@@ -292,22 +292,34 @@ Route::get('/upload', function(){
         }
     }
 
-    foreach($getEducatedTopics as $key => $getEducatedTopic){
-        $template['title'] = trim($getEducatedTopic[0]);
+    $parentTopicTitles = [];
+    $getEducatedParentTopicModels = [];
+
+    foreach($getEducatedTopics as $key => $getEducatedTopic) {
+
+        $parentTopicTitle = trim($getEducatedTopic[2]);
+
+        $template['title'] = $parentTopicTitle;
         $template['project_id'] = $projectId;
 
-        $getEducatedTopicModel = \App\Models\Topic::create($template);
-        $getEducatedTopics[$key] = $getEducatedTopicModel;
+        if(!in_array($parentTopicTitle, $parentTopicTitles)) {
 
-        //  Set the English parent
-        if( trim($getEducatedTopic[3]) == 'English' ){
+            array_push($parentTopicTitles, $parentTopicTitle);
 
-            $englishRootGetEducatedTopic->prependNode($getEducatedTopicModel);
+            $getEducatedParentTopicModel = \App\Models\Topic::create($template);
+            $getEducatedParentTopicModels[$key] = $getEducatedParentTopicModel;
 
-        //  Set the Setswana parent
-        }else{
+            //  Set the English parent
+            if( trim($getEducatedTopic[3]) == 'English' ) {
 
-            $setswanaRootGetEducatedTopic->prependNode($getEducatedTopicModel);
+                $englishRootGetEducatedTopic->prependNode($getEducatedParentTopicModel);
+
+            //  Set the Setswana parent
+            }else{
+
+                $setswanaRootGetEducatedTopic->prependNode($getEducatedParentTopicModel);
+
+            }
 
         }
     }
@@ -316,37 +328,41 @@ Route::get('/upload', function(){
      *  GET EDUCATED SUB TOPICS    *
      ******************************/
 
-    //  Get Educated Sub-topics
-    $getEducatedSubTopicsFile = file(storage_path('app').'/getEducatedSubTopics.csv');
-    $getEducatedSubTopics = array_slice(array_map(fn($input) => json_encode(str_getcsv($input)), $getEducatedSubTopicsFile), 1);
-
-    foreach($getEducatedSubTopics as $key => $getEducatedSubTopic){
-        $getEducatedSubTopics[$key] = json_decode(str_replace('\u202f', '', $getEducatedSubTopic));
-
-        foreach($getEducatedSubTopics[$key] as $y => $getEducatedSubTopicString){
-            $getEducatedSubTopics[$key][$y] = trim(preg_replace('/\s\s+/', ' ', $getEducatedSubTopicString));
-        }
-    }
-
     $template = [];
 
-    foreach($getEducatedSubTopics as $key => $getEducatedSubTopic){
-        $template['title'] = trim($getEducatedSubTopic[0]);
-        $template['content'] = trim($getEducatedSubTopic[1]);
+    foreach($getEducatedTopics as $key => $getEducatedTopic){
+
+        $subTopicTitle = trim($getEducatedTopic[0]);
+        $subTopicContent = trim($getEducatedTopic[1]);
+        $parentTopicTitle = trim($getEducatedTopic[2]);
+
+        $template['title'] = $subTopicTitle;
+        $template['content'] = $subTopicContent;
         $template['project_id'] = $projectId;
+
+        /**
+         *  Convert the occurance of "?." into "#?" e.g
+         *
+         *  Take the following:
+         *
+         *  $template['content'] = "1. Weakened immune system. 2. High blood pressure. 3. Depression"
+         *
+         *  And convert into:
+         *
+         *  $template['content'] = "(1) Weakened immune system. (2) High blood pressure. (3) Depression"
+         */
+        $template['content'] = preg_replace('/(\d+)\.\s/', '($1) ', $template['content']);
 
         $getEducatedSubTopicModel = \App\Models\Topic::create($template);
 
-        $getEducatedSubTopics[$key] = $getEducatedSubTopicModel;
-
         //  Set the parent Topic
-        $parentTopic = collect($getEducatedTopics)->filter(function($getEducatedTopic) use ($getEducatedSubTopic) {
-            return strtolower(trim($getEducatedTopic->title)) == strtolower(trim($getEducatedSubTopic[2]));
+        $getEducatedParentTopicModel = collect($getEducatedParentTopicModels)->filter(function($getEducatedParentTopicModel) use ($parentTopicTitle) {
+            return strtolower(trim($getEducatedParentTopicModel->title)) == strtolower($parentTopicTitle);
         })->first();
 
-        if( $parentTopic ){
+        if( $getEducatedParentTopicModel ) {
 
-            $parentTopic->prependNode($getEducatedSubTopicModel);
+            $getEducatedParentTopicModel->prependNode($getEducatedSubTopicModel);
 
         }
     }
@@ -391,12 +407,12 @@ Route::get('/upload', function(){
         $dailyQuotes[$key] = $dailyQuoteModel;
 
         //  Set the English parent
-        if( trim($dailyQuote[2]) == 'English' ){
+        if( trim($dailyQuote[5]) == '1' ) {
 
             $englishLanguage->prependNode($dailyQuoteModel);
 
         //  Set the Setswana parent
-        }else{
+        }else {
 
             $setswanaLanguage->prependNode($dailyQuoteModel);
 

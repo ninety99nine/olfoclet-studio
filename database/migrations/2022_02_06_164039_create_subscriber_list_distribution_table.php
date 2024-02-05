@@ -19,6 +19,15 @@ class CreateSubscriberListDistributionTable extends Migration
             $table->unsignedInteger('subscriber_list_id')->nullable();
             $table->unsignedInteger('project_id');
             $table->timestamps();
+
+            $table->index(['subscriber_id']);
+            $table->index(['subscriber_list_id']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
+            $table->foreign('subscriber_list_id')->references('id')->on('subscriber_lists')->cascadeOnDelete();
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

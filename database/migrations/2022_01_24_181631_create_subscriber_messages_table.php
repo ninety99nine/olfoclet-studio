@@ -21,7 +21,14 @@ class CreateSubscriberMessagesTable extends Migration
             $table->unsignedInteger('project_id');
             $table->timestamps();
 
-            $table->index(['message_id', 'subscriber_id']);
+            $table->index(['message_id']);
+            $table->index(['subscriber_id']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('message_id')->references('id')->on('messages')->cascadeOnDelete();
+            $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

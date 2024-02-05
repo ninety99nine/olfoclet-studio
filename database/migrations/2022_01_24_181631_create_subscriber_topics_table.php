@@ -21,6 +21,15 @@ class CreateSubscriberTopicsTable extends Migration
             $table->boolean('finished_reading')->default(false);
             $table->unsignedInteger('project_id');
             $table->timestamps();
+
+            $table->index(['topic_id']);
+            $table->index(['subscriber_id']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('topic_id')->references('id')->on('topics')->cascadeOnDelete();
+            $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

@@ -19,6 +19,15 @@ class CreateCampaignSubscriptionPlansTable extends Migration
             $table->unsignedInteger('subscription_plan_id')->nullable();
             $table->unsignedInteger('project_id');
             $table->timestamps();
+
+            $table->index(['campaign_id']);
+            $table->index(['subscription_plan_id']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('campaign_id')->references('id')->on('campaigns')->cascadeOnDelete();
+            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->cascadeOnDelete();
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

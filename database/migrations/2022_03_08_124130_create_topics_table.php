@@ -24,6 +24,12 @@ class CreateTopicsTable extends Migration
              */
             $table->nestedSet();
             $table->timestamps();
+
+            $table->index(['title']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

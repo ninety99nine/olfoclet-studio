@@ -38,9 +38,14 @@ class CreateCampaignsTable extends Migration
 
             $table->json('days_of_the_week')->nullable();
 
-
             $table->unsignedInteger('project_id');
             $table->timestamps();
+
+            $table->index(['name']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

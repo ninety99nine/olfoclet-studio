@@ -22,7 +22,14 @@ class CreateCampaignSubscriberTable extends Migration
             $table->unsignedSmallInteger('sent_sms_count')->default(1);
             $table->timestamps();
 
-            $table->index(['campaign_id', 'subscriber_id']);
+            $table->index(['project_id']);
+            $table->index(['campaign_id']);
+            $table->index(['subscriber_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
+            $table->foreign('campaign_id')->references('id')->on('campaigns')->cascadeOnDelete();
+            $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
         });
     }
 

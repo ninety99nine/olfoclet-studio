@@ -20,6 +20,8 @@ class CreateProjectsTable extends Migration
             $table->boolean('can_send_messages')->default(false);
             $table->json('settings')->nullable();
             $table->timestamps();
+
+            $table->index(['name']);
         });
     }
 

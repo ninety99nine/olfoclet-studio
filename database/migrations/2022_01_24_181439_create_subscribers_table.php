@@ -18,6 +18,13 @@ class CreateSubscribersTable extends Migration
             $table->string('msisdn');
             $table->unsignedInteger('project_id');
             $table->timestamps();
+
+            /* Add Indexes */
+            $table->index(['msisdn']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

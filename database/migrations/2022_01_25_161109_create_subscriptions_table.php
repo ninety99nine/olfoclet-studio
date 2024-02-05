@@ -21,6 +21,15 @@ class CreateSubscriptionsTable extends Migration
             $table->timestamp('end_at')->nullable();
             $table->unsignedInteger('project_id');
             $table->timestamps();
+
+            $table->index(['subscription_plan_id']);
+            $table->index(['subscriber_id']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->cascadeOnDelete();
+            $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

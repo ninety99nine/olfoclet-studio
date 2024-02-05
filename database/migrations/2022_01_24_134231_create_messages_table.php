@@ -17,12 +17,19 @@ class CreateMessagesTable extends Migration
             $table->id();
             $table->string('content', 500)->nullable();
             $table->unsignedInteger('project_id');
+
             /**
              *  The nestedSet() method is required to handle nested relationships
              *  Refer to: https://github.com/lazychaser/laravel-nestedset
              */
             $table->nestedSet();
             $table->timestamps();
+
+            /* Add Indexes */
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

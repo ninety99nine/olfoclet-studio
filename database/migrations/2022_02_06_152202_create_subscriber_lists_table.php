@@ -19,6 +19,12 @@ class CreateSubscriberListsTable extends Migration
             $table->string('description', 500)->nullable();
             $table->unsignedInteger('project_id');
             $table->timestamps();
+
+            $table->index(['name']);
+            $table->index(['project_id']);
+
+            /*  Foreign Key Constraints */
+            $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
 

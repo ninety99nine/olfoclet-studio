@@ -21,6 +21,12 @@ return new class extends Migration
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
             $table->timestamps();
+
+            /* Add Timestamps */
+            $table->timestamps();
+
+            /* Add Indexes */
+            $table->index(['name']);
         });
     }
 
