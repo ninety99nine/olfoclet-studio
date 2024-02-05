@@ -38,7 +38,7 @@ class CreateCampaignsTable extends Migration
 
             $table->json('days_of_the_week')->nullable();
 
-            $table->unsignedInteger('project_id');
+            $table->foreignId('project_id');
             $table->timestamps();
 
             $table->index(['name']);

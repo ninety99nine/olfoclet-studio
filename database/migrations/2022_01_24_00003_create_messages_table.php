@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUserProjectsTable extends Migration
+class CreateMessagesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,18 +13,22 @@ class CreateUserProjectsTable extends Migration
      */
     public function up()
     {
-        Schema::create('user_projects', function (Blueprint $table) {
+        Schema::create('messages', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('user_id');
-            $table->unsignedInteger('project_id');
-            $table->json('permissions')->nullable();
+            $table->string('content', 500)->nullable();
+            $table->foreignId('project_id');
+
+            /**
+             *  The nestedSet() method is required to handle nested relationships
+             *  Refer to: https://github.com/lazychaser/laravel-nestedset
+             */
+            $table->nestedSet();
             $table->timestamps();
 
-            $table->index(['user_id']);
+            /* Add Indexes */
             $table->index(['project_id']);
 
             /*  Foreign Key Constraints */
-            $table->foreign('user_id')->references('id')->on('users')->cascadeOnDelete();
             $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
@@ -36,6 +40,6 @@ class CreateUserProjectsTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_projects');
+        Schema::dropIfExists('messages');
     }
 }

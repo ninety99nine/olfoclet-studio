@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateCampaignSubscriptionPlansTable extends Migration
+class CreateSubscriptionsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,20 +13,22 @@ class CreateCampaignSubscriptionPlansTable extends Migration
      */
     public function up()
     {
-        Schema::create('campaign_subscription_plans', function (Blueprint $table) {
+        Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('campaign_id')->nullable();
-            $table->unsignedInteger('subscription_plan_id')->nullable();
-            $table->unsignedInteger('project_id');
+            $table->foreignId('subscription_plan_id')->nullable();
+            $table->foreignId('subscriber_id')->nullable();
+            $table->timestamp('start_at')->nullable();
+            $table->timestamp('end_at')->nullable();
+            $table->foreignId('project_id');
             $table->timestamps();
 
-            $table->index(['campaign_id']);
             $table->index(['subscription_plan_id']);
+            $table->index(['subscriber_id']);
             $table->index(['project_id']);
 
             /*  Foreign Key Constraints */
-            $table->foreign('campaign_id')->references('id')->on('campaigns')->cascadeOnDelete();
             $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->cascadeOnDelete();
+            $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
             $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
@@ -38,6 +40,6 @@ class CreateCampaignSubscriptionPlansTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('campaign_subscription_plans');
+        Schema::dropIfExists('subscriptions');
     }
 }

@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSubscribersTable extends Migration
+class CreateTopicsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,14 +13,19 @@ class CreateSubscribersTable extends Migration
      */
     public function up()
     {
-        Schema::create('subscribers', function (Blueprint $table) {
+        Schema::create('topics', function (Blueprint $table) {
             $table->id();
-            $table->string('msisdn');
-            $table->unsignedInteger('project_id');
+            $table->string('title', 100)->nullable();
+            $table->string('content', 5000)->nullable();
+            $table->foreignId('project_id');
+            /**
+             *  The nestedSet() method is required to handle nested relationships
+             *  Refer to: https://github.com/lazychaser/laravel-nestedset
+             */
+            $table->nestedSet();
             $table->timestamps();
 
-            /* Add Indexes */
-            $table->index(['msisdn']);
+            $table->index(['title']);
             $table->index(['project_id']);
 
             /*  Foreign Key Constraints */
@@ -35,6 +40,6 @@ class CreateSubscribersTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('subscribers');
+        Schema::dropIfExists('topics');
     }
 }

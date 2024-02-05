@@ -19,7 +19,7 @@ class CreateSubscriptionPlansTable extends Migration
             $table->string('frequency');
             $table->unsignedInteger('duration');
             $table->float('price')->default(0);
-            $table->unsignedInteger('project_id');
+            $table->foreignId('project_id');
             $table->json('categories')->nullable();
             $table->timestamps();
 
