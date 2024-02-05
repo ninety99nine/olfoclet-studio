@@ -29,6 +29,11 @@ class CreateTopicsTable extends Migration
             $table->index(['project_id']);
 
             /*  Foreign Key Constraints */
+
+            /**
+             *  Note: The parent_id is set by the $table->nestedSet() method.
+             */
+            $table->foreign('parent_id')->references('id')->on('topics')->cascadeOnDelete();
             $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
