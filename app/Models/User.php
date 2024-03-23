@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\Pivots\ProjectUserAsTeamMember;
-use App\Traits\Models\UserTrait;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Pivots\ProjectUserAsTeamMember;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Notifications\Notifiable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use App\Traits\Models\UserTrait;
 
 class User extends Authenticatable
 {

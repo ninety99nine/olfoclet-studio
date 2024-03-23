@@ -35,12 +35,12 @@
 
                 <div class="bg-gray-50 border-b pl-6 py-3 rounded-t text-gray-500 text-sm mb-6">
                     <span class="font-bold mr-2">Api Link:</span>
-                    <span v-if="parentTopic">{{ route('api.topic', { project: route().params.project, topic: parentTopic.id, type: 'children' }) }}</span>
-                    <span v-else>{{ route('api.topics', { project: route().params.project }) }}</span>
+                    <span v-if="parentTopic">{{ route('api.show.topic', { project: route().params.project, topic: parentTopic.id, type: 'children' }) }}</span>
+                    <span v-else>{{ route('api.show.topics', { project: route().params.project }) }}</span>
                 </div>
             </div>
 
-            <div v-if="$inertia.page.props.projectPermissions.includes('Manage messages')">
+            <div v-if="$inertia.page.props.projectPermissions.includes('Manage topics')">
                 <jet-button @click="openModal()" class="w-fit float-right">Add Topic</jet-button>
                 <div class="clear-both"></div>
             </div>
@@ -49,24 +49,24 @@
 
         <div>
 
-            <!-- Success Topic -->
-            <div v-if="showSuccessTopic" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
+            <!-- Success Message -->
+            <div v-if="showSuccessMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
                 <strong v-if="wantsToUpdate" class="font-bold">Topic updated successfully</strong>
                 <strong v-else-if="wantsToDelete" class="font-bold">Topic deleted successfully</strong>
                 <strong v-else class="font-bold">Topic created successfully</strong>
 
-                <span @click="showSuccessTopic = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
                     <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
                 </span>
             </div>
 
-            <!-- Error Topic -->
-            <div v-if="showErrorTopic" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
+            <!-- Error Message -->
+            <div v-if="showErrorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
                 <strong v-if="wantsToUpdate" class="font-bold">Topic update failed</strong>
                 <strong v-else-if="wantsToDelete" class="font-bold">Topic delete failed</strong>
                 <strong v-else class="font-bold">Topic creation failed</strong>
 
-                <span @click="showSuccessTopic = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
                     <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
                 </span>
             </div>
@@ -126,14 +126,14 @@
                         <!-- Title -->
                         <div class="mb-4">
                             <jet-label for="title" value="Name" />
-                            <jet-input id="title" type="text" class="mt-1 block w-full" v-model="form.title" />
+                            <jet-input id="title" type="text" class="w-full mt-1 block " v-model="form.title" />
                             <jet-input-error :message="form.errors.title" class="mt-2" />
                         </div>
 
                         <!-- Content -->
                         <div class="mb-4">
                             <jet-label for="content" value="Content" />
-                            <jet-textarea id="content" class="mt-1 block w-full" v-model="form.content" />
+                            <jet-textarea id="content" class="w-full mt-1 block " v-model="form.content" />
                             <jet-input-error :message="form.errors.content" class="mt-2" />
 
                             <!-- Other errors -->
@@ -212,8 +212,8 @@
                 //  Modal attributes
                 showModal: this.modelValue,
 
-                showSuccessTopic: false,
-                showErrorTopic: false
+                showSuccessMessage: false,
+                showErrorMessage: false
             }
         },
 
@@ -348,19 +348,19 @@
                 this.reset();
                 this.closeModal();
 
-                this.showSuccessTopic = true;
+                this.showSuccessMessage = true;
 
                 setTimeout(() => {
-                    this.showSuccessTopic = false;
+                    this.showSuccessMessage = false;
                 }, 3000);
 
             },
             handleOnError(){
 
-                this.showErrorTopic = true;
+                this.showErrorMessage = true;
 
                 setTimeout(() => {
-                    this.showErrorTopic = false;
+                    this.showErrorMessage = false;
                 }, 3000);
 
             },

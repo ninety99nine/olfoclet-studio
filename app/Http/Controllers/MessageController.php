@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MessageType;
 use Inertia\Inertia;
 use App\Models\Message;
 use App\Models\Project;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class MessageController extends Controller
 {
-    public function index(Project $project)
+    public function showMessages(Project $project)
     {
         $messagesPayload = $project->messages()->whereIsRoot()->latest()->paginate();
 
@@ -19,10 +20,9 @@ class MessageController extends Controller
             'breadcrumbs' => [],
             'messagesPayload' => $messagesPayload
         ]);
-
     }
 
-    public function show(Project $project, Message $message)
+    public function showMessage(Project $project, Message $message)
     {
         $messagesPayload = $message->children()->latest()->paginate();
 
@@ -36,7 +36,7 @@ class MessageController extends Controller
 
     }
 
-    public function create(Request $request, Project $project)
+    public function createMessage(Request $request, Project $project)
     {
         //  Validate the request inputs
         Validator::make($request->all(), [
@@ -65,7 +65,7 @@ class MessageController extends Controller
         return redirect()->back()->with('message', 'Created Successfully');
     }
 
-    public function update(Request $request, Project $project, Message $message)
+    public function updateMessage(Request $request, Project $project, Message $message)
     {
         Validator::make($request->all(), [
             'content' => ['nullable', 'string', 'min:5', 'max:500'],
@@ -93,7 +93,7 @@ class MessageController extends Controller
         return redirect()->back()->with('message', 'Updated Successfully');
     }
 
-    public function delete(Project $project, $message_id)
+    public function deleteMessage(Project $project, $message_id)
     {
         //  Delete message
         Message::findOrFail($message_id)->delete();

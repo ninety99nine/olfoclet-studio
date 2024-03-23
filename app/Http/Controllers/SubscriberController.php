@@ -30,7 +30,14 @@ class SubscriberController extends Controller
         $totalMessages = $this->messageRepository->countProjectMessages();
 
         // Get the subscribers using the repository with the required relationships and pagination
-        $subscribers = $this->subscriberRepository->getProjectSubscribers(['latestSubscription', 'latestMessage'], ['messages', 'subscriptions']);
+        $subscribers = $this->subscriberRepository->getProjectSubscribers(null,
+            ['latestSubscription', 'latestUserBillingTransaction', 'latestAutoBillingTransaction', 'latestMessage'],
+            [
+                'messages', 'subscriptions',
+                'userBillingTransactions', 'successfulUserBillingTransactions', 'unsuccessfulUserBillingTransactions',
+                'autoBillingTransactions', 'successfulAutoBillingTransactions', 'unsuccessfulAutoBillingTransactions',
+                'messagesAsContent', 'messagesAsPaymentConfirmation', 'messagesAsAutoBillingReminder'
+            ]);
 
         // Render the subscribers view
         return Inertia::render('Subscribers/List/Main', [
@@ -44,8 +51,17 @@ class SubscriberController extends Controller
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
 
+        //  Get the Metadata
+        $metadata = $request->input('metadata');
+
+        if(is_string($metadata)) {
+
+            $metadata = json_decode($metadata, true);
+
+        }
+
         // Create new subscriber using the repository
-        $this->subscriberRepository->createProjectSubscriber($msisdn);
+        $this->subscriberRepository->createProjectSubscriber($msisdn, $metadata);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
@@ -55,8 +71,17 @@ class SubscriberController extends Controller
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
 
+        //  Get the Metadata
+        $metadata = $request->input('metadata');
+
+        if(is_string($metadata)) {
+
+            $metadata = json_decode($metadata, true);
+
+        }
+
         // Update subscriber using the repository
-        $this->subscriberRepository->updateProjectSubscriber($msisdn);
+        $this->subscriberRepository->updateProjectSubscriber($msisdn, $metadata);
 
         return redirect()->back()->with('message', 'Updated Successfully');
     }

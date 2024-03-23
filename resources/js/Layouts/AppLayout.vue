@@ -1,371 +1,217 @@
 <script setup>
-import { ref } from 'vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import ApplicationMark from '@/Components/ApplicationMark.vue';
+
+import { ref, computed } from 'vue';
 import Banner from '@/Components/Banner.vue';
+import NavLink from '@/Components/NavLink.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
-import NavLink from '@/Components/NavLink.vue';
+import SpiningLoader from '@/Components/SpiningLoader.vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import ApplicationMark from '@/Components/ApplicationMark.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 
 defineProps({
     title: String,
 });
 
-const showingNavigationDropdown = ref(false);
+const links = ref([
+    {
+        label: 'About',
+        routeName: 'show.project.about',
+        activeRouteNames: [
+            'show.project.about'
+        ]
+    },
+    {
+        label: 'Topics',
+        routeName: 'show.topics',
+        activeRouteNames: [
+            'show.topics',
+            'show.topic'
+        ],
+        permission: 'View topics'
+    },
+    {
+        label: 'Messages',
+        routeName: 'show.messages',
+        activeRouteNames: [
+            'show.messages',
+            'show.message',
+        ],
+        permission: 'View messages'
+    },
+    {
+        label: 'Subscribers',
+        routeName: 'show.subscribers',
+        activeRouteNames: [
+            'show.subscribers',
+        ],
+        permission: 'View subscribers'
+    },
+    {
+        label: 'Subscriptions',
+        routeName: 'show.subscriptions',
+        activeRouteNames: [
+            'show.subscriptions'
+        ],
+        permission: 'View subscriptions'
+    },
+    {
+        label: 'Subscription Plans',
+        routeName: 'show.subscription.plans',
+        activeRouteNames: [
+            'show.subscription.plans',
+            'show.subscription.plan'
+        ],
+        permission: 'View subscription plans'
+    },
+    {
+        label: 'Sms Campaigns',
+        routeName: 'show.sms.campaigns',
+        activeRouteNames: [
+            'show.sms.campaigns',
+            'show.sms.campaign.job.batches',
+        ],
+        permission: 'View sms campaigns'
+    },
+    {
+        label: 'Auto Billing',
+        routeName: 'show.auto.billing.subscription.plans',
+        activeRouteNames: [
+            'show.auto.billing.subscription.plans'
+        ],
+        permission: 'View auto billing subscription plans'
+    },
+    {
+        label: 'Users',
+        routeName: 'show.users',
+        activeRouteNames: [
+            'show.users',
+        ],
+        permission: 'View users'
+    },
+]);
 
-const switchToTeam = (team) => {
-    router.put(route('current-team.update'), {
-        team_id: team.id,
-    }, {
-        preserveState: false,
-    });
+const filteredLinks = computed(() => {
+    return links.value.filter(link => canShowLink(link.permission ?? null));
+});
+
+const page = usePage()
+const isLoggingOut = ref(false);
+
+const isShowingProject = computed(() => {
+    return route().params.hasOwnProperty('project');
+});
+
+const canShowLink = (permission) => {
+    if(permission == null) return true;
+    return page.props.projectPermissions.includes('*') || page.props.projectPermissions.includes(permission);
+};
+
+const activeLinkClasses = (activeRouteNames) => {
+    for (let i = 0; i < activeRouteNames.length; i++) {
+        var routeName = activeRouteNames[i];
+        if(route().current(routeName)) return 'bg-gray-200';
+    }
+    return '';
+};
+
+const navigateToNavMenu = (routeName) => {
+    const url = route(routeName, { project: route().params.project });
+    router.get(url);
 };
 
 const logout = () => {
+    isLoggingOut.value = true;
     router.post(route('logout'));
 };
 </script>
 
 <template>
     <div>
+
         <Head :title="title" />
 
         <Banner />
 
-        <div class="min-h-screen bg-gray-100">
-            <nav class="bg-white border-b border-gray-100">
-                <!-- Primary Navigation Menu -->
-                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div class="flex justify-between h-16">
-                        <div class="flex">
-                            <!-- Logo -->
-                            <div class="shrink-0 flex items-center">
-                                <Link :href="route('show.projects')">
-                                    <ApplicationMark class="block h-9 w-auto" />
-                                </Link>
-                            </div>
+        <button data-drawer-target="main-sidebar" data-drawer-toggle="main-sidebar" aria-controls="main-sidebar" type="button" class="inline-flex items-center p-2 mt-2 ms-3 text-sm text-gray-500 rounded-lg sm:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:text-gray-400 dark:hover:bg-gray-700 dark:focus:ring-gray-600">
+            <span class="sr-only">Open sidebar</span>
+            <svg class="w-6 h-6" aria-hidden="true" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path clip-rule="evenodd" fill-rule="evenodd" d="M2 4.75A.75.75 0 012.75 4h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 4.75zm0 10.5a.75.75 0 01.75-.75h7.5a.75.75 0 010 1.5h-7.5a.75.75 0 01-.75-.75zM2 10a.75.75 0 01.75-.75h14.5a.75.75 0 010 1.5H2.75A.75.75 0 012 10z"></path>
+            </svg>
+        </button>
 
-                            <!-- Navigation Links -->
-                            <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                <NavLink :href="route('show.projects')" :active="route().current('show.projects')">
-                                    Projects
-                                </NavLink>
-                            </div>
+        <aside id="main-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
 
-                            <template v-if="route().params.project">
+            <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
 
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View topics')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show.topics', { project: route().params.project })" :active="route().current('show.topics', { project: route().params.project }) || route().current('show.topic', { project: route().params.project, topic: route().params.topic })">
-                                        Topics
-                                    </NavLink>
-                                </div>
+                <div class="flex justify-center">
 
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View messages')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show.messages', { project: route().params.project })" :active="route().current('show.messages', { project: route().params.project }) || route().current('show.message', { project: route().params.project, message: route().params.message })">
-                                        Messages
-                                    </NavLink>
-                                </div>
+                    <!-- Logo -->
+                    <Link :href="route('show.projects')">
+                        <ApplicationMark class="block mt-4" />
+                    </Link>
 
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View campaigns')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show.campaigns', { project: route().params.project })" :active="route().current('show.campaigns', { project: route().params.project }) || route().current('show.campaign-job-batches', { project: route().params.project, campaign: route().params.campaign })">
-                                        Campaigns
-                                    </NavLink>
-                                </div>
-
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View subscribers')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show.subscribers', { project: route().params.project })" :active="route().current('show.subscribers', { project: route().params.project })">
-                                        Subscribers
-                                    </NavLink>
-                                </div>
-
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View subscriptions')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show.subscriptions', { project: route().params.project })" :active="route().current('show.subscriptions', { project: route().params.project })">
-                                        Subscriptions
-                                    </NavLink>
-                                </div>
-
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View subscription plans')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show.subscription.plans', { project: route().params.project })" :active="route().current('show.subscription.plans', { project: route().params.project })">
-                                        Subscription Plans
-                                    </NavLink>
-                                </div>
-
-                                <div v-if="$inertia.page.props.projectPermissions.includes('View users')" class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                    <NavLink :href="route('show.users', { project: route().params.project })" :active="route().current('show.users', { project: route().params.project }) || route().current('show.user', { project: route().params.project, user: route().params.user })">
-                                        Users
-                                    </NavLink>
-                                </div>
-
-                            </template>
-
-                        </div>
-
-                        <div class="hidden sm:flex sm:items-center sm:ml-6">
-                            <div class="ml-3 relative">
-                                <!-- Teams Dropdown -->
-                                <Dropdown v-if="$page.props.jetstream.hasTeamFeatures" align="right" width="60">
-                                    <template #trigger>
-                                        <span class="inline-flex rounded-md">
-                                            <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
-                                                {{ $page.props.auth.user.current_team.name }}
-
-                                                <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <div class="w-60">
-                                            <!-- Team Management -->
-                                            <template v-if="$page.props.jetstream.hasTeamFeatures">
-                                                <div class="block px-4 py-2 text-xs text-gray-400">
-                                                    Manage Team
-                                                </div>
-
-                                                <!-- Team Settings -->
-                                                <DropdownLink :href="route('teams.show', $page.props.auth.user.current_team)">
-                                                    Team Settings
-                                                </DropdownLink>
-
-                                                <DropdownLink v-if="$page.props.jetstream.canCreateTeams" :href="route('teams.create')">
-                                                    Create New Team
-                                                </DropdownLink>
-
-                                                <div class="border-t border-gray-200" />
-
-                                                <!-- Team Switcher -->
-                                                <div class="block px-4 py-2 text-xs text-gray-400">
-                                                    Switch Teams
-                                                </div>
-
-                                                <template v-for="team in $page.props.auth.user.all_teams" :key="team.id">
-                                                    <form @submit.prevent="switchToTeam(team)">
-                                                        <DropdownLink as="button">
-                                                            <div class="flex items-center">
-                                                                <svg v-if="team.id == $page.props.auth.user.current_team_id" class="mr-2 h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                                </svg>
-
-                                                                <div>{{ team.name }}</div>
-                                                            </div>
-                                                        </DropdownLink>
-                                                    </form>
-                                                </template>
-                                            </template>
-                                        </div>
-                                    </template>
-                                </Dropdown>
-                            </div>
-
-                            <!-- Settings Dropdown -->
-                            <div class="ml-3 relative">
-                                <Dropdown align="right" width="48">
-                                    <template #trigger>
-                                        <button v-if="$page.props.jetstream.managesProfilePhotos" class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                            <img class="h-8 w-8 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
-                                        </button>
-
-                                        <span v-else class="inline-flex rounded-md">
-                                            <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
-                                                {{ $page.props.auth.user.name }}
-
-                                                <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    </template>
-
-                                    <template #content>
-                                        <!-- Account Management -->
-                                        <div class="block px-4 py-2 text-xs text-gray-400">
-                                            Manage Account
-                                        </div>
-
-                                        <DropdownLink :href="route('profile.show')">
-                                            Profile
-                                        </DropdownLink>
-
-                                        <DropdownLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show.project', { project: route().params.project })">
-                                            Settings
-                                        </DropdownLink>
-
-                                        <DropdownLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')">
-                                            API Tokens
-                                        </DropdownLink>
-
-                                        <div class="border-t border-gray-200" />
-
-                                        <!-- Authentication -->
-                                        <form @submit.prevent="logout">
-                                            <DropdownLink as="button">
-                                                Log Out
-                                            </DropdownLink>
-                                        </form>
-                                    </template>
-                                </Dropdown>
-                            </div>
-                        </div>
-
-                        <!-- Hamburger -->
-                        <div class="-mr-2 flex items-center sm:hidden">
-                            <button class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition duration-150 ease-in-out" @click="showingNavigationDropdown = ! showingNavigationDropdown">
-                                <svg
-                                    class="h-6 w-6"
-                                    stroke="currentColor"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                >
-                                    <path
-                                        :class="{'hidden': showingNavigationDropdown, 'inline-flex': ! showingNavigationDropdown }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M4 6h16M4 12h16M4 18h16"
-                                    />
-                                    <path
-                                        :class="{'hidden': ! showingNavigationDropdown, 'inline-flex': showingNavigationDropdown }"
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"
-                                    />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
                 </div>
 
-                <!-- Responsive Navigation Menu -->
-                <div :class="{'block': showingNavigationDropdown, 'hidden': ! showingNavigationDropdown}" class="sm:hidden">
-                    <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('show.projects')" :active="route().current('show.projects')">
-                            Projects
-                        </ResponsiveNavLink>
-
-                        <template v-if="route().params.project">
-
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View topics')" :href="route('show.topics', { project: route().params.project })" :active="route().current('show.topics', { project: route().params.project }) || route().current('show.topic', { project: route().params.project, topic: route().params.topic })">
-                                Topics
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View messages')" :href="route('show.messages', { project: route().params.project })" :active="route().current('show.messages', { project: route().params.project }) || route().current('show.message', { project: route().params.project, message: route().params.message })">
-                                Messages
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View campaigns')" :href="route('show.campaigns', { project: route().params.project })" :active="route().current('show.campaigns', { project: route().params.project }) || route().current('show.campaign-job-batches', { project: route().params.project, campaign: route().params.campaign })">
-                                Campaigns
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscribers')" :href="route('show.subscribers', { project: route().params.project })" :active="route().current('show.subscribers', { project: route().params.project })">
-                                Subscribers
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscriptions')" :href="route('show.subscriptions', { project: route().params.project })" :active="route().current('show.subscriptions', { project: route().params.project })">
-                                Subscriptions
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View subscription plans')" :href="route('show.subscription.plans', { project: route().params.project })" :active="route().current('show.subscription.plans', { project: route().params.project })">
-                                Subscription Plans
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View users')" :href="route('show.users', { project: route().params.project })" :active="route().current('show.users', { project: route().params.project }) || route().current('show.user', { project: route().params.project, user: route().params.user })">
-                                Users
-                            </ResponsiveNavLink>
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show.project', { project: route().params.project })" :active="route().current('show.project', { project: route().params.project })">
-                                Settings
-                            </ResponsiveNavLink>
-
-                        </template>
-                    </div>
-
-                    <!-- Responsive Settings Options -->
-                    <div class="pt-4 pb-1 border-t border-gray-200">
-                        <div class="flex items-center px-4">
-                            <div v-if="$page.props.jetstream.managesProfilePhotos" class="shrink-0 mr-3">
-                                <img class="h-10 w-10 rounded-full object-cover" :src="$page.props.auth.user.profile_photo_url" :alt="$page.props.auth.user.name">
-                            </div>
-
-                            <div>
-                                <div class="font-medium text-base text-gray-800">
-                                    {{ $page.props.auth.user.name }}
-                                </div>
-                                <div class="font-medium text-sm text-gray-500">
-                                    {{ $page.props.auth.user.email }}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-3 space-y-1">
-                            <ResponsiveNavLink :href="route('profile.show')" :active="route().current('profile.show')">
-                                Profile
-                            </ResponsiveNavLink>
-
-                            <ResponsiveNavLink v-if="$inertia.page.props.projectPermissions.includes('View project settings') && route().params.project" :href="route('show.project', { project: route().params.project })" :active="route().current('show.project', { project: route().params.project })">
-                                Settings
-                            </ResponsiveNavLink>
-
-                            <ResponsiveNavLink v-if="$page.props.jetstream.hasApiFeatures" :href="route('api-tokens.index')" :active="route().current('api-tokens.index')">
-                                API Tokens
-                            </ResponsiveNavLink>
-
-                            <!-- Authentication -->
-                            <form method="POST" @submit.prevent="logout">
-                                <ResponsiveNavLink as="button">
-                                    Log Out
-                                </ResponsiveNavLink>
-                            </form>
-
-                            <!-- Team Management -->
-                            <template v-if="$page.props.jetstream.hasTeamFeatures">
-                                <div class="border-t border-gray-200" />
-
-                                <div class="block px-4 py-2 text-xs text-gray-400">
-                                    Manage Team
-                                </div>
-
-                                <!-- Team Settings -->
-                                <ResponsiveNavLink :href="route('teams.show', $page.props.auth.user.current_team)" :active="route().current('teams.show')">
-                                    Team Settings
-                                </ResponsiveNavLink>
-
-                                <ResponsiveNavLink v-if="$page.props.jetstream.canCreateTeams" :href="route('teams.create')" :active="route().current('teams.create')">
-                                    Create New Team
-                                </ResponsiveNavLink>
-
-                                <div class="border-t border-gray-200" />
-
-                                <!-- Team Switcher -->
-                                <div class="block px-4 py-2 text-xs text-gray-400">
-                                    Switch Teams
-                                </div>
-
-                                <template v-for="team in $page.props.auth.user.all_teams" :key="team.id">
-                                    <form @submit.prevent="switchToTeam(team)">
-                                        <ResponsiveNavLink as="button">
-                                            <div class="flex items-center">
-                                                <svg v-if="team.id == $page.props.auth.user.current_team_id" class="mr-2 h-5 w-5 text-green-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
-                                                <div>{{ team.name }}</div>
-                                            </div>
-                                        </ResponsiveNavLink>
-                                    </form>
-                                </template>
-                            </template>
-                        </div>
-                    </div>
+                <div class="text-center px-4 py-4 mb-2">
+                    <p>{{ $page.props.auth.user.name }}</p>
+                    <p class="text-sm text-gray-500">{{ $page.props.auth.user.email }}</p>
                 </div>
-            </nav>
 
-            <!-- Page Heading -->
-            <header v-if="$slots.header" class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    <slot name="header" />
-                </div>
-            </header>
+                <ul class="space-y-1 font-medium">
+
+                    <template v-if="isShowingProject">
+
+                        <li><div class="border-t my-2"></div></li>
+
+                        <li v-for="(link, index) in filteredLinks" :key="index" @click="navigateToNavMenu(link.routeName)" :class="[activeLinkClasses(link.activeRouteNames), 'w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg']">
+                            <span>{{ link.label }}</span>
+                        </li>
+
+                        <li><div class="border-t my-2"></div></li>
+
+                    </template>
+
+                    <li @click="navigateToNavMenu('show.projects')" :class="[activeLinkClasses(['show.projects']), 'flex items-center space-x-2 w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg']">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                        </svg>
+
+                        <span>Projects</span>
+                    </li>
+
+                    <li @click="navigateToNavMenu('profile.show')" :class="[activeLinkClasses(['profile.show']), 'flex items-center space-x-2 w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg']">
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                        </svg>
+
+                        <span>Profile</span>
+                    </li>
+
+                    <li @click="logout" class="flex items-center space-x-2 w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg">
+
+                        <SpiningLoader v-if="isLoggingOut" class="my-1"></SpiningLoader>
+                        <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+                        </svg>
+
+                        <span>Sign Out</span>
+
+                    </li>
+
+                </ul>
+
+            </div>
+
+        </aside>
+
+        <div class="sm:ml-64">
 
             <!-- Page Content -->
-            <main>
-                <slot />
-            </main>
+            <slot />
+
         </div>
+
     </div>
 </template>

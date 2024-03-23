@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Kalnoy\Nestedset\NodeTrait;
 
 class Message extends Model
@@ -16,7 +15,7 @@ class Message extends Model
      *
      * @var array
      */
-    protected $fillable = ['content', 'project_id'];
+    protected $fillable = ['content', 'type', 'project_id'];
 
     public function scopeSearch($query, $searchWord)
     {
@@ -45,26 +44,6 @@ class Message extends Model
         return $this->belongsToMany(Subscriber::class, 'subscriber_messages')
                     ->withPivot(['sent_sms_count'])
                     ->withTimestamps();
-    }
-
-    //  ON DELETE EVENT
-    public static function boot()
-    {
-        try {
-
-            parent::boot();
-
-            //  before delete() method call this
-            static::deleting(function ($message) {
-
-                //  Delete all records of messages being assigned to users
-                DB::table('subscriber_messages')->where(['message_id' => $message->id])->delete();
-
-                // do the rest of the cleanup...
-            });
-        } catch (\Exception $e) {
-            throw($e);
-        }
     }
 
 }

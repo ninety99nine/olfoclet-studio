@@ -35,8 +35,8 @@
 
                 <div class="bg-gray-50 border-b pl-6 py-3 rounded-t text-gray-500 text-sm mb-6">
                     <span class="font-bold mr-2">Api Link:</span>
-                    <span v-if="parentMessage">{{ route('api.message', { project: route().params.project, message: parentMessage.id, type: 'children' }) }}</span>
-                    <span v-else>{{ route('api.messages', { project: route().params.project }) }}</span>
+                    <span v-if="parentMessage">{{ route('api.show.message', { project: route().params.project, message: parentMessage.id, type: 'children' }) }}</span>
+                    <span v-else>{{ route('api.show.messages', { project: route().params.project }) }}</span>
                 </div>
             </div>
 
@@ -126,7 +126,7 @@
                         <!-- Content -->
                         <div class="mb-4">
                             <jet-label for="content" value="Content" />
-                            <jet-textarea id="content" class="mt-1 block w-full" v-model="form.content" />
+                            <jet-textarea id="content" class="w-full mt-1 block " v-model="form.content" />
                             <jet-input-error :message="form.errors.content" class="mt-2" />
 
                             <!-- Other errors -->

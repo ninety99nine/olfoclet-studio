@@ -17,6 +17,8 @@ class CreateProjectsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('description', 500)->nullable();
+            $table->string('about_url')->nullable();
+            $table->boolean('can_auto_bill')->default(false);
             $table->boolean('can_send_messages')->default(false);
             $table->json('settings')->nullable();
             $table->timestamps();

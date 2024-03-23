@@ -134,7 +134,7 @@ const clearPhotoFileInput = () => {
                     id="name"
                     v-model="form.name"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="w-full mt-1 block "
                     autocomplete="name"
                 />
                 <InputError :message="form.errors.name" class="mt-2" />
@@ -147,7 +147,7 @@ const clearPhotoFileInput = () => {
                     id="email"
                     v-model="form.email"
                     type="email"
-                    class="mt-1 block w-full"
+                    class="w-full mt-1 block "
                     autocomplete="username"
                 />
                 <InputError :message="form.errors.email" class="mt-2" />

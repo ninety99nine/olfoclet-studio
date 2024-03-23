@@ -61,15 +61,22 @@
                         <!-- Name -->
                         <div class="mb-4">
                             <jet-label for="name" value="Name" />
-                            <jet-input id="name" type="text" class="mt-1 block w-full" v-model="form.name" placeholder = "John Doe" />
+                            <jet-input id="name" type="text" class="w-full mt-1 block " v-model="form.name" placeholder = "John Doe" />
                             <jet-input-error :message="form.errors.name" class="mt-2" />
                         </div>
 
                         <!-- Email -->
                         <div class="mb-4">
                             <jet-label for="email" value="Email" />
-                            <jet-input id="email" type="email" class="mt-1 block w-full" v-model="form.email" placeholder = "example@gmail.com" />
+                            <jet-input id="email" type="email" class="w-full mt-1 block " v-model="form.email" placeholder = "example@gmail.com" />
                             <jet-input-error :message="form.errors.email" class="mt-2" />
+                        </div>
+
+                        <!-- Account Type -->
+                        <div class="mb-4">
+                            <jet-label for="account-type" value="Account Type" class="mb-1" />
+                            <jet-select-input id="account-type" placeholder="Select account type" :options="accountTypes" v-model="form.account_type" />
+                            <jet-input-error :message="form.errors.account_type" class="mt-2" />
                         </div>
 
                         <!-- Permissions -->
@@ -130,17 +137,16 @@
 
 <script>
 
-    import { defineComponent } from 'vue'
-
-    import JetInput from '@/Components/TextInput.vue'
-    import JetLabel from '@/Components/InputLabel.vue'
-    import JetButton from '@/Components/PrimaryButton.vue'
-    import JetInputError from '@/Components/InputError.vue'
-    import JetSelectInput from '@/Components/SelectInput.vue'
-    import JetDialogModal from '@/Components/DialogModal.vue'
-    import JetDangerButton from '@/Components/DangerButton.vue'
-    import JetActionMessage from '@/Components/ActionMessage.vue'
-    import JetSecondaryButton from '@/Components/SecondaryButton.vue'
+    import { defineComponent } from 'vue';
+    import JetInput from '@/Components/TextInput.vue';
+    import JetLabel from '@/Components/InputLabel.vue';
+    import JetButton from '@/Components/PrimaryButton.vue';
+    import JetInputError from '@/Components/InputError.vue';
+    import JetSelectInput from '@/Components/SelectInput.vue';
+    import JetDialogModal from '@/Components/DialogModal.vue';
+    import JetDangerButton from '@/Components/DangerButton.vue';
+    import JetActionMessage from '@/Components/ActionMessage.vue';
+    import JetSecondaryButton from '@/Components/SecondaryButton.vue';
 
     export default defineComponent({
         components: {
@@ -177,6 +183,17 @@
 
                 //  Form attributes
                 form: null,
+
+                accountTypes: [
+                    {
+                        name: 'Management',
+                        value: 'Management'
+                    },
+                    {
+                        name: 'Customer Care',
+                        value: 'Customer Care'
+                    }
+                ],
 
                 //  Modal attributes
                 showModal: this.modelValue,
@@ -324,6 +341,7 @@
                     name: this.hasUser ? this.user.name : null,
                     email: this.hasUser ? this.user.email : null,
                     permissions: this.hasUser ? this.user.pivot.permissions : [],
+                    account_type: this.hasUser ? this.user.account_type : 'Management',
                 });
             },
         },

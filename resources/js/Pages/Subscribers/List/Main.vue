@@ -27,6 +27,9 @@
         props: {
             totalMessages: Number,
             subscribersPayload: Object
+        },
+        created() {
+            console.log(this.subscribersPayload);
         }
     })
 </script>

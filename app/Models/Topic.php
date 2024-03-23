@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
 use Kalnoy\Nestedset\NodeTrait;
 
 class Topic extends Model
@@ -43,28 +42,6 @@ class Topic extends Model
     public function subscribers()
     {
         return $this->belongsToMany(Subscriber::class, 'subscriber_topics');
-    }
-
-    //  ON DELETE EVENT
-    public static function boot()
-    {
-        try {
-
-            parent::boot();
-
-            //  before delete() method call this
-            static::deleting(function ($topic) {
-
-                //  Delete all records of topics being assigned to users
-                DB::table('subscriber_topics')->where(['topic_id' => $topic->id])->delete();
-
-                // do the rest of the cleanup...
-            });
-        } catch (\Exception $e) {
-
-            throw($e);
-
-        }
     }
 }
 

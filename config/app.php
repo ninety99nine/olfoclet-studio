@@ -12,9 +12,14 @@ return [
     | These are custom configurations specific to our application
     |
     */
+    'CURRENCY' => env('CURRENCY', 'BWP'),
     'API_BEARER_TOKEN' => env('API_BEARER_TOKEN'),
+    'CURRENCY_SYMBOL' => env('CURRENCY_SYMBOL', 'P'),
+    'CAN_RUN_AUTO_BILLING' => env('CAN_RUN_AUTO_BILLING', true),
     'SMS_NUMBER_EXTENSION' => env('SMS_NUMBER_EXTENSION', '267'),
     'CAN_RUN_SMS_CAMPAIGNS' => env('CAN_RUN_SMS_CAMPAIGNS', true),
+    'ORANGE_SMS_ENDPOINT' => env('ORANGE_SMS_ENDPOINT', 'https://aas-bw.com.intraorange:443'),
+    'ORANGE_BILLING_ENDPOINT' => env('ORANGE_BILLING_ENDPOINT', 'https://aas-bw.api.intraorange:443'),
 
     /*
     |--------------------------------------------------------------------------

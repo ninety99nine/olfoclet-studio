@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Subscription extends Model
@@ -17,8 +16,10 @@ class Subscription extends Model
      * @var array
      */
     protected $casts = [
-        'start_at' => 'datetime:Y-m-d H:i:s',
-        'end_at' => 'datetime:Y-m-d H:i:s',
+        'created_using_auto_billing' => 'boolean',
+        'cancelled_at' => 'datetime',
+        'start_at' => 'datetime',
+        'end_at' => 'datetime',
     ];
 
     /**
@@ -26,15 +27,30 @@ class Subscription extends Model
      *
      * @var array
      */
-    protected $fillable = ['subscriber_id', 'subscription_plan_id', 'start_at', 'end_at', 'project_id'];
+    protected $fillable = ['subscriber_id', 'subscription_plan_id', 'start_at', 'end_at', 'cancelled_at', 'created_using_auto_billing', 'project_id'];
 
     /*
-     *  Scope:
-     *  Return test accounts
+     *  Scope: Return active subscriptions
      */
     public function scopeActive($query)
     {
         return $query->where('start_at', '<=' , Carbon::now())->where('end_at', '>' , Carbon::now());
+    }
+
+    /*
+     *  Scope: Return inactive subscriptions
+     */
+    public function scopeInActive($query)
+    {
+        return $query->where('start_at', '>' , Carbon::now())->orWhere('end_at', '<=' , Carbon::now());
+    }
+
+    /*
+     *  Scope: Return non-cancelled subscriptions
+     */
+    public function scopeNotCancelled($query)
+    {
+        return $query->whereNull('cancelled_at');
     }
 
     /**
@@ -74,7 +90,7 @@ class Subscription extends Model
     public function getStatusAttribute()
     {
         return (Carbon::parse($this->start_at)->isCurrentDay() || Carbon::parse($this->start_at)->isPast()) &&
-                Carbon::parse($this->end_at)->isFuture()
+                Carbon::parse($this->end_at)->isFuture() && is_null($this->cancelled_at)
                 ? 'Active' : 'Inactive';
     }
 }

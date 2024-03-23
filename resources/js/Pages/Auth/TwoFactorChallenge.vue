@@ -64,7 +64,7 @@ const submit = () => {
                     v-model="form.code"
                     type="text"
                     inputmode="numeric"
-                    class="mt-1 block w-full"
+                    class="w-full mt-1 block "
                     autofocus
                     autocomplete="one-time-code"
                 />
@@ -78,7 +78,7 @@ const submit = () => {
                     ref="recoveryCodeInput"
                     v-model="form.recovery_code"
                     type="text"
-                    class="mt-1 block w-full"
+                    class="w-full mt-1 block "
                     autocomplete="one-time-code"
                 />
                 <InputError class="mt-2" :message="form.errors.recovery_code" />

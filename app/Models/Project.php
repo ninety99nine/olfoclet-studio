@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
-use Illuminate\Support\Facades\DB;
+use App\Casts\Json;
 use App\Traits\Models\ProjectTrait;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Pivots\ProjectUserAsTeamMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
 
 class Project extends Model
 {
@@ -16,11 +17,12 @@ class Project extends Model
         'View users', 'Manage users',
         'View topics', 'Manage topics',
         'View messages', 'Manage messages',
-        'View campaigns', 'Manage campaigns',
         'View subscribers', 'Manage subscribers',
         'View subscriptions', 'Manage subscriptions',
-        'View subscription plans', 'Manage subscription plans',
+        'View sms campaigns', 'Manage sms campaigns',
         'View project settings', 'Manage project settings',
+        'View subscription plans', 'Manage subscription plans',
+        'View auto billing subscription plans', 'Manage auto billing subscription plans',
     ];
 
     /**
@@ -29,7 +31,8 @@ class Project extends Model
      * @var string
      */
     protected $casts = [
-        'settings' => 'array',
+        'settings' => Json::class,
+        'can_auto_bill' => 'boolean',
         'can_send_messages' => 'boolean',
     ];
 
@@ -38,7 +41,19 @@ class Project extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'description', 'can_send_messages', 'settings'];
+    protected $fillable = ['name', 'description', 'can_auto_bill', 'can_send_messages', 'settings'];
+
+    /**
+     *  Scope projects that can auto bill
+     */
+    public function scopeCanAutoBill($query)
+    {
+        return $query->where('can_auto_bill', '1')
+                    ->whereNotNull('settings->auto_billing_client_id')
+                    ->where('settings->auto_billing_client_id', '!=', '')
+                    ->whereNotNull('settings->auto_billing_client_secret')
+                    ->where('settings->auto_billing_client_secret', '!=', '');
+    }
 
     /**
      *  Scope projects that can send messages
@@ -93,11 +108,11 @@ class Project extends Model
     }
 
     /**
-     * Get the campaigns associated with the project.
+     * Get the sms campaigns associated with the project.
      */
-    public function campaigns()
+    public function smsCampaigns()
     {
-        return $this->hasMany(Campaign::class);
+        return $this->hasMany(SmsCampaign::class);
     }
 
     /**
@@ -124,42 +139,13 @@ class Project extends Model
         return $this->hasMany(SubscriptionPlan::class);
     }
 
-    //  ON DELETE EVENT
-    public static function boot()
+    /**
+     * Get the auto billing reminders associated with the project.
+     */
+    public function autoBillingReminders()
     {
-        try {
-
-            parent::boot();
-
-            //  before delete() method call this
-            static::deleting(function ($project) {
-
-                //  Delete all topics
-                $project->topics()->delete();
-
-                //  Delete all messages
-                $project->messages()->delete();
-
-                //  Delete all campaigns
-                $project->campaigns()->delete();
-
-                //  Delete all subscribers
-                $project->subscribers()->delete();
-
-                //  Delete all subscriptions
-                $project->subscriptions()->delete();
-
-                //  Delete all subscription plans
-                $project->subscriptionPlans()->delete();
-
-                //  Delete all records of users being assigned to this project
-                DB::table('user_projects')->where(['project_id' => $project->id])->delete();
-
-                // do the rest of the cleanup...
-            });
-        } catch (\Exception $e) {
-            throw($e);
-        }
+        return $this->belongsToMany(User::class, 'subscription_plan_auto_billing_reminders', 'project_id', 'auto_billing_reminder_id')
+                    ->using(SubscriptionPlanAutoBillingReminder::class);
     }
 
 }

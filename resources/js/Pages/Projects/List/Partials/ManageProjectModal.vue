@@ -58,18 +58,109 @@
 
                     <template v-else>
 
-                        <!-- Name -->
-                        <div class="mb-4">
-                            <jet-label for="name" value="Name" />
-                            <jet-input id="name" type="text" class="mt-1 block w-full" v-model="form.name" />
-                            <jet-input-error :message="form.errors.name" class="mt-2" />
-                        </div>
+                        <div class="grid grid-cols-12 gap-6">
 
-                        <!-- Description -->
-                        <div class="mb-4">
-                            <jet-label for="description" value="Description" />
-                            <jet-textarea id="description" class="mt-1 block w-full" v-model="form.description" />
-                            <jet-input-error :message="form.errors.description" class="mt-2" />
+                            <div class="col-span-12">
+                                <!-- Name -->
+                                <jet-label for="name" value="Project Name" />
+                                <jet-input id="name" type="text" class="w-full mt-1 block " v-model="form.name" />
+                                <jet-input-error :message="form.errors.name" class="mt-2" />
+                            </div>
+
+                            <div class="col-span-12">
+                                <!-- Description -->
+                                <jet-label for="description" value="Project Description" />
+                                <jet-textarea id="description" class="w-full mt-1 block " v-model="form.description" />
+                                <jet-input-error :message="form.errors.description" class="mt-2" />
+                            </div>
+
+                            <div class="col-span-12">
+                                <!-- About URL -->
+                                <jet-label for="about_url" value="About URL" />
+                                <jet-input id="about_url" type="text" class="w-full mt-1 block " v-model="form.about_url" />
+                                <jet-input-error :message="form.errors.about_url" class="mt-2" />
+                            </div>
+
+                            <div class="col-span-12">
+                                <!-- Can Send Messages -->
+                                <span>
+                                    <span class="text-sm text-gray-500">Send messages</span>
+                                    <el-switch v-model="form.can_send_messages" class="mx-2"></el-switch>
+                                    <span class="text-sm text-gray-400">— {{ form.can_send_messages ? 'Turn off to stop sending messages' : 'Turn on to start sending messages' }}</span>
+                                </span>
+                            </div>
+
+                            </div>
+
+                            <div class="mt-10 mb-10">
+
+                            <el-divider content-position="left"><span class="font-semibold">Sms Account Settings</span></el-divider>
+
+                            </div>
+
+                            <div class="grid grid-cols-6 gap-6">
+
+                            <div class="col-span-6 sm:col-span-12">
+                                <jet-label for="sms_sender_name" value="Sender Name" />
+                                <jet-input id="sms_sender_name" type="text" placeholder="Company XYZ" :maxlength="20" class="w-full mt-1 block " v-model="form.settings.sms_sender_name" />
+                                <jet-input-error :message="form.errors['settings.sms_sender_name']" class="mt-2" />
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-12">
+                                <jet-label for="sms_sender_number" value="Sender Number" />
+                                <jet-input id="sms_sender_number" type="text" placeholder="26772012345" :maxlength="11" class="w-full mt-1 block " v-model="form.settings.sms_sender_number" />
+                                <jet-input-error :message="form.errors['settings.sms_sender_number']" class="mt-2" />
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-12">
+                                <jet-label for="sms_client_credentials" value="Client Credentials" />
+                                <jet-input id="sms_client_credentials" :type="showClientCredentials ? 'text' : 'password'" placeholder="*************************" class="w-full mt-1 block " v-model="form.settings.sms_client_credentials" />
+                                <jet-input-error :message="form.errors['settings.sms_client_credentials']" class="mt-2" />
+                                <div class="flex items-center mt-2">
+                                    <input v-model="showClientCredentials" id="show_client_credentials" name="show_client_credentials" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                                    <label for="show_client_credentials" class="ml-3 block text-sm font-medium text-gray-700">Show credentials</label>
+                                </div>
+                            </div>
+
+                            </div>
+
+                            <div class="mt-10 mb-10">
+
+                            <el-divider content-position="left"><span class="font-semibold">Auto Billing Settings</span></el-divider>
+
+                            </div>
+
+                            <div class="grid grid-cols-6 gap-6">
+
+                            <div class="col-span-12">
+                                <!-- Can Send Messages -->
+                                <span>
+                                    <span class="text-sm text-gray-500">Auto Bill</span>
+                                    <el-switch v-model="form.can_auto_bill" class="mx-2"></el-switch>
+                                    <span class="text-sm text-gray-400">— {{ form.can_auto_bill ? 'Turn off to stop auto billing on subscription plans' : 'Turn on to start auto billing on subscription plans' }}</span>
+                                </span>
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-12">
+                                <jet-label for="auto_billing_client_id" value="Client ID" />
+                                <jet-input id="auto_billing_client_id" :type="showAutoBillingClientSecret ? 'text' : 'password'" placeholder="*************************" class="w-full mt-1 block " v-model="form.settings.auto_billing_client_id" />
+                                <jet-input-error :message="form.errors['settings.auto_billing_client_id']" class="mt-2" />
+                                <div class="flex items-center mt-2">
+                                    <input v-model="showAutoBillingClientSecret" id="show_auto_billing_client_secret" name="show_auto_billing_client_secret" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                                    <label for="show_auto_billing_client_secret" class="ml-3 block text-sm font-medium text-gray-700">Show credentials</label>
+                                </div>
+                            </div>
+
+                            <div class="col-span-6 sm:col-span-12">
+                                <jet-label for="auto_billing_client_secret" value="Client Secret" />
+                                <jet-input id="auto_billing_client_secret" :type="showAutoBillingClientID ? 'text' : 'password'" placeholder="*************************" class="w-full mt-1 block " v-model="form.settings.auto_billing_client_secret" />
+                                <jet-input-error :message="form.errors['settings.auto_billing_client_secret']" class="mt-2" />
+                                <div class="flex items-center mt-2">
+                                    <input v-model="showAutoBillingClientID" id="show_auto_billing_client_id" name="show_auto_billing_client_id" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                                    <label for="show_auto_billing_client_id" class="ml-3 block text-sm font-medium text-gray-700">Show credentials</label>
+                                </div>
+                            </div>
+
                         </div>
 
                     </template>
@@ -156,8 +247,11 @@
                 //  Modal attributes
                 showModal: this.modelValue,
 
+                showAutoBillingClientSecret: false,
+                showAutoBillingClientID: false,
+                showClientCredentials: false,
                 showSuccessMessage: false,
-                showErrorMessage: false
+                showErrorMessage: false,
             }
         },
 
@@ -231,7 +325,17 @@
 
                 };
 
-                this.form.post(route('create.project'), options);
+                this.form.transform((data) => {
+
+                    if(data.settings.sms_sender_name == '') data.settings.sms_sender_name = null;
+                    if(data.settings.sms_sender_number == '') data.settings.sms_sender_number = null;
+                    if(data.settings.sms_client_credentials == '') data.settings.sms_client_credentials = null;
+                    if(data.settings.auto_billing_client_id == '') data.settings.auto_billing_client_id = null;
+                    if(data.settings.auto_billing_client_secret == '') data.settings.auto_billing_client_secret = null;
+
+                    return data;
+
+                }).post(route('create.project'), options);
             },
             update() {
                 var options = {
@@ -298,7 +402,17 @@
             reset() {
                 this.form = this.$inertia.form({
                     name: this.hasProject ? this.project.name : null,
+                    about_url: this.hasProject ? this.project.about_url : null,
                     description: this.hasProject ? this.project.description : null,
+                    can_auto_bill: this.hasProject ? this.project.can_auto_bill : false,
+                    can_send_messages: this.hasProject ? this.project.can_send_messages : false,
+                    settings: this.hasProject ? this.project.settings : {
+                        sms_sender_name: '',
+                        sms_sender_number: '',
+                        sms_client_credentials: '',
+                        auto_billing_client_id: '',
+                        auto_billing_client_secret: '',
+                    }
                 });
             },
         },

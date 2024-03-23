@@ -1,19 +1,27 @@
 <?php
 
+use App\Http\Controllers\AutoBillingSubscriptionPlanController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriberController;
-use App\Http\Controllers\CampaignController;
+use App\Http\Controllers\SmsCampaignController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\MessageController;
+use App\Jobs\SmsCampaign\StartSmsCampaign;
 use App\Http\Controllers\TopicController;
+use Illuminate\Database\Eloquent\Builder;
 use App\Http\Controllers\UserController;
+use App\Models\Message;
+use App\Models\Pivots\SubscriberMessage;
+use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
-use App\Jobs\StartSmsCampaign;
-use App\Models\Campaign;
+use App\Models\SmsCampaign;
+use App\Models\Subscriber;
+use App\Models\Project;
+use App\Services\SmsService;
 use Inertia\Inertia;
 
 /*
@@ -34,61 +42,66 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
     Route::prefix('/projects')->group(function () {
 
         //  Projects
-        Route::get('/', [ProjectController::class, 'index'])->name('show.projects');
-        Route::post('/', [ProjectController::class, 'create'])->name('create.project');
+        Route::get('/', [ProjectController::class, 'showProjects'])->name('show.projects');
+        Route::post('/', [ProjectController::class, 'createProject'])->name('create.project');
 
         Route::prefix('{project}')->group(function () {
 
             //  Project
             Route::middleware(['project.permission:Manage project settings'])->group(function () {
-                Route::get('/', [ProjectController::class, 'show'])
+                Route::get('/', [ProjectController::class, 'showProject'])
                         ->withoutMiddleware(['project.permission:Manage project settings'])
                         ->middleware(['project.permission:View project settings'])
                         ->name('show.project');
-                Route::put('/', [ProjectController::class, 'update'])->name('update.project');
-                Route::delete('/', [ProjectController::class, 'delete'])->name('delete.project');
+                Route::put('/', [ProjectController::class, 'updateProject'])->name('update.project');
+                Route::delete('/', [ProjectController::class, 'deleteProject'])->name('delete.project');
+            });
+
+            //  Project About
+            Route::prefix('about')->group(function () {
+                Route::get('/', [ProjectController::class, 'showProjectAbout'])->name('show.project.about');
             });
 
             //  Users
             Route::prefix('show-users')->group(function () {
-                Route::get('/', [UserController::class, 'index'])->middleware(['project.permission:View users'])->name('show.users');
-                Route::post('/', [UserController::class, 'create'])->middleware(['project.permission:Manage users'])->name('create.user');
+                Route::get('/', [UserController::class, 'showUsers'])->middleware(['project.permission:View users'])->name('show.users');
+                Route::post('/', [UserController::class, 'createUser'])->middleware(['project.permission:Manage users'])->name('create.user');
 
                 Route::prefix('{user}')->middleware(['project.permission:Manage users'])->group(function () {
-                    //  Route::get('/', [UserController::class, 'show'])->name('show.user');
-                    Route::put('/', [UserController::class, 'update'])->name('update.user');
-                    Route::delete('/', [UserController::class, 'delete'])->name('delete.user');
+                    //  Route::get('/', [UserController::class, 'showUser'])->name('show.user');
+                    Route::put('/', [UserController::class, 'updateUser'])->name('update.user');
+                    Route::delete('/', [UserController::class, 'deleteUser'])->name('delete.user');
                 });
             });
 
             //  Messages
             Route::prefix('messages')->group(function () {
-                Route::get('/', [MessageController::class, 'index'])->middleware(['project.permission:View messages'])->name('show.messages');
-                Route::post('/', [MessageController::class, 'create'])->middleware(['project.permission:Manage messages'])->name('create.message');
+                Route::get('/', [MessageController::class, 'showMessages'])->middleware(['project.permission:View messages'])->name('show.messages');
+                Route::post('/', [MessageController::class, 'createMessage'])->middleware(['project.permission:Manage messages'])->name('create.message');
 
                 Route::prefix('{message}')->middleware(['project.permission:Manage messages'])->group(function () {
-                    Route::get('/', [MessageController::class, 'show'])
+                    Route::get('/', [MessageController::class, 'showMessage'])
                         ->withoutMiddleware(['project.permission:Manage messages'])
                         ->middleware(['project.permission:View messages'])
                         ->name('show.message');
-                    Route::put('/', [MessageController::class, 'update'])->name('update.message');
-                    Route::delete('/', [MessageController::class, 'delete'])->name('delete.message');
+                    Route::put('/', [MessageController::class, 'updateMessage'])->name('update.message');
+                    Route::delete('/', [MessageController::class, 'deleteMessage'])->name('delete.message');
                 });
             });
 
-            //  Campaigns
-            Route::prefix('campaigns')->group(function () {
-                Route::get('/', [CampaignController::class, 'index'])->middleware(['project.permission:View campaigns'])->name('show.campaigns');
-                Route::post('/', [CampaignController::class, 'create'])->middleware(['project.permission:Manage campaigns'])->name('create.campaign');
+            //  Sms Campaigns
+            Route::prefix('sms-campaigns')->group(function () {
+                Route::get('/', [SmsCampaignController::class, 'showSmsCampaigns'])->middleware(['project.permission:View sms campaigns'])->name('show.sms.campaigns');
+                Route::post('/', [SmsCampaignController::class, 'createSmsCampaign'])->middleware(['project.permission:Manage sms campaigns'])->name('create.sms.campaign');
 
-                Route::prefix('{campaign}')->middleware(['project.permission:Manage campaigns'])->group(function () {
-                    Route::get('/', [CampaignController::class, 'show'])->name('show.campaign');
-                    Route::put('/', [CampaignController::class, 'update'])->name('update.campaign');
-                    Route::delete('/', [CampaignController::class, 'delete'])->name('delete.campaign');
-                    Route::get('/job-batches', [CampaignController::class, 'jobBatches'])
-                            ->withoutMiddleware(['project.permission:Manage campaigns'])
-                            ->middleware(['project.permission:View campaigns'])
-                            ->name('show.campaign.job.batches');
+                Route::prefix('{sms_campaign}')->middleware(['project.permission:Manage sms campaigns'])->group(function () {
+                    Route::get('/', [SmsCampaignController::class, 'showSmsCampaign'])->name('show.sms.campaign');
+                    Route::put('/', [SmsCampaignController::class, 'updateSmsCampaign'])->name('update.sms.campaign');
+                    Route::delete('/', [SmsCampaignController::class, 'deleteSmsCampaign'])->name('delete.sms.campaign');
+                    Route::get('/job-batches', [SmsCampaignController::class, 'showSmsCampaignJobBatches'])
+                            ->withoutMiddleware(['project.permission:Manage sms campaigns'])
+                            ->middleware(['project.permission:View sms campaigns'])
+                            ->name('show.sms.campaign.job.batches');
                 });
             });
 
@@ -111,6 +124,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::prefix('{subscription}')->middleware(['project.permission:Manage subscriptions'])->group(function () {
                     Route::put('/', [SubscriptionController::class, 'updateSubscription'])->name('update.subscription');
                     Route::delete('/', [SubscriptionController::class, 'deleteSubscription'])->name('delete.subscription');
+                    Route::post('/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('cancel.subscription');
+                    Route::post('/uncancel', [SubscriptionController::class, 'uncancelSubscription'])->name('uncancel.subscription');
                 });
             });
 
@@ -120,23 +135,39 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::post('/', [SubscriptionPlanController::class, 'createSubscriptionPlan'])->middleware(['project.permission:Manage subscription plans'])->name('create.subscription.plan');
 
                 Route::prefix('{subscription_plan}')->middleware(['project.permission:Manage subscription plans'])->group(function () {
+                    Route::get('/', [SubscriptionPlanController::class, 'showSubscriptionPlan'])
+                        ->withoutMiddleware(['project.permission:Manage subscription plans'])
+                        ->middleware(['project.permission:View subscription plans'])
+                        ->name('show.subscription.plan');
                     Route::put('/', [SubscriptionPlanController::class, 'updateSubscriptionPlan'])->name('update.subscription.plan');
                     Route::delete('/', [SubscriptionPlanController::class, 'deleteSubscriptionPlan'])->name('delete.subscription.plan');
                 });
             });
 
+            //  Auto Billing Subscription Plans
+            Route::prefix('auto-billing/subscription-plans')->group(function () {
+                Route::get('/', [AutoBillingSubscriptionPlanController::class, 'showAutoBillingSubscriptionPlans'])->middleware(['project.permission:View auto billing subscription plans'])->name('show.auto.billing.subscription.plans');
+
+                Route::prefix('{subscription_plan}')->middleware(['project.permission:Manage auto billing subscription plans'])->group(function () {
+                    Route::get('/job-batches', [AutoBillingSubscriptionPlanController::class, 'showAutoBillingSubscriptionPlanJobBatches'])
+                            ->withoutMiddleware(['project.permission:Manage auto billing subscription plans'])
+                            ->middleware(['project.permission:View auto billing subscription plans'])
+                            ->name('show.auto.billing.subscription.plan.job.batches');
+                });
+            });
+
             //  Topics
             Route::prefix('topics')->group(function () {
-                Route::get('/', [TopicController::class, 'index'])->middleware(['project.permission:View topics'])->name('show.topics');
-                Route::post('/', [TopicController::class, 'create'])->middleware(['project.permission:Manage topics'])->name('create.topic');
+                Route::get('/', [TopicController::class, 'showTopics'])->middleware(['project.permission:View topics'])->name('show.topics');
+                Route::post('/', [TopicController::class, 'createTopic'])->middleware(['project.permission:Manage topics'])->name('create.topic');
 
                 Route::prefix('{topic}')->middleware(['project.permission:Manage topics'])->group(function () {
-                    Route::get('/', [TopicController::class, 'show'])
+                    Route::get('/', [TopicController::class, 'showTopic'])
                         ->withoutMiddleware(['project.permission:Manage topics'])
                         ->middleware(['project.permission:View topics'])
                         ->name('show.topic');
-                    Route::put('/', [TopicController::class, 'update'])->name('update.topic');
-                    Route::delete('/', [TopicController::class, 'delete'])->name('delete.topic');
+                    Route::put('/', [TopicController::class, 'updateTopic'])->name('update.topic');
+                    Route::delete('/', [TopicController::class, 'deleteTopic'])->name('delete.topic');
                 });
             });
 
@@ -147,26 +178,188 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 });
 
 
-Route::get('testing', function() {
 
-    //  return Campaign::find(1)->canStartSmsCampaign();
-    //  return Campaign::find(1)->nextCampaignSmsMessageDate();
 
-    //  Get the projects
-    $projects = \App\Models\Project::with('campaigns')->get();
 
-    //  Foreach project
-    foreach($projects as $project) {
+Route::get('/testing2', function() {
 
-        /**
-         *  Foreach campaign
-         *  @var Campaign $campaign
-         */
-        foreach($project->campaigns as $campaign) {
+    $project = Project::find(1);
+    $message = Message::find(3);
+    $subscriber = Subscriber::find(1);
+    $subscriberMessage = SubscriberMessage::find(2);
 
-            StartSmsCampaign::dispatch($project, $campaign);
+    //  Get projects that can send messages
+    $subscriberMessages = SubscriberMessage::messageWaiting()->with(['project' => function($query) {
+
+        //  Get sms campaigns that can send messages with their total batch jobs
+        return $query->select('id', 'settings');
+
+    }])->select('id', 'project_id')->oldest();
+
+    //  Only query 1000 subscriber messages at a time (This helps us save memory)
+    return $subscriberMessages->chunk(1000, function ($chunkedSubscriberMessages) {
+
+        //  Foreach chunked subscriber messages
+        foreach($chunkedSubscriberMessages as $subscriberMessage) {
+
+            //  Create a job to update the sms delivery status
+            return dd($subscriberMessage->toArray());
 
         }
+
+    });
+
+    return 'done';
+
+    //
+    //return SmsService::sendSms($project, $subscriber, $message);
+    return SmsService::updateSmsDeliveryStatus($project, $subscriberMessage);
+
+
+    return Project::find(1)->subscribers()
+        ->hasActiveNonCancelledSubscription(9, 1)
+        ->select('subscribers.id', 'subscribers.msisdn')->get();
+
+    /***************************************************
+     *  GET THE SUBSCRIBERS READY FOR THE NEXT MESSAGE *
+     **************************************************/
+
+    $project = Project::find(1);
+    $smsCampaign = SmsCampaign::find(3);
+    $subscriber = Subscriber::find(1);
+    $subscriptionPlanIds = [1, 2, 3];
+    $subscribers = $project->subscribers()->whereDoesntHave('smsCampaigns', function (Builder $query) use ($smsCampaign) {
+
+        $query->where('sms_campaigns.id', $smsCampaign->id)
+              ->where('next_message_date', '>', \Carbon\Carbon::now());
+
+    })->with(['messages' => function($query) {
+
+        /**
+         *  1) Limit the loaded message to the message id and sent sms count to consume less memory.
+         *  2) Order by the sent sms count "ASC" so that the messages that have the lowest sent sms
+         *     count appear at the top of this relationsip stack. If the
+         *  3) For messages that have the same sent sms count, we can then order by the messages
+         *     created_at "ASC" so that the messages that were created earlier appear first
+         *     before messages that were created later after them.
+         *
+         *  The eager loaded "messages" will look something like this for every subscriber:
+         *
+         *  {
+         *      ...
+         *      "messages":[
+         *          {
+         *              "id":1,"pivot":{
+         *                  "message_id": 2,
+         *                  "subscriber_id": 1,
+         *                  "sent_sms_count": 199
+         *              }
+         *          }
+         *          {
+         *              "id":2,"pivot":{
+         *                  "message_id": 1,
+         *                  "subscriber_id": 1,
+         *                  "sent_sms_count": 200
+         *              }
+         *          }
+         *          ...
+         *      ]
+         *  }
+         *
+         *  Notice that the "pivot" will always include the "message_id" and "subscriber_id"
+         *  by default even if the withPivot() only specifies the "sent_sms_count".
+         */
+        return $query->select('messages.id')->withPivot('sent_sms_count')->orderBy('sent_sms_count')->orderBy('messages.created_at');
+
+    /**
+     *  1) Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
+     *
+     *  The final query output is as follows:
+     *
+     *  [
+     *      {
+     *          "id": 1,
+     *          "msisdn": "26772000001",
+     *          "messages":[
+     *              {
+     *                  "id":3,
+     *                  "pivot":{
+     *                      "message_id": 2,
+     *                      "subscriber_id": 1,
+     *                      "sent_sms_count": 199
+     *                  }
+     *              },
+     *              {
+     *                  "id":3,
+     *                  "pivot":{
+     *                  "message_id": 1,
+     *                  "subscriber_id": 1,
+     *                  "sent_sms_count": 200
+     *              }
+     *          }
+     *          ...
+     *      ]
+     *
+     *
+     */
+    }])->select('subscribers.id', 'subscribers.msisdn');
+
+    return $subscriber->subscriptions()->active()->get();
+
+    //  If this sms campaign requires the subscribers to have an active subscription
+    if( count($subscriptionPlanIds = $smsCampaign->subscriptionPlans()->pluck('subscription_plan_id')) ) {
+        /**
+         *  Limit the subscribers based on the active subscriptions
+         *  matching the specified subscription plans.
+         */
+        $subscribers = $subscribers->hasActiveNonCancelledSubscription($subscriptionPlanIds);
+
+    }
+
+    return $subscribers->get();
+
+});
+
+Route::get('testing', function() {
+
+    $subscriptionPlanAutoBillingReminders = SubscriptionPlanAutoBillingReminder::whereHas('project', function($query) {
+
+        /**
+         *  Must have a project that can auto bill.
+         */
+        return $query->canAutoBill();
+
+    })->whereHas('subscriptionPlan', function($query) {
+
+        /**
+         *  Must have an active, non-folder subscription plan that can also auto bill.
+         */
+        return $query->active()->nonFolder()->canAutoBill();
+
+    })->with(['project', 'autoBillingReminder', 'subscriptionPlan' => function($query) {
+
+        $query->withCount('autoBillingReminderJobBatches');
+
+    }])->get();
+
+    /**
+     *  Order the subscriptionPlanAutoBillingReminders by the autoBillingReminder hours
+     *  so that those with more hours appear at the top of the stack while those with
+     *  fewer hours appear at the bottom of the stack.
+     */
+    $subscriptionPlanAutoBillingReminders = $subscriptionPlanAutoBillingReminders->sortByDesc(function ($subscriptionPlanAutoBillingReminder) {
+        return $subscriptionPlanAutoBillingReminder->autoBillingReminder->hours;
+    })->all();
+
+    // Foreach project
+    foreach ($subscriptionPlanAutoBillingReminders as $subscriptionPlanAutoBillingReminder) {
+
+        $project = $subscriptionPlanAutoBillingReminder->project;
+        $subscriptionPlan = $subscriptionPlanAutoBillingReminder->subscriptionPlan;
+        $autoBillingReminder = $subscriptionPlanAutoBillingReminder->autoBillingReminder;
+        $autoBillingReminderJobBatchesCount = $subscriptionPlan->auto_billing_reminder_job_batches_count;
+
+        dd($project, $subscriptionPlan, $autoBillingReminder, $autoBillingReminderJobBatchesCount);
 
     }
 
@@ -351,7 +544,7 @@ Route::get('/upload', function() {
          *
          *  $template['content'] = "(1) Weakened immune system. (2) High blood pressure. (3) Depression"
          */
-        $template['content'] = preg_replace('/(\d+)\.\s/', '($1) ', $template['content']);
+        $template['content'] = preg_replace('/(\d+)\.\s/', '#$1 ', $template['content']);
 
         $getEducatedSubTopicModel = \App\Models\Topic::create($template);
 

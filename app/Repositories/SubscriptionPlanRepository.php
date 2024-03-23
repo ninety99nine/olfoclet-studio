@@ -7,6 +7,7 @@ use App\Models\SubscriptionPlan;
 use \Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Cache;
 
 class SubscriptionPlanRepository
 {
@@ -33,88 +34,186 @@ class SubscriptionPlanRepository
     }
 
     /**
-     *  Get the subscription plans for the project with optional relationships and pagination.
+     *  Get the subscription plans for the project with optional relationships
      *
      *  @param array $relationships The relationships to eager load on the subscription plans.
      *  @param array $countableRelationships The relationships to count on the subscription plans.
-     *  @param array $categories The categories to filter the subscription plans.
      *  @return HasMany
      */
-    public function queryProjectSubscriptionPlans($relationships = [], $countableRelationships = [], $categories = []): HasMany
+    public function queryProjectSubscriptionPlans($relationships = [], $countableRelationships = []): HasMany
     {
-        $subscriptionPlans = $this->project->subscriptionPlans()->with($relationships)->withCount($countableRelationships)->latest();
-
-        if (count($categories)) {
-            $subscriptionPlans->where(function ($query) use ($categories) {
-                foreach ($categories as $category) {
-                    $query->orWhereJsonContains('categories', $category);
-                }
-            });
-        }
-
-        return $subscriptionPlans;
+        return $this->project->subscriptionPlans()->whereIsRoot()->with($relationships)->withCount($countableRelationships)->latest();
     }
 
     /**
-     *  Get the subscription plans for the project with optional relationships and pagination.
+     *  Get the subscription plans for the project with optional relationships
      *
-     *  @param array $relationships The relationships to eager load on the subscription plans.
-     *  @param array $countableRelationships The relationships to count on the subscription plans.
-     *  @param array $categories The categories to filter the subscription plans.
+     *  @param array $relationships - The relationships to eager load on the subscription plans.
+     *  @param array $countableRelationships - The relationships to count on the subscription plans.
+     *
+     *  @return LengthAwarePaginator - The paginated list of project subscription plans.
+     */
+    public function getProjectSubscriptionPlans($relationships = [], $countableRelationships = []): LengthAwarePaginator
+    {
+        return $this->queryProjectSubscriptionPlans($relationships, $countableRelationships)->paginate();
+    }
+
+    /**
+     *  Get the subscription plan children for the project
+     *
+     *  @param array $relationships - The relationships to eager load on the subscription plans.
+     *  @param array $countableRelationships - The relationships to count on the subscription plans.
+     *
      *  @return LengthAwarePaginator The paginated list of project subscription plans.
      */
-    public function getProjectSubscriptionPlans($relationships = [], $countableRelationships = [], $categories = []): LengthAwarePaginator
+    public function getProjectSubscriptionPlanChildren($relationships = [], $countableRelationships = []): LengthAwarePaginator
     {
-        return $this->queryProjectSubscriptionPlans($relationships, $countableRelationships, $categories)->paginate();
+        return $this->subscriptionPlan->children()->with($relationships)->withCount($countableRelationships)->latest()->paginate();
+    }
+
+    /**
+     *  Get the subscription plan breadcrumb navigation
+     *
+     *  @return array The breadcrumb navigation
+     */
+    public function getProjectSubscriptionPlanBreadcrumbNavigation(): array
+    {
+        return collect($this->subscriptionPlan->ancestorsAndSelf($this->subscriptionPlan->id))->map(fn($subscriptionPlan) => collect($subscriptionPlan)->only(['id', 'name']))->toArray();
     }
 
     /**
      *  Create a new subscription plan for the project.
      *
-     *  @param string $name The name of the subscription plan to be created.
-     *  @param string $price The price of the subscription plan to be created.
-     *  @param string $duration The duration of the subscription plan to be created.
-     *  @param string $frequency The frequency of the subscription plan to be created.
+     *  @param string $name - The name of the subscription plan.
+     *  @param string $description - The description of the subscription plan.
+     *  @param bool $active - Whether the subscription plan is active.
+     *  @param bool $isFolder - Whether the subscription plan is a folder.
+     *  @param string|null $price - The price of the subscription plan.
+     *  @param string|null $duration - The duration of the subscription plan.
+     *  @param string|null $frequency - The frequency of the subscription plan.
+     *  @param bool $canAutoBill - Can auto bill status of the subscription plan.
+     *  @param bool $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
+     *  @param string $insufficientFundsMessage - The insufficient funds message of the subscription plan.
+     *  @param string $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
+     *  @param string $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
+     *  @param string|null $parentId - The id of the parent subscription plan.
+     *
      *  @return SubscriptionPlan The newly created subscription plan instance.
      */
-    public function createProjectSubscriptionPlan(string $name, string $price, string $duration, string $frequency, array $categories): SubscriptionPlan
+    public function createProjectSubscriptionPlan(
+        string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
+        string|null $frequency, bool $canAutoBill, bool $maxAutoBillingAttempts, string $insufficientFundsMessage,
+        string $successfulPaymentSmsMessage, string|null $nextAutoBillingReminderSmsMessage,
+        array $autoBillingReminderIds, int|null $parentId,
+    ): SubscriptionPlan
     {
-        return SubscriptionPlan::create([
+        $this->subscriptionPlan = SubscriptionPlan::create([
+            'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
+            'successful_payment_sms_message' => $successfulPaymentSmsMessage,
+            'insufficient_funds_message' => $insufficientFundsMessage,
+            'max_auto_billing_attempts' => $maxAutoBillingAttempts,
             'project_id' => $this->project->id,
-            'categories' => $categories,
+            'can_auto_bill' => $canAutoBill,
+            'description' => $description,
             'frequency' => $frequency,
+            'is_folder' => $isFolder,
             'duration' => $duration,
+            'active' => $active,
             'price' => $price,
             'name' => $name,
         ]);
+
+        if( $parentSubscriptionPlan = SubscriptionPlan::find($parentId) ) {
+
+            $parentSubscriptionPlan->prependNode($this->subscriptionPlan);
+
+        }
+
+        //  Update the subscription plan auto billing reminders
+        $this->updateAutoBillingReminders($autoBillingReminderIds);
+
+        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanApiController
+        Cache::flush();
+
+        return $this->subscriptionPlan;
     }
 
     /**
      *  Update an existing subscription plan for the project.
      *
-     *  @param string $name The name of the subscription plan to be created.
-     *  @param string $price The price of the subscription plan to be created.
-     *  @param string $duration The duration of the subscription plan to be created.
-     *  @param string $frequency The frequency of the subscription plan to be created.
+     *  @param string $name - The name of the subscription plan.
+     *  @param string $description - The description of the subscription plan.
+     *  @param bool $active - Whether the subscription plan is active.
+     *  @param bool $isFolder - Whether the subscription plan is a folder.
+     *  @param string|null $price - The price of the subscription plan.
+     *  @param string|null $duration - The duration of the subscription plan.
+     *  @param string|null $frequency - The frequency of the subscription plan.
+     *  @param bool $canAutoBill - Can auto bill status of the subscription plan.
+     *  @param bool $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
+     *  @param string $insufficientFundsMessage - The insufficient funds message of the subscription plan.
+     *  @param string $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
+     *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
+     *
      *  @return bool True if the update is successful, false otherwise.
+     *
      *  @throws ModelNotFoundException If the associated subscription is not found or does not belong to the project.
      *  @throws \Exception If an error occurs during the update process.
      */
-    public function updateProjectSubscriptionPlan(string $name, string $price, string $duration, string $frequency, array $categories): bool
+    public function updateProjectSubscriptionPlan(
+        string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
+        string|null $frequency, bool $canAutoBill, bool $maxAutoBillingAttempts, string $insufficientFundsMessage,
+        string $successfulPaymentSmsMessage, string|null $nextAutoBillingReminderSmsMessage,
+        array $autoBillingReminderIds
+    ): bool
     {
         // Make sure the subscription plan exists and belongs to the project
         if ($this->subscriptionPlan === null || $this->subscriptionPlan->project_id !== $this->project->id) {
             throw new ModelNotFoundException();
         }
 
-        return $this->subscriptionPlan->update([
+        $status = $this->subscriptionPlan->update([
+            'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
+            'successful_payment_sms_message' => $successfulPaymentSmsMessage,
+            'insufficient_funds_message' => $insufficientFundsMessage,
+            'max_auto_billing_attempts' => $maxAutoBillingAttempts,
             'project_id' => $this->project->id,
-            'categories' => $categories,
+            'can_auto_bill' => $canAutoBill,
+            'description' => $description,
             'frequency' => $frequency,
+            'is_folder' => $isFolder,
             'duration' => $duration,
+            'active' => $active,
             'price' => $price,
             'name' => $name,
         ]);
+
+        //  Update the subscription plan auto billing reminders
+        $this->updateAutoBillingReminders($autoBillingReminderIds);
+
+        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanApiController
+        Cache::flush();
+
+        return $status;
+    }
+
+    /**
+     *  Update the subscription plan auto billing reminders for the project.
+     *
+     *  @param $autoBillingReminderIds - The auto billing reminder ids
+     *  @return void
+     */
+    public function updateAutoBillingReminders(array $autoBillingReminderIds = []): void
+    {
+        if( count( $autoBillingReminderIds ) ) {
+
+            //  Sync the auto billing reminders
+            $this->subscriptionPlan->autoBillingReminders()->syncWithPivotValues($autoBillingReminderIds, [
+                'project_id' => $this->project->id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        }
     }
 
     /**
@@ -132,6 +231,11 @@ class SubscriptionPlanRepository
         }
 
         // Delete subscription plan
-        return $this->subscriptionPlan->delete();
+        $status = $this->subscriptionPlan->delete();
+
+        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanApiController
+        Cache::flush();
+
+        return $status;
     }
 }

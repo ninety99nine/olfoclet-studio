@@ -9,18 +9,22 @@ class UpdateSubscriptionPlanRequest extends FormRequest
 {
     public function rules()
     {
+        $requiredIfIsNotFolder = Rule::requiredIf(in_array(request()->input('is_folder'), [false, 0]));
+        $requiredIfCanAutoBill = Rule::requiredIf($requiredIfIsNotFolder && in_array(request()->input('can_auto_bill'), [true, 1]));
+
         return [
-            'name' => ['required', 'string', 'min:3', 'max:20',
-                Rule::unique('subscription_plans')->where(function ($query) {
-
-                    // Make sure that this project does not already have this subscription plan
-                    return $query->where('project_id', request()->route('project'));
-
-                })->ignore(request()->route('subscription_plan'))
-            ],
-            'price' => ['required', 'regex:/^\d+(\.\d{1,2})?$/'],
-            'frequency' => ['required', 'string'],
-            'duration' => ['required', 'integer']
+            'active' => ['sometimes', 'required', 'boolean'],
+            'is_folder' => ['sometimes', 'required', 'boolean'],
+            'can_auto_bill' => ['sometimes', 'required', 'boolean'],
+            'duration' => [$requiredIfIsNotFolder, 'sometimes', 'integer'],
+            'frequency' => [$requiredIfIsNotFolder, 'sometimes', 'string'],
+            'name' => ['sometimes', 'required', 'string', 'min:3', 'max:40'],
+            'price' => [$requiredIfIsNotFolder, 'sometimes', 'regex:/^\d+(\.\d{1,2})?$/'],
+            'description' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
+            'max_auto_billing_attempts' => [$requiredIfIsNotFolder, 'sometimes', 'integer', 'min:1', 'max:3'],
+            'insufficient_funds_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
+            'successful_payment_sms_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
+            'next_auto_billing_reminder_sms_message' => [$requiredIfCanAutoBill, 'sometimes', 'string', 'min:10', 'max:255'],
         ];
     }
 

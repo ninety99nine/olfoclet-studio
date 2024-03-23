@@ -18,7 +18,8 @@ class CreateSubscriberRequest extends FormRequest
                     return $query->where('project_id', request()->route('project'));
 
                 })
-            ]
+            ],
+            'metadata' => ['json']
         ];
     }
 

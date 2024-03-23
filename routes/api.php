@@ -27,11 +27,23 @@ Route::/*middleware('verify.api.bearer.token')->*/prefix('/projects')->name('api
 
     Route::prefix('{project}')->group(function () {
 
-        Route::get('/topics', [TopicController::class, 'get'])->name('topics');
-        Route::get('/topics/{topic}/{type?}', [TopicController::class, 'show'])->name('topic');
+        //  Topics
+        Route::prefix('topics')->group(function () {
+            Route::get('/', [TopicController::class, 'showTopipcs'])->name('show.topics');
 
-        Route::get('/messages', [MessageController::class, 'get'])->name('messages');
-        Route::get('/messages/{message}/{type?}', [MessageController::class, 'show'])->name('message');
+            Route::prefix('{topic}')->group(function () {
+                Route::get('/{type?}', [TopicController::class, 'showTopic'])->name('show.topic');
+            });
+        });
+
+        //  Messages
+        Route::prefix('messages')->group(function () {
+            Route::get('/', [MessageController::class, 'showMessages'])->name('show.messages');
+
+            Route::prefix('{message}')->group(function () {
+                Route::get('/{type?}', [MessageController::class, 'showMessage'])->name('show.message');
+            });
+        });
 
         //  Subscribers
         Route::prefix('subscribers')->group(function () {
@@ -43,11 +55,20 @@ Route::/*middleware('verify.api.bearer.token')->*/prefix('/projects')->name('api
         Route::prefix('subscriptions')->group(function () {
             Route::get('/', [SubscriptionApiController::class, 'showSubscriptions'])->name('show.subscriptions');
             Route::post('/', [SubscriptionApiController::class, 'createSubscription'])->name('create.subscription');
+            Route::post('/cancel', [SubscriptionApiController::class, 'cancelSubscriptions'])->name('cancel.subscriptions');
+
+            Route::prefix('{subscription}')->group(function () {
+                Route::get('/{type?}', [SubscriptionApiController::class, 'showSubscription'])->name('show.subscription');
+            });
         });
 
         //  Subscription Plans
         Route::prefix('subscription-plans')->group(function () {
             Route::get('/', [SubscriptionPlanApiController::class, 'showSubscriptionPlans'])->name('show.subscription.plans');
+
+            Route::prefix('{subscription_plan}')->group(function () {
+                Route::get('/{type?}', [SubscriptionPlanApiController::class, 'showSubscriptionPlan'])->name('show.subscription.plan');
+            });
         });
 
     });

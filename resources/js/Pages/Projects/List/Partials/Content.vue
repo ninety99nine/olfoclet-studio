@@ -14,17 +14,17 @@
 
             <div class="grid grid-cols-3 gap-4 mt-12 mb-12 relative z-30">
 
-                <a :href="route('show.topics', { project: project.id })" v-for="project in projectsPayload.data" :key="project.id" role="listitem" class="bg-white cursor-pointer shadow rounded-lg p-8 w-full aspect-video relative">
+                <div @click.self="showProject(project)" v-for="project in projectsPayload.data" :key="project.id" class="bg-white cursor-pointer shadow rounded-lg p-8 w-full aspect-video relative border">
 
-                    <h2 class="text-2xl font-semibold leading-6 text-gray-800">{{ project.name }}</h2>
-                    <p class="md:w-80 text-base leading-6 mt-4 text-gray-600">{{ project.description }}</p>
+                    <h2 @click.self="showProject(project)" class="text-2xl font-semibold leading-6 text-gray-800">{{ project.name }}</h2>
+                    <p @click.self="showProject(project)" class="text-base leading-6 mt-4 text-gray-600">{{ project.description }}</p>
 
                     <div v-if="project.pivot.permissions.includes('Manage project settings')" class="absolute bottom-10 right-10">
-                        <a href="#" @click.prevent="showModal(project, 'update')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                        <a href="#" @click.prevent="showModal(project, 'delete')" class="text-red-600 hover:text-red-900">Delete</a>
+                        <a href="#" @click.self.prevent="showModal(project, 'update')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
+                        <a href="#" @click.self.prevent="showModal(project, 'delete')" class="text-red-600 hover:text-red-900">Delete</a>
                     </div>
 
-                </a>
+                </div>
 
             </div>
         </div>
@@ -34,8 +34,9 @@
 </template>
 <script>
 
-    import CreateProjectModal from './ManageProjectModal.vue'
     import Pagination from '../../../../Partials/Pagination.vue'
+    import CreateProjectModal from './ManageProjectModal.vue'
+    import { router, usePage } from '@inertiajs/vue3';
     import { defineComponent } from 'vue'
     import moment from "moment";
 
@@ -50,6 +51,7 @@
             return {
                 isShowingModal: false,
                 modalAction: null,
+                page: usePage(),
                 project: null,
                 moment: moment
             }
@@ -58,7 +60,58 @@
             showModal(project, action){
                 this.project = project;
                 this.modalAction = action;
-                this.isShowingModal = true
+                this.isShowingModal = true;
+            },
+            canShowLink(project, permission){
+                return project.pivot.permissions.includes('*') || project.pivot.permissions.includes(permission);
+            },
+            showProject(project) {
+
+                var url = null;
+
+                if(project.about_url != '' || project.about_url != null) {
+
+                    url = route('show.project.about', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View users')) {
+
+                    url = route('show.users', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View topics')) {
+
+                    url = route('show.topics', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View messages')) {
+
+                    url = route('show.messages', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View subscribers')) {
+
+                    url = route('show.subscribers', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View sms campaigns')) {
+
+                    url = route('show.sms.campaigns', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View project settings')) {
+
+                    url = route('show.project', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View subscription plans')) {
+
+                    url = route('show.subscription.plans', { project: project.id });
+
+                }else if(this.canShowLink(project, 'View auto billing subscription plans')) {
+
+                    url = route('show.auto.billing.subscription.plans', { project: project.id });
+
+                }
+
+                if(url != null) {
+
+                    router.get(url);
+
+                }
             }
         }
     })

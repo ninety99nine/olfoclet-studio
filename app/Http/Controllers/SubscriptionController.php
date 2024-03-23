@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CreatedUsingAutoBilling;
 use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\Subscription;
+use App\Services\BillingService;
 use App\Models\SubscriptionPlan;
 use App\Http\Controllers\Controller;
 use App\Repositories\SubscriberRepository;
@@ -12,6 +14,7 @@ use App\Repositories\SubscriptionRepository;
 use App\Repositories\SubscriptionPlanRepository;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
+use App\Http\Requests\Subscriptions\CancelSubscriptionsRequest;
 
 class SubscriptionController extends Controller
 {
@@ -61,7 +64,7 @@ class SubscriptionController extends Controller
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
 
         // Create a new subscription using the repository
-        $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan);
+        $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
@@ -81,6 +84,22 @@ class SubscriptionController extends Controller
         $this->subscriptionRepository->updateProjectSubscription($subscriber, $subscriptionPlan);
 
         return redirect()->back()->with('message', 'Updated Successfully');
+    }
+
+    public function cancelSubscription()
+    {
+        //  Cancel the subscription
+        $this->subscriptionRepository->cancelProjectSubscription();
+
+        return redirect()->back()->with('message', 'Subscription cancelled successfully');
+    }
+
+    public function uncancelSubscription()
+    {
+        //  Uncancel the subscription
+        $this->subscriptionRepository->uncancelProjectSubscription();
+
+        return redirect()->back()->with('message', 'Subscription uncancelled successfully');
     }
 
     public function deleteSubscription()

@@ -11,7 +11,7 @@ use App\Http\Resources\TopicResources;
 
 class TopicController extends Controller
 {
-    public function get (Project $project)
+    public function showTopics(Project $project)
     {
         $searchWord = request()->input('search');
         $hasSearchWord = request()->filled('search');
@@ -32,7 +32,7 @@ class TopicController extends Controller
         return new TopicResources($response);
     }
 
-    public function show (Project $project, Topic $topic, $type = null)
+    public function showTopic(Project $project, Topic $topic, $type = null)
     {
         $searchWord = request()->input('search');
         $hasSearchWord = request()->filled('search');

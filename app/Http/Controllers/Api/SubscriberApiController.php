@@ -7,10 +7,10 @@ use App\Models\Subscriber;
 use App\Http\Controllers\Controller;
 use App\Repositories\MessageRepository;
 use App\Repositories\SubscriberRepository;
-use App\Http\Resources\SubscriptionResource;
-use App\Http\Requests\Subscribers\CreateSubscriberRequest;
-use App\Http\Requests\Subscribers\UpdateSubscriberRequest;
 use App\Http\Resources\SubscriberResource;
+use App\Http\Requests\Subscribers\CreateSubscriberRequest;
+use App\Http\Requests\Subscribers\ShowSubscribersRequest;
+use App\Http\Requests\Subscribers\UpdateSubscriberRequest;
 
 class SubscriberApiController extends Controller
 {
@@ -26,12 +26,15 @@ class SubscriberApiController extends Controller
         $this->subscriberRepository = new SubscriberRepository($project, $subscriber);
     }
 
-    public function showSubscribers()
+    public function showSubscribers(ShowSubscribersRequest $request)
     {
-        // Get the subscribers using the repository with the required relationships and pagination
-        $subscribers = $this->subscriberRepository->getProjectSubscribers();
+        //  Get the MSISDN if provided
+        $msisdn = $request->filled('msisdn') ? $request->input('msisdn') : null;
 
-        // Return subscribers as a JSON response using SubscriptionResource
+        // Get the subscribers using the repository
+        $subscribers = $this->subscriberRepository->getProjectSubscribers($msisdn);
+
+        // Return subscribers as a JSON response using SubscriberResource
         return SubscriberResource::collection($subscribers)->response();
     }
 
@@ -40,11 +43,20 @@ class SubscriberApiController extends Controller
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
 
-        // Create new subscriber using the repository
-        $subscriber = $this->subscriberRepository->createProjectSubscriber($msisdn);
+        //  Get the Metadata
+        $metadata = $request->input('metadata');
 
-        // Return the created subscriber as a JSON response using SubscriptionResource
-        return (new SubscriptionResource($subscriber))->response()->setStatusCode(201);
+        if(is_string($metadata)) {
+
+            $metadata = json_decode($metadata, true);
+
+        }
+
+        // Create new subscriber using the repository
+        $subscriber = $this->subscriberRepository->createProjectSubscriber($msisdn, $metadata);
+
+        // Return the created subscriber as a JSON response using SubscriberResource
+        return (new SubscriberResource($subscriber))->response()->setStatusCode(201);
     }
 
     public function updateSubscriber(UpdateSubscriberRequest $request)
@@ -52,8 +64,17 @@ class SubscriberApiController extends Controller
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
 
+        //  Get the Metadata
+        $metadata = $request->input('metadata');
+
+        if(is_string($metadata)) {
+
+            $metadata = json_decode($metadata, true);
+
+        }
+
         // Update subscriber using the repository
-        $this->subscriberRepository->updateProjectSubscriber($msisdn);
+        $this->subscriberRepository->updateProjectSubscriber($msisdn, $metadata);
 
         // Return a success JSON response
         return response()->json(['message' => 'Updated Successfully']);

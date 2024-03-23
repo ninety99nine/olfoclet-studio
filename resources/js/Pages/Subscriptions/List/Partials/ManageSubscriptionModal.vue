@@ -76,14 +76,14 @@
                         <!-- Mobile -->
                         <div class="mb-4">
                             <jet-label for="msisdn" value="Mobile" />
-                            <jet-input id="msisdn" type="text" class="mt-1 block w-full" v-model="form.msisdn" placeholder = "26772000001" />
+                            <jet-input id="msisdn" type="text" class="w-full mt-1 block " v-model="form.msisdn" placeholder = "26772000001" />
                             <jet-input-error :message="form.errors.msisdn" class="mt-2" />
                         </div>
 
                         <!-- Subscription Plan -->
                         <div class="mb-4">
                             <jet-label for="subscription-plan" value="Subscription Plan" class="mb-1" />
-                            <jet-select-input placeholder="Select subscription plan" :options="subscriptionPlanOptions" v-model="form.subscription_plan_id" />
+                            <jet-select-input id="subscription-plan" placeholder="Select subscription plan" :options="subscriptionPlanOptions" v-model="form.subscription_plan_id" />
                             <jet-input-error :message="form.errors.subscription_plan_id" class="mt-2" />
                         </div>
 
@@ -95,11 +95,19 @@
                 <template #footer>
 
                     <jet-secondary-button @click="closeModal()" class="mr-2">
-                        Cancel
+                        Close
                     </jet-secondary-button>
 
                     <jet-button v-if="!hasSubscription" @click.prevent="create()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
                         Create
+                    </jet-button>
+
+                    <jet-button v-if="wantsToUpdate && form.cancelled_at == null" @click.prevent="cancel()" :class="[{ 'opacity-25': form.processing }, 'mr-2']" :disabled="form.processing">
+                        Cancel
+                    </jet-button>
+
+                    <jet-button v-if="wantsToUpdate && form.cancelled_at != null" @click.prevent="uncancel()" :class="[{ 'opacity-25': form.processing }, 'mr-2']" :disabled="form.processing">
+                        Uncancel
                     </jet-button>
 
                     <jet-button v-if="wantsToUpdate" @click.prevent="update()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
@@ -280,6 +288,46 @@
 
                 this.form.put(route('update.subscription', { project: route().params.project, subscription: this.subscription.id }), options);
             },
+            cancel() {
+                var options = {
+
+                    preserveState: true, preserveScroll: true, replace: true,
+
+                    onSuccess: (response) => {
+
+                        this.handleOnSuccess();
+
+                    },
+
+                    onError: errors => {
+
+                        this.handleOnError();
+
+                    },
+                };
+
+                this.form.post(route('cancel.subscription', { project: route().params.project, subscription: this.subscription.id }), options);
+            },
+            uncancel() {
+                var options = {
+
+                    preserveState: true, preserveScroll: true, replace: true,
+
+                    onSuccess: (response) => {
+
+                        this.handleOnSuccess();
+
+                    },
+
+                    onError: errors => {
+
+                        this.handleOnError();
+
+                    },
+                };
+
+                this.form.post(route('uncancel.subscription', { project: route().params.project, subscription: this.subscription.id }), options);
+            },
             destroy() {
 
                 var options = {
@@ -325,6 +373,7 @@
             reset() {
                 this.form = this.$inertia.form({
                     msisdn: this.hasSubscriber ? (this.subscription.subscriber.msisdn ?? null) : null,
+                    cancelled_at: this.hasSubscriber ? this.subscription.cancelled_at : null,
                     subscription_plan_id: this.hasSubscription ? this.subscription.subscription_plan_id : (this.subscriptionPlanOptions.length ? this.subscriptionPlanOptions[0].value: null)
                 });
             },

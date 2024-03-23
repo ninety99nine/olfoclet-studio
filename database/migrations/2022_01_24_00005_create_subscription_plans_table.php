@@ -16,11 +16,23 @@ class CreateSubscriptionPlansTable extends Migration
         Schema::create('subscription_plans', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('frequency');
-            $table->unsignedInteger('duration');
-            $table->float('price')->default(0);
+            $table->string('description');
+            $table->boolean('active')->default(0);
+            $table->boolean('is_folder')->default(0);
+            $table->string('frequency')->nullable();
+            $table->unsignedInteger('duration')->nullable();
+            $table->float('price')->nullable();
+            $table->boolean('can_auto_bill')->default(false);
+            $table->unsignedTinyInteger('max_auto_billing_attempts');
+            $table->string('insufficient_funds_message');
+            $table->string('successful_payment_sms_message');
+
             $table->foreignId('project_id');
-            $table->json('categories')->nullable();
+            /**
+             *  The nestedSet() method is required to handle nested relationships
+             *  Refer to: https://github.com/lazychaser/laravel-nestedset
+             */
+            $table->nestedSet();
             $table->timestamps();
 
             $table->index(['name']);

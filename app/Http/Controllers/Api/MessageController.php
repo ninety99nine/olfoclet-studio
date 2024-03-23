@@ -8,14 +8,14 @@ use App\Http\Controllers\Controller;
 
 class MessageController extends Controller
 {
-    public function get (Project $project)
+    public function showMessages(Project $project)
     {
         $searchWord = request()->input('search');
 
         return $project->messages()->whereIsRoot()->withCount('children')->search($searchWord)->latest()->paginate();
     }
 
-    public function show (Project $project, Message $message, $type = null)
+    public function showMessage(Project $project, Message $message, $type = null)
     {
         $searchWord = request()->input('search');
 

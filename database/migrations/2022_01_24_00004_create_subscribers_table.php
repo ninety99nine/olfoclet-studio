@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Subscriber;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,6 +17,7 @@ class CreateSubscribersTable extends Migration
         Schema::create('subscribers', function (Blueprint $table) {
             $table->id();
             $table->string('msisdn');
+            $table->json('metadata')->nullable();
             $table->foreignId('project_id');
             $table->timestamps();
 

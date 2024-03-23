@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
  *  This is a custom Model that we created to access the
  *  Laravel "job_batches" tables so that we can link the
  *  created Job Batches to the related campaign via
- *  the custom "campaign_job_batches" table that
+ *  the custom "sms_campaign_job_batches" table that
  *  we also created
  */
 class JobBatches extends Model

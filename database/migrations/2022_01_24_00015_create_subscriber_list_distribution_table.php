@@ -15,8 +15,8 @@ class CreateSubscriberListDistributionTable extends Migration
     {
         Schema::create('subscriber_list_distribution', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('subscriber_id')->nullable();
-            $table->foreignId('subscriber_list_id')->nullable();
+            $table->foreignId('subscriber_id');
+            $table->foreignId('subscriber_list_id');
             $table->foreignId('project_id');
             $table->timestamps();
 

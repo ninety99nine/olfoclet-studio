@@ -61,9 +61,13 @@
                         <!-- Mobile -->
                         <div class="mb-4">
                             <jet-label for="msisdn" value="Mobile" />
-                            <jet-input id="msisdn" type="text" class="mt-1 block w-full" v-model="form.msisdn" placeholder = "26772000001" />
+                            <jet-input id="msisdn" type="text" class="w-full mt-1 block " v-model="form.msisdn" placeholder = "26772000001" />
                             <jet-input-error :message="form.errors.msisdn" class="mt-2" />
                         </div>
+
+                        <!-- Metadata -->
+                        <jet-input-error :message="form.errors.metadata" class="mb-2" />
+                        <CodeEditor v-model="form.metadata" :languages="[['json', 'JSON']]" :line-nums="true" :tab-spaces="4" theme="gradient-dark" :header="false" width="100%" height="400px" font-size="14px"></CodeEditor>
 
                     </template>
 
@@ -112,10 +116,16 @@
     import JetActionMessage from '@/Components/ActionMessage.vue'
     import JetSecondaryButton from '@/Components/SecondaryButton.vue'
 
+    /**
+     *  Package Reference: https://github.com/justcaliturner/simple-code-editor
+     */
+    import hljs from 'highlight.js';
+    import CodeEditor from "simple-code-editor";
+
     export default defineComponent({
         components: {
             JetLabel, JetInput, JetButton, JetInputError, JetSelectInput, JetDialogModal, JetSecondaryButton, JetActionMessage,
-            JetDangerButton
+            JetDangerButton, CodeEditor
         },
         props: {
             action: {
@@ -201,10 +211,32 @@
                 this.showModal = false;
             },
 
+
+            /**
+             *  JSON METHODS
+             */
+            isValidJsonString(str) {
+                try {
+                    JSON.parse(str);
+                } catch (e) {
+                    return false;
+                }
+                return true;
+            },
+
             /**
              *  FORM METHODS
              */
             create() {
+
+                if( this.form.metadata.trim() != '' && this.isValidJsonString(this.form.metadata) == false) {
+
+                    this.form.setError('metadata', 'Subscriber metadata is not valid JSON format');
+                    setTimeout(() => { this.form.clearErrors('metadata'); }, 3000);
+                    return;
+
+                }
+
                 var options = {
 
                     preserveState: true, preserveScroll: true, replace: true,
@@ -226,6 +258,15 @@
                 this.form.post(route('create.subscriber', { project: route().params.project }), options);
             },
             update() {
+
+                if( this.form.metadata.trim() != '' && this.isValidJsonString(this.form.metadata) == false) {
+
+                    this.form.setError('metadata', 'Subscriber metadata is not valid JSON format');
+                    setTimeout(() => { this.form.clearErrors('metadata'); }, 3000);
+                    return;
+
+                }
+
                 var options = {
 
                     preserveState: true, preserveScroll: true, replace: true,
@@ -288,8 +329,22 @@
 
             },
             reset() {
+
+                var metadata = '';
+
+                if( this.hasSubscriber ) {
+
+                    if(this.subscriber.metadata != null) {
+
+                        metadata = JSON.stringify(this.subscriber.metadata, null, 4);
+
+                    }
+
+                }
+
                 this.form = this.$inertia.form({
                     msisdn: this.hasSubscriber ? this.subscriber.msisdn : null,
+                    metadata: metadata
                 });
             },
         },

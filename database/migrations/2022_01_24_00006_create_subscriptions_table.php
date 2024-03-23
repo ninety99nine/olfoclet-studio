@@ -19,6 +19,8 @@ class CreateSubscriptionsTable extends Migration
             $table->foreignId('subscriber_id')->nullable();
             $table->timestamp('start_at')->nullable();
             $table->timestamp('end_at')->nullable();
+            $table->timestamp('cancelled_at')->nullable();
+            $table->boolean('created_using_auto_billing')->default(0);
             $table->foreignId('project_id');
             $table->timestamps();
 

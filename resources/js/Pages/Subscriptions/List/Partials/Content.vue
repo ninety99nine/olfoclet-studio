@@ -14,25 +14,28 @@
                     <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50">
                         <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Mobile</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Start</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>End</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                <span>Cancelled</span>
+                            </th>
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Plan</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Status</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 <span>Created</span>
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
+                            <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider text-right">
                                 <span>Actions</span>
                             </th>
                         </tr>
@@ -40,30 +43,34 @@
                         <tbody class="bg-white divide-y divide-gray-200">
                             <tr v-for="subscription in subscriptionsPayload.data" :key="subscription.id">
                                 <!-- Mobile -->
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-3 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ subscription.subscriber ? subscription.subscriber.msisdn : '...' }}</div>
                                 </td>
                                 <!-- Start Date -->
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                     {{ subscription.created_at == null ? '...' : moment(subscription.start_at).format('lll') }}
                                 </td>
                                 <!-- End Date -->
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                     {{ subscription.created_at == null ? '...' : moment(subscription.end_at).format('lll') }}
                                 </td>
+                                <!-- Cancelled Date -->
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    {{ subscription.cancelled_at == null ? '...' : moment(subscription.cancelled_at).format('lll') }}
+                                </td>
                                 <!-- Plan -->
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                     {{ subscription.subscription_plan == null ? '...' : subscription.subscription_plan.name }}
                                 </td>
                                 <!-- Status -->
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                     <span :class="subscription.status == 'Active' ? 'text-green-600' : 'text-gray-600'">{{ subscription.status }}</span>
                                 </td>
                                 <!-- Created Date -->
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
                                     {{ subscription.created_at == null ? '...' : moment(subscription.created_at).fromNow() }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                     <a v-if="$inertia.page.props.projectPermissions.includes('Manage subscriptions')" href="#" @click.prevent="showModal(subscription, 'update')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
                                     <a v-if="$inertia.page.props.projectPermissions.includes('Manage subscriptions')" href="#" @click.prevent="showModal(subscription, 'delete')" class="text-red-600 hover:text-red-900">Delete</a>
                                 </td>
@@ -71,7 +78,7 @@
 
                             <tr v-if="subscriptionsPayload.data.length == 0">
                                 <!-- Content -->
-                                <td :colspan="7" class="px-6 py-4 whitespace-nowrap">
+                                <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
                                     <div class="text-center text-gray-900 text-sm p-6">No subscriptions</div>
                                 </td>
                             </tr>
@@ -142,10 +149,10 @@
         },
         created() {
 
-            //  Keep refreshing this page content every 3 seconds
+            //  Keep refreshing this page content every 5 seconds
             this.refreshContentInterval = setInterval(function() {
                 this.refreshContent();
-            }.bind(this), 3000);
+            }.bind(this), 5000);
         },
         unmounted() {
             this.cleanUp()

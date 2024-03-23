@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    public function index(Project $project)
+    public function showUsers(Project $project)
     {
         //  Get project permissions
         $availablePermissions = Project::PERMISSIONS;
@@ -29,7 +29,7 @@ class UserController extends Controller
         ]);
     }
 
-    public function create(Request $request, Project $project)
+    public function createUser(Request $request, Project $project)
     {
         //  Validate the request inputs
         $data = Validator::make($request->all(), [
@@ -79,7 +79,7 @@ class UserController extends Controller
         return redirect()->back()->with('message', 'Created Successfully');
     }
 
-    public function update(Request $request, Project $project, User $user)
+    public function updateUser(Request $request, Project $project, User $user)
     {
         //  Validate the request inputs
         $data = Validator::make($request->all(), [
@@ -93,7 +93,7 @@ class UserController extends Controller
         return redirect()->back()->with('message', 'Updated Successfully');
     }
 
-    public function delete(Project $project, User $user)
+    public function deleteUser(Project $project, User $user)
     {
         //  Delete user association
         DB::table('user_projects')->where('user_id', $user->id)->where('project_id', $project->id)->delete();

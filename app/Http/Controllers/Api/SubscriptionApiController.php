@@ -4,14 +4,18 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Project;
 use App\Models\Subscription;
+use App\Services\BillingService;
 use App\Models\SubscriptionPlan;
 use Illuminate\Http\JsonResponse;
+use App\Models\BillingTransaction;
 use App\Http\Controllers\Controller;
+use App\Enums\CreatedUsingAutoBilling;
 use App\Repositories\SubscriberRepository;
 use App\Repositories\SubscriptionRepository;
 use App\Http\Resources\SubscriptionResource;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
+use App\Http\Requests\Subscriptions\CancelSubscriptionsRequest;
 
 class SubscriptionApiController extends Controller
 {
@@ -48,14 +52,41 @@ class SubscriptionApiController extends Controller
         // Get the subscription plan to be used when creating this subscription
         $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
 
-        // Create a new subscription using the repository
-        $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan);
+        /**
+         *  Bill the subscriber using artime.
+         *
+         *  @var BillingTransaction $billingTransaction
+         */
+        $billingTransaction = BillingService::billUsingAirtime($this->project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::NO);
 
-        // Return the created subscription as a JSON response using SubscriptionResource
-        return (new SubscriptionResource($subscription))->response()->setStatusCode(201);
+        //  Set the billing transaction status
+        $isSuccessful = $billingTransaction->is_successful;
+
+        //  If the subscriber was billed successfully
+        if($isSuccessful) {
+
+            //  Success message
+            $message = 'Subscription created successfully';
+
+            // Create a new subscription using the repository
+            $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO);
+
+        }else {
+
+            //  Failure message
+            $message = $billingTransaction->failure_reason;
+
+        }
+
+        // Return JSON response
+        return response()->json([
+            'message' => $message,
+            'created' => $isSuccessful,
+            'subscription' => $isSuccessful ? new SubscriptionResource($subscription) : null,
+        ]);
     }
 
-    public function updateSubscription(UpdateSubscriptionRequest $request, Subscription $subscription): JsonResponse
+    public function updateSubscription(UpdateSubscriptionRequest $request): JsonResponse
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
@@ -73,10 +104,25 @@ class SubscriptionApiController extends Controller
         return response()->json(['message' => 'Updated Successfully']);
     }
 
-    public function deleteSubscription(Subscription $subscription): JsonResponse
+    public function cancelSubscription(CancelSubscriptionsRequest $request): JsonResponse
+    {
+        //  Get the MSISDN
+        $msisdn = $request->input('msisdn');
+
+        // Cancel the active subscriptions matching the specified subscriber msisdn
+        $status = $this->subscriptionRepository->cancelProjectSubscriberSubscriptions($msisdn);
+
+        // Return a success JSON response
+        return response()->json([
+            'message' => $status ? 'Subscriptions cancelled successfully' : 'Failed to cancel subscriptions',
+            'status' => $status
+        ]);
+    }
+
+    public function deleteSubscription(): JsonResponse
     {
         // Delete the subscription using the repository
-        $this->subscriptionRepository->deleteProjectSubscription($subscription);
+        $this->subscriptionRepository->deleteProjectSubscription();
 
         // Return a success JSON response
         return response()->json(['message' => 'Deleted Successfully']);

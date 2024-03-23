@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class TopicController extends Controller
 {
-    public function index(Project $project)
+    public function showTopics(Project $project)
     {
         $topicsPayload = $project->topics()->whereIsRoot()->latest()->paginate();
 
@@ -23,7 +23,7 @@ class TopicController extends Controller
 
     }
 
-    public function show (Project $project, Topic $topic)
+    public function showTopic(Project $project, Topic $topic)
     {
         $topicsPayload = $topic->children()->latest()->paginate();
 
@@ -37,7 +37,7 @@ class TopicController extends Controller
 
     }
 
-    public function create(Request $request, Project $project)
+    public function createTopic(Request $request, Project $project)
     {
         //  Validate the request inputs
         Validator::make($request->all(), [
@@ -74,7 +74,7 @@ class TopicController extends Controller
         return redirect()->back()->with('topic', 'Created Successfully');
     }
 
-    public function update(Request $request, Project $project, Topic $topic)
+    public function updateTopic(Request $request, Project $project, Topic $topic)
     {
         Validator::make($request->all(), [
             'title' => ['required', 'string', 'min:3', 'max:100'],
@@ -110,7 +110,7 @@ class TopicController extends Controller
         return redirect()->back()->with('topic', 'Updated Successfully');
     }
 
-    public function delete(Project $project, Topic $topic)
+    public function deleteTopic(Project $project, Topic $topic)
     {
         //  Delete topic
         $topic->delete();

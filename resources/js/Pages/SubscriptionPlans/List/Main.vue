@@ -3,9 +3,9 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                <manage-subscription-plan-modal :showAddbutton="true" />
+                <manage-subscription-plan-modal :parentSubscriptionPlan="parentSubscriptionPlan" :subscriptionPlansPayload="subscriptionPlansPayload" :autoBillingReminders="autoBillingReminders" :breadcrumbs="breadcrumbs" :showHeader="true" />
 
-                <subscriptionPlans-content :subscriptionPlansPayload="subscriptionPlansPayload" :totalSubscriptions="totalSubscriptions" />
+                <subscription-plans-content :parentSubscriptionPlan="parentSubscriptionPlan" :subscriptionPlansPayload="subscriptionPlansPayload" :totalSubscriptions="totalSubscriptions" :autoBillingReminders="autoBillingReminders" :breadcrumbs="breadcrumbs" />
 
             </div>
         </div>
@@ -25,8 +25,11 @@
             ManageSubscriptionPlanModal
         },
         props: {
+            breadcrumbs: Array,
             totalSubscriptions: Number,
-            subscriptionPlansPayload: Object
+            autoBillingReminders: Array,
+            parentSubscriptionPlan: Object,
+            subscriptionPlansPayload: Object,
         }
     })
 </script>

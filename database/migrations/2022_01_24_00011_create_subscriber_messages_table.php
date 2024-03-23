@@ -1,5 +1,8 @@
 <?php
 
+use App\Enums\MessageType;
+use App\Models\Message;
+use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,8 +19,15 @@ class CreateSubscriberMessagesTable extends Migration
         Schema::create('subscriber_messages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('message_id')->nullable();
-            $table->foreignId('subscriber_id')->nullable();
-            $table->unsignedSmallInteger('sent_sms_count')->default(1);
+            $table->foreignId('subscriber_id');
+            $table->string('content', 500);
+            $table->enum('type', SubscriberMessage::TYPES)->default(MessageType::Content);
+            $table->boolean('is_successful')->nullable();
+            $table->string('delivery_status')->nullable();
+            $table->string('delivery_status_endpoint')->nullable();
+            $table->text('failure_reason')->nullable();
+            $table->boolean('delivery_status_update_is_successful')->nullable();
+            $table->text('delivery_status_update_failure_reason')->nullable();
             $table->foreignId('project_id');
             $table->timestamps();
 
