@@ -175,6 +175,7 @@ class SubscriptionRepository
             'reminded_forty_eight_hours_before' => 0,
             'reminded_seventy_two_hours_before' => 0,
             'auto_billing_enabled' => $autoBillingEnabled,
+            'subscription_plan_id' => $subscriptionPlan->id,
             'next_attempt_date' => $autoBillingEnabled ? $nextAttemptDate : null,
         ];
 
