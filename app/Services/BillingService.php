@@ -561,9 +561,13 @@ class BillingService
                 'body' => $bodyAsArray
             ];
 
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+
+            dd($e->getResponse()->getBody()->getContents());
+
         } catch (\Throwable $th) {
 
-            dd($th->getMessage());
+            dd($th->getTrace());
 
         }
     }
