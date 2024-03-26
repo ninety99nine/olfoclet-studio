@@ -168,13 +168,13 @@ class SubscriptionRepository
             'attempts' => 0,
             'reminded_one_hour_before' => 0,
             'reminded_six_hours_before' => 0,
+            'project_id' => $this->project->id,
             'subscriber_id' => $subscriber->id,
             'reminded_twelve_hours_before' => 0,
             'reminded_twenty_four_hours_before' => 0,
             'reminded_forty_eight_hours_before' => 0,
             'reminded_seventy_two_hours_before' => 0,
             'auto_billing_enabled' => $autoBillingEnabled,
-            'subscription_plan_id' => $subscriptionPlan->id,
             'next_attempt_date' => $autoBillingEnabled ? $nextAttemptDate : null,
         ];
 
