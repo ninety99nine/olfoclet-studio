@@ -196,7 +196,7 @@ Route::get('/test-billing', function() {
 
     $project = Project::find(1);
     $subscriber = Subscriber::find(1);
-    $subscriptionPlan = SubscriptionPlan::find(3);
+    $subscriptionPlan = SubscriptionPlan::find(6);
 
     return BillingService::billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::YES);
 

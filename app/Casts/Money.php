@@ -42,6 +42,6 @@ class Money implements CastsAttributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): string
     {
-        return $value;
+        return $value instanceof stdClass ? $value->amount : $value;
     }
 }
