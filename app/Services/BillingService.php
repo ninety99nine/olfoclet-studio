@@ -25,7 +25,7 @@ class BillingService
      *
      *  @return BillingTransaction
      */
-    public static function billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): bool
+    public static function billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): BillingTransaction
     {
         $msisdn = $subscriber->msisdn;
         $amount = $subscriptionPlan->price->amount;
