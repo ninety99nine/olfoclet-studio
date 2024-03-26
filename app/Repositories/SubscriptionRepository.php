@@ -2,17 +2,16 @@
 
 namespace App\Repositories;
 
-use App\Enums\CreatedUsingAutoBilling;
-use App\Models\BillingTransaction;
 use Carbon\Carbon;
 use App\Models\Project;
 use App\Models\Subscriber;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use Illuminate\Support\Facades\DB;
+use App\Enums\CreatedUsingAutoBilling;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
 
 class SubscriptionRepository
 {
@@ -154,10 +153,15 @@ class SubscriptionRepository
         $autoBillingEnabled = $subscriptionPlan->can_auto_bill;
 
         /**
+         *  @var Subscription $subscriptionWithFurthestEndAt
+         */
+        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
+                                      ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+
+        /**
          *  @var bool $nextAttemptDate The date and time for auto billing to be attempted
          */
-        $nextAttemptDate = $subscriber->subscriptionWithFurthestEndAt()
-                                      ->where('subscription_plan_id', $subscriptionPlan->id)->end_at;
+        $nextAttemptDate = $subscriptionWithFurthestEndAt->end_at;
 
         //  Auto billing schedule information
         $autoBillingSchedule = [
