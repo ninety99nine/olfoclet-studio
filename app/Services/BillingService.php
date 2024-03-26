@@ -726,7 +726,7 @@ class BillingService
      *
      *  @return array
      */
-    public function requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $description, $accessToken): array
+    public static function requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $description, $accessToken): array
     {
         try {
 
