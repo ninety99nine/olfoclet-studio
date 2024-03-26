@@ -422,57 +422,58 @@ class BillingService
             //  Perform and return the Http request
             $response = $httpClient->request('POST', $endpoint, $options);
 
-            /**
-             *  Get the response body as a String.
-             *
-             *  On Success, the response payload is as follows:
-             *
-             *  {
-             *      "access_token":"c0352550-14c4-3a74-b82e-31bd8d09a556",
-             *      "scope":"am_application_scope default",
-             *      "token_type":"Bearer",
-             *      "expires_in":3600
-             *  }
-             *
-             *  On Fail, the response payload is as follows:
-             *
-             *  {
-             *      "error_description": "Oauth application is not in active state.",
-             *      "error": "invalid_client"
-             *  }
-             */
-            $jsonString = $response->getBody();
-
-            /**
-             *  Get the response body as an Associative Array:
-             *
-             *  [
-             *      "access_token" => "c0352550-14c4-3a74-b82e-31bd8d09a556",
-             *      "scope" => "am_application_scope default",
-             *      "token_type" => "Bearer",
-             *      "expires_in" => 3600
-             *  ]
-             */
-            $bodyAsArray = json_decode($jsonString, true);
-
-            //  Get the response status code e.g "200"
-            $statusCode = $response->getStatusCode();
-
-            //  Return the status and the body
-            return [
-                'status' => ($statusCode == 200),
-                'body' => $bodyAsArray
-            ];
-
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
-            dd($e->getResponse()->getBody()->getContents());
-
-        } catch (\Throwable $th) {
-
-            dd($th->getTrace());
+            $response = $e->getResponse()->getBody()->getContents();
 
         }
+
+        /**
+         *  Get the response body as a String.
+         *
+         *  On Success, the response payload is as follows:
+         *
+         *  {
+         *      "access_token":"c0352550-14c4-3a74-b82e-31bd8d09a556",
+         *      "scope":"am_application_scope default",
+         *      "token_type":"Bearer",
+         *      "expires_in":3600
+         *  }
+         *
+         *  On Fail, the response payload is as follows:
+         *
+         *  {
+         *      "error_description": "Oauth application is not in active state.",
+         *      "error": "invalid_client"
+         *  }
+         */
+        $jsonString = $response->getBody();
+
+        /**
+         *  Get the response body as an Associative Array:
+         *
+         *  [
+         *      "access_token" => "c0352550-14c4-3a74-b82e-31bd8d09a556",
+         *      "scope" => "am_application_scope default",
+         *      "token_type" => "Bearer",
+         *      "expires_in" => 3600
+         *  ]
+         */
+        $bodyAsArray = json_decode($jsonString, true);
+
+        //  Get the response status code e.g "200"
+        $statusCode = $response->getStatusCode();
+
+        dd([
+            'status' => ($statusCode == 200),
+            'body' => $bodyAsArray
+        ]);
+
+        //  Return the status and the body
+        return [
+            'status' => ($statusCode == 200),
+            'body' => $bodyAsArray
+        ];
     }
 
     /**
