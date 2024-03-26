@@ -40,7 +40,7 @@ class Money implements CastsAttributes
      *
      * @param  array<string, mixed>  $attributes
      */
-    public function set(Model $model, string $key, mixed $value, array $attributes): string
+    public function set(Model $model, string $key, mixed $value, array $attributes): string|null
     {
         return $value instanceof stdClass ? $value->amount : $value;
     }
