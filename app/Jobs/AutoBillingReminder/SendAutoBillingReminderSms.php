@@ -3,8 +3,8 @@
 namespace App\Jobs\AutoBillingReminder;
 
 use App\Models\Project;
-use App\Models\Subscriber;
 use App\Enums\MessageType;
+use App\Models\Subscriber;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
@@ -122,6 +122,9 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
 
             if($isSuccessful) {
 
+                /**
+                 *  @var int $hours
+                 */
                 $hours = $this->autoBillingReminder->hours;
 
                 if($hours == 1) {
@@ -138,30 +141,10 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
                     $data = ['reminded_seventy_two_hours_before' => '1'];
                 }
 
-                $query = DB::table('auto_billing_schedules')
-                            ->where('subscriber_id', $this->subscriber->id)
-                            ->where('subscription_plan_id', $this->subscriptionPlan->id);
-
-                if($query->exists()) {
-
-                    $query->update($data);
-
-                }else{
-
-                    $smsSentAt = $subscriberMessage->created_at;
-
-                    $data = array_merge([
-                        'created_at' => $smsSentAt,
-                        'updated_at' => $smsSentAt,
-                        'project_id' => $this->project->id,
-                        'subscriber_id' => $this->subscriber->id,
-                        'subscription_plan_id' => $this->subscriptionPlan->id
-                    ], $data);
-
-                    $query->insert($data);
-
-                }
-
+                DB::table('auto_billing_schedules')
+                    ->where('subscriber_id', $this->subscriber->id)
+                    ->where('subscription_plan_id', $this->subscriptionPlan->id)
+                    ->update($data);
             }
 
             /**

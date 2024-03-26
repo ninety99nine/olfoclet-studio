@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\CreatedUsingAutoBilling;
 use App\Http\Controllers\AutoBillingSubscriptionPlanController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\SubscriptionController;
@@ -21,6 +22,8 @@ use Illuminate\Support\Facades\DB;
 use App\Models\SmsCampaign;
 use App\Models\Subscriber;
 use App\Models\Project;
+use App\Models\SubscriptionPlan;
+use App\Services\BillingService;
 use App\Services\SmsService;
 use Inertia\Inertia;
 
@@ -178,7 +181,26 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 });
 
 
+Route::get('/test-sms', function() {
 
+    $project = Project::find(1);
+    $message = Message::find(3);
+    $subscriber = Subscriber::find(1);
+
+    return SmsService::sendSms($project, $subscriber, $message);
+
+});
+
+
+Route::get('/test-billing', function() {
+
+    $project = Project::find(1);
+    $subscriber = Subscriber::find(1);
+    $subscriptionPlan = SubscriptionPlan::find(3);
+
+    return BillingService::billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::YES);
+
+});
 
 
 Route::get('/testing2', function() {
