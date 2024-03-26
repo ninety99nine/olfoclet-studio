@@ -424,7 +424,7 @@ class BillingService
 
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
-            $response = $e->getResponse()->getBody()->getContents();
+            $response = $e->getResponse();
 
         }
 
