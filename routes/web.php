@@ -180,7 +180,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 });
 
-
 Route::get('/test-sms', function() {
 
     $project = Project::find(1);
@@ -191,7 +190,6 @@ Route::get('/test-sms', function() {
 
 });
 
-
 Route::get('/test-billing', function() {
 
     $project = Project::find(1);
@@ -201,7 +199,6 @@ Route::get('/test-billing', function() {
     return BillingService::billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::YES);
 
 });
-
 
 Route::get('/testing2', function() {
 

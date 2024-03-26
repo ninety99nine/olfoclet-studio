@@ -25,11 +25,11 @@ class SubscriptionApiController extends Controller
 
     public function __construct()
     {
-        $project = Project::findOrFail(request()->route('project'));
+        $this->project = Project::findOrFail(request()->route('project'));
         $subscription = request()->route('subscription') ? Subscription::findOrFail(request()->route('subscription')) : null;
 
-        $this->subscriberRepository = new SubscriberRepository($project, null);
-        $this->subscriptionRepository = new SubscriptionRepository($project, $subscription);
+        $this->subscriberRepository = new SubscriberRepository($this->project, null);
+        $this->subscriptionRepository = new SubscriptionRepository($this->project, $subscription);
     }
 
     public function showSubscriptions(): JsonResponse

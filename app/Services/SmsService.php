@@ -157,6 +157,10 @@ class SmsService
                         $failureReason = $response['body']['requestError']['serviceException']['text'];
                     }
 
+                    if(isset($response['body']['message'])) {
+                        $failureReason = $response['body']['message'];
+                    }
+
                 }
 
             }else{
@@ -233,6 +237,15 @@ class SmsService
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
             $response = $e->getResponse();
+
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+            return [
+                'status' => false,
+                'body' => [
+                    'error_description' => $e->getMessage()
+                ]
+            ];
 
         }
 
@@ -328,6 +341,15 @@ class SmsService
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
             $response = $e->getResponse();
+
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+            return [
+                'status' => false,
+                'body' => [
+                    'message' => $e->getMessage()
+                ]
+            ];
 
         }
 
@@ -547,6 +569,10 @@ class SmsService
                         $failureReason = $response['body']['requestError']['serviceException']['text'];
                     }
 
+                    if(isset($response['body']['message'])) {
+                        $failureReason = $response['body']['message'];
+                    }
+
                 }
 
             }else{
@@ -622,6 +648,15 @@ class SmsService
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
             $response = $e->getResponse();
+
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+            return [
+                'status' => false,
+                'body' => [
+                    'message' => $e->getMessage()
+                ]
+            ];
 
         }
 

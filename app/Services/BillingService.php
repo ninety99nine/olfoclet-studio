@@ -227,6 +227,14 @@ class BillingService
                             $failureType = BillingTransactionFailureType::UsageConsumptionRetrievalFailed;
                             $failureReason = $response['body']['description'];
 
+                            if(isset($response['body']['message']) && isset($response['body']['message'])) {
+                                $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
+                            }else if(isset($response['body']['message'])) {
+                                $failureReason = trim($response['body']['message']);
+                            }else if(isset($response['body']['description'])) {
+                                $failureReason = trim($response['body']['description']);
+                            }
+
                         }
 
                     }
@@ -320,6 +328,10 @@ class BillingService
                                 if(isset($response['body']['requestError']['serviceException'])) $failureReason = $response['body']['requestError']['serviceException']['text'];
                             }
 
+                            if(isset($response['body']['message'])) {
+                                $failureReason = $response['body']['message'];
+                            }
+
                             if(!isset($failureReason)){
                                 $failureReason = json_encode($response['body']);
                             }
@@ -338,7 +350,14 @@ class BillingService
             }else{
 
                 $failureType = BillingTransactionFailureType::ProductInventoryRetrievalFailed;
-                $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
+
+                if(isset($response['body']['message']) && isset($response['body']['message'])) {
+                    $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
+                }else if(isset($response['body']['message'])) {
+                    $failureReason = trim($response['body']['message']);
+                }else if(isset($response['body']['description'])) {
+                    $failureReason = trim($response['body']['description']);
+                }
 
             }
 
@@ -426,6 +445,15 @@ class BillingService
 
             $response = $e->getResponse();
 
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+            return [
+                'status' => false,
+                'body' => [
+                    'error_description' => $e->getMessage()
+                ]
+            ];
+
         }
 
         /**
@@ -507,6 +535,15 @@ class BillingService
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
             $response = $e->getResponse();
+
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+            return [
+                'status' => false,
+                'body' => [
+                    'message' => $e->getMessage()
+                ]
+            ];
 
         }
 
@@ -604,6 +641,15 @@ class BillingService
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
             $response = $e->getResponse();
+
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+            return [
+                'status' => false,
+                'body' => [
+                    'message' => $e->getMessage()
+                ]
+            ];
 
         }
 
@@ -774,6 +820,15 @@ class BillingService
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
             $response = $e->getResponse();
+
+        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+            return [
+                'status' => false,
+                'body' => [
+                    'message' => $e->getMessage()
+                ]
+            ];
 
         }
 
