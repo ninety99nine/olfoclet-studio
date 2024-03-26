@@ -230,53 +230,53 @@ class SmsService
             //  Perform and return the Http request
             $response = $httpClient->request('POST', $endpoint, $options);
 
-            /**
-             *  Get the response body as a String.
-             *
-             *  On Success, the response payload is as follows:
-             *
-             *  {
-             *      "access_token": "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
-             *      "scope": "am_application_scope default",
-             *      "token_type": "Bearer",
-             *      "expires_in": 3600
-             *  }
-             *
-             *  On Fail, the response payload is as follows:
-             *
-             *  {
-             *      "error_description": "Client Authentication failed.",
-             *      "error": "invalid_client"
-             *  }
-             */
-            $jsonString = $response->getBody();
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
-            /**
-             *  Get the response body as an Associative Array:
-             *
-             *  [
-             *      "access_token" => "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
-             *      "scope" => "am_application_scope default",
-             *      "token_type" => "Bearer",
-             *      "expires_in" => 3600
-             *  ]
-             */
-            $bodyAsArray = json_decode($jsonString, true);
-
-            //  Get the response status code e.g "200"
-            $statusCode = $response->getStatusCode();
-
-            //  Return the status and the body
-            return [
-                'status' => ($statusCode == 200),
-                'body' => $bodyAsArray
-            ];
-
-        } catch (\Throwable $th) {
-
-            throw $th;
+            $response = $e->getResponse();
 
         }
+
+        /**
+         *  Get the response body as a String.
+         *
+         *  On Success, the response payload is as follows:
+         *
+         *  {
+         *      "access_token": "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
+         *      "scope": "am_application_scope default",
+         *      "token_type": "Bearer",
+         *      "expires_in": 3600
+         *  }
+         *
+         *  On Fail, the response payload is as follows:
+         *
+         *  {
+         *      "error_description": "Client Authentication failed.",
+         *      "error": "invalid_client"
+         *  }
+         */
+        $jsonString = $response->getBody();
+
+        /**
+         *  Get the response body as an Associative Array:
+         *
+         *  [
+         *      "access_token" => "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
+         *      "scope" => "am_application_scope default",
+         *      "token_type" => "Bearer",
+         *      "expires_in" => 3600
+         *  ]
+         */
+        $bodyAsArray = json_decode($jsonString, true);
+
+        //  Get the response status code e.g "200"
+        $statusCode = $response->getStatusCode();
+
+        //  Return the status and the body
+        return [
+            'status' => ($statusCode == 200),
+            'body' => $bodyAsArray
+        ];
     }
 
     /**
@@ -325,125 +325,125 @@ class SmsService
             //  Perform and return the Http request
             $response = $httpClient->request('POST', $endpoint, $options);
 
-            /**
-             *  Get the response body as a String.
-             *
-             *  On Success, the response payload is as follows:
-             *
-             *  Return the reponse body, the structure is as follows:
-             *
-             *  {
-             *      "outboundSMSMessageRequest": {
-             *          "address": [
-             *              "tel:+26772882239"
-             *          ],
-             *          "senderAddress": "tel:+26777479083",
-             *          "senderName": "Testing",
-             *          "outboundSMSTextMessage": {
-             *              "message": "This is a test SMS"
-             *          },
-             *          "clientCorrelator": "cf9d467d-2131-4280-b996-dddc5eb70eb2",
-             *          "resourceURL": "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c",
-             *          "link": [
-             *              {
-             *                  "rel": "Date",
-             *                  "href": "2024-03-17T20:05:56.566Z"
-             *              }
-             *          ],
-             *          "deliveryInfoList": {
-             *              "resourceURL": "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c/deliveryInfos",
-             *              "link": [],
-             *              "deliveryInfo": [
-             *                  {
-             *                      "address": "tel:+26772882239",
-             *                      "deliveryStatus": "MessageWaiting",
-             *                      "link": []
-             *                  }
-             *              ]
-             *          }
-             *      }
-             *  }
-             *
-             *  On Fail, the response payload is as follows:
-             *
-             *  403 status:
-             *
-             *  {
-             *      "requestError": {
-             *          "serviceException": {
-             *              "messageId": "SVC0280",
-             *              "text": "Message too long. Maximum length is %1 characters",
-             *              "variables": [
-             *                  "1024"
-             *              ]
-             *          }
-             *      }
-             *  }
-             *
-             *  409 status:
-             *
-             *  {
-             *      "requestError": {
-             *          "serviceException": {
-             *              "messageId": "SVC0005",
-             *              "text": "duplicate correlatorId 1"
-             *          }
-             *      }
-             *  }
-             */
-            $jsonString = $response->getBody();
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
-            /**
-             *  Get the response body as an Associative Array:
-             *
-             *  [
-             *      "outboundSMSMessageRequest" => [
-             *          "address" => [
-             *              "tel: "+26772882239"
-             *          ],
-             *          "senderAddress" => "tel:+26777479083",
-             *          "senderName" => "Testing",
-             *          "outboundSMSTextMessage" => [
-             *              "message" => "This is a test SMS"
-             *          ],
-             *          "clientCorrelator" => "cf9d467d-2131-4280-b996-dddc5eb70eb2",
-             *          "resourceURL" => "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c",
-             *          "link" => [
-             *              [
-             *                  "rel" => "Date",
-             *                  "href": "2024-03-17T20:05:56.566Z"
-             *              ]
-             *          ],
-             *          "deliveryInfoList" => [
-             *              "resourceURL" => "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c/deliveryInfos",
-             *              "link" => [],
-             *              "deliveryInfo" => [
-             *                  [
-             *                      "address" => "tel:+26772882239",
-             *                      "deliveryStatus" => "MessageWaiting",
-             *                      "link" => []
-             *                  ]
-             *              ]
-             *          ]
-             *      ]
-             *  ]
-             */
-            $bodyAsArray = json_decode($jsonString, true);
-
-            //  Get the response status code e.g "201"
-            $statusCode = $response->getStatusCode();
-
-            //  Return the status and the body
-            return [
-                'status' => ($statusCode == 201),
-                'body' => $bodyAsArray
-            ];
-
-        } catch (\Throwable $th) {
-
-            throw $th;
+            $response = $e->getResponse();
 
         }
+
+        /**
+         *  Get the response body as a String.
+         *
+         *  On Success, the response payload is as follows:
+         *
+         *  Return the reponse body, the structure is as follows:
+         *
+         *  {
+         *      "outboundSMSMessageRequest": {
+         *          "address": [
+         *              "tel:+26772882239"
+         *          ],
+         *          "senderAddress": "tel:+26777479083",
+         *          "senderName": "Testing",
+         *          "outboundSMSTextMessage": {
+         *              "message": "This is a test SMS"
+         *          },
+         *          "clientCorrelator": "cf9d467d-2131-4280-b996-dddc5eb70eb2",
+         *          "resourceURL": "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c",
+         *          "link": [
+         *              {
+         *                  "rel": "Date",
+         *                  "href": "2024-03-17T20:05:56.566Z"
+         *              }
+         *          ],
+         *          "deliveryInfoList": {
+         *              "resourceURL": "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c/deliveryInfos",
+         *              "link": [],
+         *              "deliveryInfo": [
+         *                  {
+         *                      "address": "tel:+26772882239",
+         *                      "deliveryStatus": "MessageWaiting",
+         *                      "link": []
+         *                  }
+         *              ]
+         *          }
+         *      }
+         *  }
+         *
+         *  On Fail, the response payload is as follows:
+         *
+         *  403 status:
+         *
+         *  {
+         *      "requestError": {
+         *          "serviceException": {
+         *              "messageId": "SVC0280",
+         *              "text": "Message too long. Maximum length is %1 characters",
+         *              "variables": [
+         *                  "1024"
+         *              ]
+         *          }
+         *      }
+         *  }
+         *
+         *  409 status:
+         *
+         *  {
+         *      "requestError": {
+         *          "serviceException": {
+         *              "messageId": "SVC0005",
+         *              "text": "duplicate correlatorId 1"
+         *          }
+         *      }
+         *  }
+         */
+        $jsonString = $response->getBody();
+
+        /**
+         *  Get the response body as an Associative Array:
+         *
+         *  [
+         *      "outboundSMSMessageRequest" => [
+         *          "address" => [
+         *              "tel: "+26772882239"
+         *          ],
+         *          "senderAddress" => "tel:+26777479083",
+         *          "senderName" => "Testing",
+         *          "outboundSMSTextMessage" => [
+         *              "message" => "This is a test SMS"
+         *          ],
+         *          "clientCorrelator" => "cf9d467d-2131-4280-b996-dddc5eb70eb2",
+         *          "resourceURL" => "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c",
+         *          "link" => [
+         *              [
+         *                  "rel" => "Date",
+         *                  "href": "2024-03-17T20:05:56.566Z"
+         *              ]
+         *          ],
+         *          "deliveryInfoList" => [
+         *              "resourceURL" => "/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c/deliveryInfos",
+         *              "link" => [],
+         *              "deliveryInfo" => [
+         *                  [
+         *                      "address" => "tel:+26772882239",
+         *                      "deliveryStatus" => "MessageWaiting",
+         *                      "link" => []
+         *                  ]
+         *              ]
+         *          ]
+         *      ]
+         *  ]
+         */
+        $bodyAsArray = json_decode($jsonString, true);
+
+        //  Get the response status code e.g "201"
+        $statusCode = $response->getStatusCode();
+
+        //  Return the status and the body
+        return [
+            'status' => ($statusCode == 201),
+            'body' => $bodyAsArray
+        ];
     }
     /**
      *  Update the Subscriber Message delivery status
@@ -598,24 +598,32 @@ class SmsService
      */
     public static function requestSmsDeliveryStatus($subscriberMessage, $accessToken): array
     {
-        //  Set the request endpoint
-        $endpoint = config('app.ORANGE_SMS_ENDPOINT'). str_replace('tel:+','tel%3A%2B', $subscriberMessage->delivery_status_endpoint);
+        try {
 
-        //  Set the request options
-        $options = [
-            'headers' => [
-                'Authorization' => 'Bearer '.$accessToken,
-                'Content-type' => 'application/json',
-                'Accept' => 'application/json',
-            ],
-            'verify' => false,  // Disable SSL certificate verification
-        ];
+            //  Set the request endpoint
+            $endpoint = config('app.ORANGE_SMS_ENDPOINT'). str_replace('tel:+','tel%3A%2B', $subscriberMessage->delivery_status_endpoint);
 
-        //  Create a new Http Guzzle Client
-        $httpClient = new Client();
+            //  Set the request options
+            $options = [
+                'headers' => [
+                    'Authorization' => 'Bearer '.$accessToken,
+                    'Content-type' => 'application/json',
+                    'Accept' => 'application/json',
+                ],
+                'verify' => false,  // Disable SSL certificate verification
+            ];
 
-        //  Perform and return the Http request
-        $response = $httpClient->request('GET', $endpoint, $options);
+            //  Create a new Http Guzzle Client
+            $httpClient = new Client();
+
+            //  Perform and return the Http request
+            $response = $httpClient->request('GET', $endpoint, $options);
+
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+
+            $response = $e->getResponse();
+
+        }
 
         /**
          *  Get the response body as a String.

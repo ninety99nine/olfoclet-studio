@@ -464,11 +464,6 @@ class BillingService
         //  Get the response status code e.g "200"
         $statusCode = $response->getStatusCode();
 
-        dd([
-            'status' => ($statusCode == 200),
-            'body' => $bodyAsArray
-        ]);
-
         //  Return the status and the body
         return [
             'status' => ($statusCode == 200),
@@ -509,72 +504,68 @@ class BillingService
             //  Perform and return the Http request
             $response = $httpClient->request('GET', $endpoint, $options);
 
-            /**
-             *  Get the response body as a String.
-             *
-             *  On Success, the response payload is as follows:
-             *
-             *  [
-             *      {
-             *          "id": "8037c89b-f204-428e-9336-d3a4bca1b3fe",
-             *          "ratingType": "Postpaid",
-             *          "status": "Active",
-             *          "isBundle": true,
-             *          "startDate": "2020-09-17T00:00:00+0000",
-             *          "productOffering": {
-             *              "id": "Orange_Postpaid",
-             *              "name": "MySim"
-             *          }
-             *      }
-             *  ]
-             *
-             *  On Fail, the response payload is as follows:
-             *
-             *  {
-             *      "code": 4001,
-             *      "message": "Missing parameter",
-             *      "description": "Parameter publicKey is missing, null or empty"
-             *  }
-             */
-            $jsonString = $response->getBody();
-
-            /**
-             *  Get the response body as an Associative Array:
-             *
-             *  [
-             *      [
-             *          "id" => "8037c89b-f204-428e-9336-d3a4bca1b3fe",
-             *          "ratingType" => "Postpaid",
-             *          "status" => "Active",
-             *          "isBundle": true,
-             *          "startDate" => "2020-09-17T00:00:00+0000",
-             *          "productOffering": [
-             *              "id" => "Orange_Postpaid",
-             *              "name" => "MySim"
-             *          ]
-             *      ]
-             *  ]
-             */
-            $bodyAsArray = json_decode($jsonString, true);
-
-            //  Get the response status code e.g "200"
-            $statusCode = $response->getStatusCode();
-
-            //  Return the status and the body
-            return [
-                'status' => ($statusCode == 200),
-                'body' => $bodyAsArray
-            ];
-
         } catch (\GuzzleHttp\Exception\BadResponseException $e) {
 
-            dd($e->getResponse()->getBody()->getContents());
-
-        } catch (\Throwable $th) {
-
-            dd($th->getTrace());
+            $response = $e->getResponse();
 
         }
+
+        /**
+         *  Get the response body as a String.
+         *
+         *  On Success, the response payload is as follows:
+         *
+         *  [
+         *      {
+         *          "id": "8037c89b-f204-428e-9336-d3a4bca1b3fe",
+         *          "ratingType": "Postpaid",
+         *          "status": "Active",
+         *          "isBundle": true,
+         *          "startDate": "2020-09-17T00:00:00+0000",
+         *          "productOffering": {
+         *              "id": "Orange_Postpaid",
+         *              "name": "MySim"
+         *          }
+         *      }
+         *  ]
+         *
+         *  On Fail, the response payload is as follows:
+         *
+         *  {
+         *      "code": 4001,
+         *      "message": "Missing parameter",
+         *      "description": "Parameter publicKey is missing, null or empty"
+         *  }
+         */
+        $jsonString = $response->getBody();
+
+        /**
+         *  Get the response body as an Associative Array:
+         *
+         *  [
+         *      [
+         *          "id" => "8037c89b-f204-428e-9336-d3a4bca1b3fe",
+         *          "ratingType" => "Postpaid",
+         *          "status" => "Active",
+         *          "isBundle": true,
+         *          "startDate" => "2020-09-17T00:00:00+0000",
+         *          "productOffering": [
+         *              "id" => "Orange_Postpaid",
+         *              "name" => "MySim"
+         *          ]
+         *      ]
+         *  ]
+         */
+        $bodyAsArray = json_decode($jsonString, true);
+
+        //  Get the response status code e.g "200"
+        $statusCode = $response->getStatusCode();
+
+        //  Return the status and the body
+        return [
+            'status' => ($statusCode == 200),
+            'body' => $bodyAsArray
+        ];
     }
 
     /**
@@ -589,24 +580,32 @@ class BillingService
      */
     public static function requestAirtimeBillingUsageConsumption($msisdn, $accessToken): array
     {
-        //  Set the request endpoint
-        $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/customer/usageConsumption/v1/usageConsumptionReport?publicKey='.$msisdn;
+        try {
 
-        //  Set the request options
-        $options = [
-            'headers' => [
-                'Authorization' => 'Bearer '.$accessToken,
-                'Content-type' => 'application/json',
-                'Accept' => 'application/json',
-            ],
-            'verify' => false,  // Disable SSL certificate verification
-        ];
+            //  Set the request endpoint
+            $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/customer/usageConsumption/v1/usageConsumptionReport?publicKey='.$msisdn;
 
-        //  Create a new Http Guzzle Client
-        $httpClient = new Client();
+            //  Set the request options
+            $options = [
+                'headers' => [
+                    'Authorization' => 'Bearer '.$accessToken,
+                    'Content-type' => 'application/json',
+                    'Accept' => 'application/json',
+                ],
+                'verify' => false,  // Disable SSL certificate verification
+            ];
 
-        //  Perform and return the Http request
-        $response = $httpClient->request('GET', $endpoint, $options);
+            //  Create a new Http Guzzle Client
+            $httpClient = new Client();
+
+            //  Perform and return the Http request
+            $response = $httpClient->request('GET', $endpoint, $options);
+
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+
+            $response = $e->getResponse();
+
+        }
 
         /**
          *  Get the response body as a String.
@@ -729,46 +728,54 @@ class BillingService
      */
     public function requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $description, $accessToken): array
     {
-        //  Set the request endpoint
-        $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/payment/v1/tel%3A%2B'.$msisdn.'/transactions/amount';
+        try {
 
-        //  Set the request options
-        $options = [
-            'headers' => [
-                'Authorization' => 'Bearer '.$accessToken,
-                'Content-type' => 'application/json',
-                'Accept' => 'application/json',
-            ],
-            'json' => [
-                'amountTransaction' => [
-                    'endUserId' => 'tel:+'.$msisdn,
-                    'paymentAmount' => [
-                    'chargingInformation' => [
-                        'amount' => (float) $amount,
-                        'currency' => config('app.CURRENCY'),
-                        'description' => [
-                        0 => $description,
-                        ],
-                    ],
-                    'chargingMetaData' => [
-                        'productId' => (isset($product_id) && !empty($product_id)) ? $product_id : null,
-                        'serviceId' => (isset($service_id) && !empty($service_id)) ? $service_id : null,
-                        'purchaseCategoryCode' => (isset($purchase_category_code) && !empty($purchase_category_code)) ? $purchase_category_code : null,
-                    ],
-                    ],
-                    'clientCorrelator' => $billingTransaction->id.'-'.now(),   //	'unique-technical-id',
-                    'referenceCode' => 'referenceCode-'.now(),                 //	'Service_provider_payment_reference',
-                    'transactionOperationStatus' => 'Charged',
+            //  Set the request endpoint
+            $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/payment/v1/tel%3A%2B'.$msisdn.'/transactions/amount';
+
+            //  Set the request options
+            $options = [
+                'headers' => [
+                    'Authorization' => 'Bearer '.$accessToken,
+                    'Content-type' => 'application/json',
+                    'Accept' => 'application/json',
                 ],
-            ],
-            'verify' => false,  // Disable SSL certificate verification
-        ];
+                'json' => [
+                    'amountTransaction' => [
+                        'endUserId' => 'tel:+'.$msisdn,
+                        'paymentAmount' => [
+                        'chargingInformation' => [
+                            'amount' => (float) $amount,
+                            'currency' => config('app.CURRENCY'),
+                            'description' => [
+                            0 => $description,
+                            ],
+                        ],
+                        'chargingMetaData' => [
+                            'productId' => (isset($product_id) && !empty($product_id)) ? $product_id : null,
+                            'serviceId' => (isset($service_id) && !empty($service_id)) ? $service_id : null,
+                            'purchaseCategoryCode' => (isset($purchase_category_code) && !empty($purchase_category_code)) ? $purchase_category_code : null,
+                        ],
+                        ],
+                        'clientCorrelator' => $billingTransaction->id.'-'.now(),   //	'unique-technical-id',
+                        'referenceCode' => 'referenceCode-'.now(),                 //	'Service_provider_payment_reference',
+                        'transactionOperationStatus' => 'Charged',
+                    ],
+                ],
+                'verify' => false,  // Disable SSL certificate verification
+            ];
 
-        //  Create a new Http Guzzle Client
-        $httpClient = new Client();
+            //  Create a new Http Guzzle Client
+            $httpClient = new Client();
 
-        //  Perform and return the Http request
-        $response = $httpClient->request('POST', $endpoint, $options);
+            //  Perform and return the Http request
+            $response = $httpClient->request('POST', $endpoint, $options);
+
+        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+
+            $response = $e->getResponse();
+
+        }
 
         /**
          *  Get the response body as a String.
