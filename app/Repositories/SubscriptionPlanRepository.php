@@ -4,10 +4,10 @@ namespace App\Repositories;
 
 use App\Models\Project;
 use App\Models\SubscriptionPlan;
+use Illuminate\Support\Facades\Cache;
 use \Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Cache;
 
 class SubscriptionPlanRepository
 {
@@ -96,6 +96,7 @@ class SubscriptionPlanRepository
      *  @param string $insufficientFundsMessage - The insufficient funds message of the subscription plan.
      *  @param string $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
      *  @param string $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
+     *  @param string $subscriptionEndAtReferenceName - The subscription end at reference name.
      *  @param string|null $parentId - The id of the parent subscription plan.
      *
      *  @return SubscriptionPlan The newly created subscription plan instance.
@@ -104,11 +105,13 @@ class SubscriptionPlanRepository
         string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
         string|null $frequency, bool $canAutoBill, bool $maxAutoBillingAttempts, string $insufficientFundsMessage,
         string $successfulPaymentSmsMessage, string|null $nextAutoBillingReminderSmsMessage,
-        array $autoBillingReminderIds, int|null $parentId,
+        string|null $subscriptionEndAtReferenceName, array $autoBillingReminderIds,
+        int|null $parentId,
     ): SubscriptionPlan
     {
         $this->subscriptionPlan = SubscriptionPlan::create([
             'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
+            'subscription_end_at_reference_name' => $subscriptionEndAtReferenceName,
             'successful_payment_sms_message' => $successfulPaymentSmsMessage,
             'insufficient_funds_message' => $insufficientFundsMessage,
             'max_auto_billing_attempts' => $maxAutoBillingAttempts,
@@ -153,6 +156,7 @@ class SubscriptionPlanRepository
      *  @param string $insufficientFundsMessage - The insufficient funds message of the subscription plan.
      *  @param string $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
      *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
+     *  @param string $subscriptionEndAtReferenceName - The subscription end at reference name.
      *
      *  @return bool True if the update is successful, false otherwise.
      *
@@ -163,7 +167,7 @@ class SubscriptionPlanRepository
         string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
         string|null $frequency, bool $canAutoBill, bool $maxAutoBillingAttempts, string $insufficientFundsMessage,
         string $successfulPaymentSmsMessage, string|null $nextAutoBillingReminderSmsMessage,
-        array $autoBillingReminderIds
+        string|null $subscriptionEndAtReferenceName, array $autoBillingReminderIds,
     ): bool
     {
         // Make sure the subscription plan exists and belongs to the project
@@ -173,6 +177,7 @@ class SubscriptionPlanRepository
 
         $status = $this->subscriptionPlan->update([
             'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
+            'subscription_end_at_reference_name' => $subscriptionEndAtReferenceName,
             'successful_payment_sms_message' => $successfulPaymentSmsMessage,
             'insufficient_funds_message' => $insufficientFundsMessage,
             'max_auto_billing_attempts' => $maxAutoBillingAttempts,

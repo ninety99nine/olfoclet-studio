@@ -2,8 +2,7 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
-use App\Casts\Json;
+use App\Casts\JsonToArray;
 use App\Enums\MessageType;
 use App\Models\Pivots\SubscriberTopic;
 use Illuminate\Database\Eloquent\Model;
@@ -18,7 +17,7 @@ class Subscriber extends Model
     use HasFactory;
 
     protected $casts = [
-        'metadata' => Json::class
+        'metadata' => JsonToArray::class.':null',
     ];
 
     /**

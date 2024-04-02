@@ -23,11 +23,13 @@ class CreateSubscriptionPlansTable extends Migration
             $table->unsignedInteger('duration')->nullable();
             $table->float('price')->nullable();
             $table->boolean('can_auto_bill')->default(false);
-            $table->unsignedTinyInteger('max_auto_billing_attempts');
-            $table->string('insufficient_funds_message');
-            $table->string('successful_payment_sms_message');
-
+            $table->unsignedTinyInteger('max_auto_billing_attempts')->default(1);
+            $table->string('insufficient_funds_message')->nullable();
+            $table->string('successful_payment_sms_message')->nullable();
+            $table->string('next_auto_billing_reminder_sms_message')->nullable();
+            $table->string('subscription_end_at_reference_name')->nullable();
             $table->foreignId('project_id');
+
             /**
              *  The nestedSet() method is required to handle nested relationships
              *  Refer to: https://github.com/lazychaser/laravel-nestedset

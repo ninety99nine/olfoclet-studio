@@ -2,8 +2,10 @@
 
 namespace App\Models\Pivots;
 
-use App\Enums\MessageType;
+use App\Models\Message;
 use App\Models\Project;
+use App\Models\Subscriber;
+use App\Enums\MessageType;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class SubscriberMessage extends Pivot
@@ -32,7 +34,8 @@ class SubscriberMessage extends Pivot
      * @var array
      */
     protected $casts = [
-        'is_successful' => 'boolean'
+        'is_successful' => 'boolean',
+        'delivery_status_update_is_successful' => 'boolean',
     ];
 
     const VISIBLE_COLUMNS = [
@@ -49,10 +52,26 @@ class SubscriberMessage extends Pivot
     }
 
     /**
-     * Get the project associated with the subscriber message.
+     *  Get the project associated with the subscriber message.
      */
     public function project()
     {
         return $this->belongsTo(Project::class);
+    }
+
+    /**
+     *  Get the message associated with the subscriber message
+     */
+    public function message()
+    {
+        return $this->belongsTo(Message::class);
+    }
+
+    /**
+     *  Get the subscriber associated with the subscriber message
+     */
+    public function subscriber()
+    {
+        return $this->belongsTo(Subscriber::class);
     }
 }

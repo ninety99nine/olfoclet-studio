@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\CreatedUsingAutoBilling;
 use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\Subscription;
 use App\Services\BillingService;
 use App\Models\SubscriptionPlan;
 use App\Http\Controllers\Controller;
+use App\Enums\CreatedUsingAutoBilling;
 use App\Repositories\SubscriberRepository;
 use App\Repositories\SubscriptionRepository;
 use App\Repositories\SubscriptionPlanRepository;
@@ -42,7 +42,7 @@ class SubscriptionController extends Controller
         $subscriptionPlans = $this->subscriptionPlanRepository->queryProjectSubscriptionPlans()->get();
 
         // Fetch the subscriptions using the repository with the required relationships and pagination
-        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan:id,name']);
+        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan']);
 
         // Render the subscriptions view
         return Inertia::render('Subscriptions/List/Main', [

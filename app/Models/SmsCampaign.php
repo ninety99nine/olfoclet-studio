@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Casts\Json;
+use App\Casts\JsonToArray;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Models\SmsCampaignTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -34,10 +34,10 @@ class SmsCampaign extends Model
         'end_date' => 'datetime',
         'start_date' => 'datetime',
         'has_end_date' => 'boolean',
-        'message_ids' => Json::class,
         'has_start_date' => 'boolean',
         'can_send_messages' => 'boolean',
-        'days_of_the_week' => Json::class,
+        'message_ids' => JsonToArray::class,
+        'days_of_the_week' => JsonToArray::class,
     ];
 
     /**

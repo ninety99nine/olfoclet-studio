@@ -121,7 +121,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
             if($isSuccessful) {
 
                 //  Create a new subscription using the same subscription plan
-                $subscription = (new SubscriptionRepository($this->project))->createProjectSubscription($this->subscriber, $this->subscriptionPlan, CreatedUsingAutoBilling::YES);
+                $subscription = (new SubscriptionRepository($this->project))->createProjectSubscription($this->subscriber, $this->subscriptionPlan, CreatedUsingAutoBilling::YES, $billingTransaction);
 
             }else{
 

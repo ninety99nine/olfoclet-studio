@@ -2,13 +2,17 @@
 
     <div>
 
-        <div v-if="$inertia.page.props.projectPermissions.includes('Manage subscriptions') && showAddbutton" class="grid grid-cols-2 gap-4">
+        <div v-if="$inertia.page.props.projectPermissions.includes('Manage subscriptions') && showAddbutton" class="grid grid-cols-2 mb-6 gap-4">
 
-            <div class="bg-gray-50 pt-3 pl-6 border-b rounded-t">
+            <div class="bg-gray-50 pt-4 pl-6 border-b rounded-t">
+
+                <div class="text-2xl font-semibold leading-6 text-gray-500 border-b pb-4 mb-4">Subscriptions</div>
+
                 <div class="text-sm text-gray-500 my-2">
                     <span class="font-bold mr-2">GET / POST:</span>
                     <span class="text-green-500 font-semibold">{{ route('api.create.subscription', { project: route().params.project}) }}</span>
                 </div>
+
             </div>
 
             <!-- Add Subscription Button -->

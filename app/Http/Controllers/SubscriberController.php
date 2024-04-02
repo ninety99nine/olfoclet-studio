@@ -31,7 +31,7 @@ class SubscriberController extends Controller
 
         // Get the subscribers using the repository with the required relationships and pagination
         $subscribers = $this->subscriberRepository->getProjectSubscribers(null,
-            ['latestSubscription', 'latestUserBillingTransaction', 'latestAutoBillingTransaction', 'latestMessage'],
+            ['latestSubscription', 'latestUserBillingTransaction', 'latestAutoBillingTransaction'],
             [
                 'messages', 'subscriptions',
                 'userBillingTransactions', 'successfulUserBillingTransactions', 'unsuccessfulUserBillingTransactions',

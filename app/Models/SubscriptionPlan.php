@@ -5,12 +5,13 @@ namespace App\Models;
 use App\Casts\Money;
 use Kalnoy\Nestedset\NodeTrait;
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Models\SubscriptionPlanTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SubscriptionPlan extends Model
 {
-    use HasFactory, NodeTrait;
+    use HasFactory, NodeTrait, SubscriptionPlanTrait;
 
     /**
      * The table associated with the model.
@@ -33,7 +34,7 @@ class SubscriptionPlan extends Model
         'name', 'description', 'active', 'is_folder', 'price', 'frequency', 'duration',
         'can_auto_bill', 'max_auto_billing_attempts', 'insufficient_funds_message',
         'successful_payment_sms_message', 'next_auto_billing_reminder_sms_message',
-        'project_id'
+        'subscription_end_at_reference_name', 'project_id'
     ];
 
     /**
@@ -119,7 +120,7 @@ class SubscriptionPlan extends Model
     /**
      * Get the latest auto billing reminder job batch associated with the subscription plan.
      */
-    public function latestAutoBillingReminderJobBatches()
+    public function latestAutoBillingReminderJobBatch()
     {
         return $this->autoBillingReminderJobBatches()->latest()->limit(1);
     }
@@ -130,5 +131,33 @@ class SubscriptionPlan extends Model
     public function autoBillingReminders()
     {
         return $this->belongsToMany(AutoBillingReminder::class, 'subscription_plan_auto_billing_reminders', 'subscription_plan_id', 'auto_billing_reminder_id');
+    }
+
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = ['duration_in_words'];
+
+    /**
+     * Get the duration in words
+     */
+    protected function durationInWords(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                if($this->duration && $this->frequency) {
+                    if( $this->duration == 1 ) {
+                        $frequency = substr($this->frequency, 0, -1);
+                    }else{
+                        $frequency = $this->frequency;
+                    }
+                    return $this->duration.' '.$frequency;
+                }else{
+                    return null;
+                }
+            }
+        );
     }
 }

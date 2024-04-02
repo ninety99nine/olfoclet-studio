@@ -28,7 +28,6 @@ class SubscriberRepository
     public function __construct(Project $project, ?Subscriber $subscriber)
     {
         $this->project = $project;
-
         $this->subscriber = $subscriber;
     }
 

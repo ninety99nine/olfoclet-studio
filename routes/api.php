@@ -5,7 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\SubscriberApiController;
-use App\Http\Controllers\Api\SubscriptionApiController;
+use App\Http\Controllers\Api\SubscriberController;
+use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\SubscriptionPlanApiController;
 
 /*
@@ -47,18 +48,24 @@ Route::/*middleware('verify.api.bearer.token')->*/prefix('/projects')->name('api
 
         //  Subscribers
         Route::prefix('subscribers')->group(function () {
-            Route::get('/', [SubscriberApiController::class, 'showSubscribers'])->name('show.subscriber');
-            Route::post('/', [SubscriberApiController::class, 'createSubscriber'])->name('create.subscriber');
+            Route::post('/', [SubscriberController::class, 'createSubscriber'])->name('create.subscriber');
+
+            Route::prefix('{msisdn}')->group(function () {
+                Route::get('/', [SubscriberController::class, 'showSubscriber'])->name('show.subscriber');
+                Route::put('/', [SubscriberController::class, 'updateSubscriber'])->name('show.subscriber');
+            });
         });
 
         //  Subscriptions
         Route::prefix('subscriptions')->group(function () {
-            Route::get('/', [SubscriptionApiController::class, 'showSubscriptions'])->name('show.subscriptions');
-            Route::post('/', [SubscriptionApiController::class, 'createSubscription'])->name('create.subscription');
-            Route::post('/cancel', [SubscriptionApiController::class, 'cancelSubscriptions'])->name('cancel.subscriptions');
+            Route::get('/', [SubscriptionController::class, 'showSubscriptions'])->name('show.subscriptions');
+            Route::post('/', [SubscriptionController::class, 'createSubscription'])->name('create.subscription');
+            Route::post('/cancel', [SubscriptionController::class, 'cancelSubscriptions'])->name('cancel.subscriptions');
 
             Route::prefix('{subscription}')->group(function () {
-                Route::get('/{type?}', [SubscriptionApiController::class, 'showSubscription'])->name('show.subscription');
+                Route::get('/{type?}', [SubscriptionController::class, 'showSubscription'])->name('show.subscription');
+                Route::post('/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('cancel.subscription');
+                Route::post('/uncancel', [SubscriptionController::class, 'uncancelSubscription'])->name('uncancel.subscription');
             });
         });
 

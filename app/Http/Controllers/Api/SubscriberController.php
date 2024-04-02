@@ -5,37 +5,39 @@ namespace App\Http\Controllers\Api;
 use App\Models\Project;
 use App\Models\Subscriber;
 use App\Http\Controllers\Controller;
-use App\Repositories\MessageRepository;
 use App\Repositories\SubscriberRepository;
 use App\Http\Resources\SubscriberResource;
+use App\Http\Requests\Subscribers\ShowSubscriberRequest;
 use App\Http\Requests\Subscribers\CreateSubscriberRequest;
 use App\Http\Requests\Subscribers\ShowSubscribersRequest;
 use App\Http\Requests\Subscribers\UpdateSubscriberRequest;
 
-class SubscriberApiController extends Controller
+class SubscriberController extends Controller
 {
-    protected $messageRepository;
+    protected $project;
     protected $subscriberRepository;
 
     public function __construct()
     {
-        $project = Project::findOrFail(request()->route('project'));
+        $this->project = Project::findOrFail(request()->route('project'));
         $subscriber = request()->route('subscriber') ? Subscriber::findOrFail(request()->route('subscriber')) : null;
 
-        $this->messageRepository = new MessageRepository($project);
-        $this->subscriberRepository = new SubscriberRepository($project, $subscriber);
+        $this->subscriberRepository = new SubscriberRepository($this->project, $subscriber);
     }
 
-    public function showSubscribers(ShowSubscribersRequest $request)
+    public function showSubscriber()
     {
-        //  Get the MSISDN if provided
-        $msisdn = $request->filled('msisdn') ? $request->input('msisdn') : null;
+        //  Get the MSISDN
+        $msisdn = request()->msisdn;
 
-        // Get the subscribers using the repository
-        $subscribers = $this->subscriberRepository->getProjectSubscribers($msisdn);
+        //  Get the subscriber (if any)
+        $subscriber = $this->project->subscribers()->where('msisdn', $msisdn)->first();
 
-        // Return subscribers as a JSON response using SubscriberResource
-        return SubscriberResource::collection($subscribers)->response();
+        // Return JSON response
+        return response()->json([
+            'exists' =>  !is_null($subscriber),
+            'subscriber' => !is_null($subscriber) ? new SubscriberResource($subscriber) : null
+        ]);
     }
 
     public function createSubscriber(CreateSubscriberRequest $request)
@@ -55,8 +57,11 @@ class SubscriberApiController extends Controller
         // Create new subscriber using the repository
         $subscriber = $this->subscriberRepository->createProjectSubscriber($msisdn, $metadata);
 
-        // Return the created subscriber as a JSON response using SubscriberResource
-        return (new SubscriberResource($subscriber))->response()->setStatusCode(201);
+        // Return JSON response
+        return response()->json([
+            'message' => 'Created successfully',
+            'subscriber' => new SubscriberResource($subscriber)
+        ]);
     }
 
     public function updateSubscriber(UpdateSubscriberRequest $request)
@@ -76,8 +81,10 @@ class SubscriberApiController extends Controller
         // Update subscriber using the repository
         $this->subscriberRepository->updateProjectSubscriber($msisdn, $metadata);
 
-        // Return a success JSON response
-        return response()->json(['message' => 'Updated Successfully']);
+        // Return JSON response
+        return response()->json([
+            'message' => 'Updated successfully'
+        ]);
     }
 
     public function deleteSubscriber()
@@ -85,7 +92,9 @@ class SubscriberApiController extends Controller
         // Delete subscriber using the repository
         $this->subscriberRepository->deleteProjectSubscriber();
 
-        // Return a success JSON response
-        return response()->json(['message' => 'Deleted Successfully']);
+        // Return JSON response
+        return response()->json([
+            'message' => 'Deleted successfully'
+        ]);
     }
 }

@@ -23,6 +23,14 @@ const links = ref([
         ]
     },
     {
+        label: 'Users',
+        routeName: 'show.users',
+        activeRouteNames: [
+            'show.users',
+        ],
+        permission: 'View users'
+    },
+    {
         label: 'Topics',
         routeName: 'show.topics',
         activeRouteNames: [
@@ -41,6 +49,15 @@ const links = ref([
         permission: 'View messages'
     },
     {
+        label: 'Auto Billing',
+        routeName: 'show.auto.billing.subscription.plans',
+        activeRouteNames: [
+            'show.auto.billing.subscription.plans',
+            'show.auto.billing.subscription.plan.job.batches'
+        ],
+        permission: 'View auto billing subscription plans'
+    },
+    {
         label: 'Subscribers',
         routeName: 'show.subscribers',
         activeRouteNames: [
@@ -57,15 +74,6 @@ const links = ref([
         permission: 'View subscriptions'
     },
     {
-        label: 'Subscription Plans',
-        routeName: 'show.subscription.plans',
-        activeRouteNames: [
-            'show.subscription.plans',
-            'show.subscription.plan'
-        ],
-        permission: 'View subscription plans'
-    },
-    {
         label: 'Sms Campaigns',
         routeName: 'show.sms.campaigns',
         activeRouteNames: [
@@ -75,20 +83,38 @@ const links = ref([
         permission: 'View sms campaigns'
     },
     {
-        label: 'Auto Billing',
-        routeName: 'show.auto.billing.subscription.plans',
+        label: 'Subscription Plans',
+        routeName: 'show.subscription.plans',
         activeRouteNames: [
-            'show.auto.billing.subscription.plans'
+            'show.subscription.plans',
+            'show.subscription.plan'
         ],
-        permission: 'View auto billing subscription plans'
+        permission: 'View subscription plans'
     },
     {
-        label: 'Users',
-        routeName: 'show.users',
+        label: 'Billing Transactions',
+        routeName: 'show.billing.transactions',
         activeRouteNames: [
-            'show.users',
+            'show.billing.transactions'
         ],
-        permission: 'View users'
+        permission: 'View billing transactions'
+    },
+    {
+        label: 'Subscriber Messages',
+        routeName: 'show.subscriber.messages',
+        activeRouteNames: [
+            'show.subscriber.messages',
+        ],
+        permission: 'View subscriber messages'
+    },
+    {
+        label: 'Auto Billing Reminders',
+        routeName: 'show.auto.billing.reminder.subscription.plans',
+        activeRouteNames: [
+            'show.auto.billing.reminder.subscription.plans',
+            'show.auto.billing.subscription.plan.reminder.job.batches'
+        ],
+        permission: 'View auto billing reminder subscription plans'
     },
 ]);
 

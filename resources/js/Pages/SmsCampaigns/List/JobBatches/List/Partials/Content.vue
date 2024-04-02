@@ -4,7 +4,7 @@
 
         <div class="mb-6 gap-4">
 
-            <div class="bg-gray-50 pt-3 pl-6 border-b rounded-t">
+            <div class="bg-gray-50 pt-4 pl-6 border-b rounded-t">
 
                 <div class="text-2xl font-semibold leading-6 text-gray-500 mb-4">{{ smsCampaign.name }}</div>
 
@@ -112,7 +112,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
                                     <span v-if="smsCampaignBatchJob.progress == 100" class="text-lg text-green-600">{{ smsCampaignBatchJob.progress }} {{ smsCampaignBatchJob.progress ? '%' : '' }}</span>
                                     <div v-else class="w-full bg-gray-200 rounded-full">
-                                        <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" :style="'width: '+smsCampaignBatchJob.progress+'%'"> {{ smsCampaignBatchJob.progress }}%</div>
+                                        <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full animate-pulse" :style="'width: '+smsCampaignBatchJob.progress+'%'"> {{ smsCampaignBatchJob.progress }}%</div>
                                     </div>
                                 </td>
                                 <!-- Sprint Date -->

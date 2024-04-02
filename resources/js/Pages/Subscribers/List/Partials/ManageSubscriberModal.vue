@@ -2,10 +2,23 @@
 
     <div>
 
-        <!-- Add Subscriber Button -->
-        <jet-button v-if="$inertia.page.props.projectPermissions.includes('Manage subscribers') && showAddbutton" @click="openModal()" class="float-right mb-6">
-            Add Subscriber
-        </jet-button>
+        <div v-if="$inertia.page.props.projectPermissions.includes('Manage subscribers') && showAddbutton" class="grid grid-cols-2 mb-6 gap-4">
+
+            <div class="bg-gray-50 pt-4 px-6 border-b rounded-t">
+
+                <div class="text-2xl font-semibold leading-6 text-gray-500 pb-4">Subscribers</div>
+
+            </div>
+
+            <!-- Add Subscriber Button -->
+            <div>
+                <jet-button @click="openModal()" class="float-right w-fit">
+                    Add Subscriber
+                </jet-button>
+                <div class="clear-both"></div>
+            </div>
+
+        </div>
 
         <div class="clear-both">
 

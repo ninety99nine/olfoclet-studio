@@ -6,11 +6,18 @@
         <div v-if="showHeader" class="grid grid-cols-2 mb-6 gap-4">
 
             <div>
-                <div class="bg-gray-50 pt-3 pl-6 border-b rounded-t">
+                <div class="bg-gray-50 pt-4 pl-6 border-b rounded-t">
 
                     <div class="text-2xl font-semibold leading-6 text-gray-500 mb-4">{{ parentMessage ? parentMessage.content : 'Messages' }}</div>
 
                     <template v-if="parentMessage">
+
+                        <jet-secondary-button @click="goBackToPreviousPage()" class="py-1 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                            </svg>
+                            <span class="ml-2">Go Back</span>
+                        </jet-secondary-button>
 
                         <el-breadcrumb separator=">" class="mb-4">
                             <el-breadcrumb-item @click="nagivateToMessage()">
@@ -21,13 +28,6 @@
                                 <span class="hover:underline hover:text-green-600 text-green-500 font-semibold cursor-pointer">{{ breadcrumb.content }}</span>
                             </el-breadcrumb-item>
                         </el-breadcrumb>
-
-                        <jet-secondary-button @click="goBackToPreviousPage()" class="py-1 mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                            </svg>
-                            <span class="ml-2">Go Back</span>
-                        </jet-secondary-button>
 
                     </template>
 

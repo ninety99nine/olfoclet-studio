@@ -4,7 +4,7 @@
 
         <div class="mb-6 gap-4">
 
-            <div class="bg-gray-50 pt-3 pl-6 border-b rounded-t">
+            <div class="bg-gray-50 pt-4 pl-6 border-b rounded-t">
 
                 <div class="text-2xl font-semibold leading-6 text-gray-500 mb-4">{{ subscriptionPlan.name }}</div>
 
@@ -87,7 +87,7 @@
                         </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <tr v-for="autoBillingSubscriptionPlanJobBatch in autoBillingSubscriptionPlanJobBatchesPayload.data" :key="autoBillingSubscriptionPlanJobBatch.id">
+                            <tr v-for="autoBillingSubscriptionPlanJobBatch in subscriptionPlanAutoBillingJobBatchesPayload.data" :key="autoBillingSubscriptionPlanJobBatch.id">
                                 <!-- Name -->
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-sm text-gray-900">{{ autoBillingSubscriptionPlanJobBatch.name }}</div>
@@ -112,7 +112,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
                                     <span v-if="autoBillingSubscriptionPlanJobBatch.progress == 100" class="text-lg text-green-600">{{ autoBillingSubscriptionPlanJobBatch.progress }} {{ autoBillingSubscriptionPlanJobBatch.progress ? '%' : '' }}</span>
                                     <div v-else class="w-full bg-gray-200 rounded-full">
-                                        <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" :style="'width: '+autoBillingSubscriptionPlanJobBatch.progress+'%'"> {{ autoBillingSubscriptionPlanJobBatch.progress }}%</div>
+                                        <div class="bg-green-600 text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full animate-pulse" :style="'width: '+autoBillingSubscriptionPlanJobBatch.progress+'%'"> {{ autoBillingSubscriptionPlanJobBatch.progress }}%</div>
                                     </div>
                                 </td>
                                 <!-- Sprint Date -->
@@ -121,7 +121,7 @@
                                 </td>
                             </tr>
 
-                            <tr v-if="autoBillingSubscriptionPlanJobBatchesPayload.data.length == 0">
+                            <tr v-if="subscriptionPlanAutoBillingJobBatchesPayload.data.length == 0">
                                 <!-- Content -->
                                 <td :colspan="7" class="px-6 py-4 whitespace-nowrap">
                                     <div class="text-center text-gray-900 text-sm p-6">No subscription plan sprints</div>
@@ -136,7 +136,7 @@
             </div>
 
             <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="autoBillingSubscriptionPlanJobBatchesPayload" :updateData="['autoBillingSubscriptionPlanJobBatchesPayload']" />
+            <pagination class="mt-6" :paginationPayload="subscriptionPlanAutoBillingJobBatchesPayload" :updateData="['subscriptionPlanAutoBillingJobBatchesPayload']" />
 
         </div>
 
@@ -157,7 +157,7 @@
         },
         props: {
             subscriptionPlan: Object,
-            autoBillingSubscriptionPlanJobBatchesPayload: Object
+            subscriptionPlanAutoBillingJobBatchesPayload: Object
         },
         data() {
             return {

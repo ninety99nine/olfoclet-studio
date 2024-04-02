@@ -125,11 +125,14 @@ class BillingService
                 //  If this is an active account
                 if( $status = $isAnActiveAccount ) {
 
+                    //  Get the account rating type
+                    $ratingType = $productInventory['ratingType'];
+
                     //  Determine if this is a prepaid account
-                    $isPrepaidAccount = ($productInventory['ratingType'] == 'Prepaid');
+                    $isPrepaidAccount = ($ratingType == 'Prepaid');
 
                     //  Determine if this is a postpaid account
-                    $isPostpaidAccount = ($productInventory['ratingType'] == 'Postpaid');
+                    $isPostpaidAccount = ($ratingType == 'Postpaid');
 
                     //  If this is a postpaid account, we assume to always have enough funds
                     $hasEnoughFunds = $isPostpaidAccount;
@@ -211,7 +214,7 @@ class BillingService
                                 if( !$hasEnoughFunds ) {
 
                                     $failureType = BillingTransactionFailureType::InsufficientFunds;
-                                    $failureReason = $subscriptionPlan->insufficient_funds_message ?? 'Insufficient funds';
+                                    $failureReason = $subscriptionPlan->craftInsufficientFundsMessage();
 
                                 }
 
@@ -368,35 +371,12 @@ class BillingService
 
         }
 
-        //  If the project has the SMS credentials
-        if( $project->hasSmsCredentials() ) {
-
-            //  If the subscriber was billed successfully
-            if($status) {
-
-                //  Set the message type
-                $messageType = MessageType::PaymentConfirmation;
-
-                /**
-                 *  Set the successful payment sms message
-                 *
-                 *  @var string $messageContent
-                 */
-                $messageContent = $subscriptionPlan->successful_payment_sms_message;
-
-                //  Send the successful payment SMS message
-                SmsService::sendSms($project, $subscriber, $messageContent, $messageType);
-
-            }
-
-        }
-
         //  Update billing transaction
         $billingTransaction->update([
             'is_successful' => $status,
+            'rating_type' => isset($ratingType) ? $ratingType : null,
             'failure_reason' => isset($failureReason) ? $failureReason : null,
             'failure_type' => isset($failureType) ? $failureType->value : null,
-            'is_prepaid_account' => isset($isPrepaidAccount) ? $isPrepaidAccount : null,
             'funds_after_deduction' => isset($fundsAfterDeduction) ? $fundsAfterDeduction : null,
             'funds_before_deduction' => isset($fundsBeforeDeduction) ? $fundsBeforeDeduction : null,
         ]);

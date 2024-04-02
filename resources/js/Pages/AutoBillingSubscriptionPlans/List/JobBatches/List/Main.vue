@@ -3,7 +3,7 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                <subscription-plans-content :autoBillingSubscriptionPlanJobBatchesPayload="autoBillingSubscriptionPlanJobBatchesPayload" :subscriptionPlan="subscriptionPlan" />
+                <subscription-plans-content :subscriptionPlanAutoBillingJobBatchesPayload="subscriptionPlanAutoBillingJobBatchesPayload" :subscriptionPlan="subscriptionPlan" />
 
             </div>
         </div>
@@ -22,7 +22,7 @@
         },
         props: {
             subscriptionPlan: Object,
-            autoBillingSubscriptionPlanJobBatchesPayload: Object
+            subscriptionPlanAutoBillingJobBatchesPayload: Object
         }
     })
 </script>

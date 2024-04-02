@@ -1,17 +1,21 @@
 <?php
 
 use App\Enums\CreatedUsingAutoBilling;
+use App\Http\Controllers\AutoBillingReminderSubscriptionPlanController;
 use App\Http\Controllers\AutoBillingSubscriptionPlanController;
+use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\SmsCampaignController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\SubscriberMessageController;
 use App\Jobs\SmsCampaign\StartSmsCampaign;
 use App\Http\Controllers\TopicController;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Controllers\UserController;
+use App\Models\BillingTransaction;
 use App\Models\Message;
 use App\Models\Pivots\SubscriberMessage;
 use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
@@ -22,6 +26,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\SmsCampaign;
 use App\Models\Subscriber;
 use App\Models\Project;
+use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Services\BillingService;
 use App\Services\SmsService;
@@ -77,6 +82,21 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
+            //  Topics
+            Route::prefix('topics')->group(function () {
+                Route::get('/', [TopicController::class, 'showTopics'])->middleware(['project.permission:View topics'])->name('show.topics');
+                Route::post('/', [TopicController::class, 'createTopic'])->middleware(['project.permission:Manage topics'])->name('create.topic');
+
+                Route::prefix('{topic}')->middleware(['project.permission:Manage topics'])->group(function () {
+                    Route::get('/', [TopicController::class, 'showTopic'])
+                        ->withoutMiddleware(['project.permission:Manage topics'])
+                        ->middleware(['project.permission:View topics'])
+                        ->name('show.topic');
+                    Route::put('/', [TopicController::class, 'updateTopic'])->name('update.topic');
+                    Route::delete('/', [TopicController::class, 'deleteTopic'])->name('delete.topic');
+                });
+            });
+
             //  Messages
             Route::prefix('messages')->group(function () {
                 Route::get('/', [MessageController::class, 'showMessages'])->middleware(['project.permission:View messages'])->name('show.messages');
@@ -92,22 +112,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
-            //  Sms Campaigns
-            Route::prefix('sms-campaigns')->group(function () {
-                Route::get('/', [SmsCampaignController::class, 'showSmsCampaigns'])->middleware(['project.permission:View sms campaigns'])->name('show.sms.campaigns');
-                Route::post('/', [SmsCampaignController::class, 'createSmsCampaign'])->middleware(['project.permission:Manage sms campaigns'])->name('create.sms.campaign');
-
-                Route::prefix('{sms_campaign}')->middleware(['project.permission:Manage sms campaigns'])->group(function () {
-                    Route::get('/', [SmsCampaignController::class, 'showSmsCampaign'])->name('show.sms.campaign');
-                    Route::put('/', [SmsCampaignController::class, 'updateSmsCampaign'])->name('update.sms.campaign');
-                    Route::delete('/', [SmsCampaignController::class, 'deleteSmsCampaign'])->name('delete.sms.campaign');
-                    Route::get('/job-batches', [SmsCampaignController::class, 'showSmsCampaignJobBatches'])
-                            ->withoutMiddleware(['project.permission:Manage sms campaigns'])
-                            ->middleware(['project.permission:View sms campaigns'])
-                            ->name('show.sms.campaign.job.batches');
-                });
-            });
-
             //  Subscribers
             Route::prefix('subscribers')->group(function () {
                 Route::get('/', [SubscriberController::class, 'showSubscribers'])->middleware(['project.permission:View subscribers'])->name('show.subscribers');
@@ -116,6 +120,26 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::prefix('{subscriber}')->middleware(['project.permission:Manage subscribers'])->group(function () {
                     Route::put('/', [SubscriberController::class, 'updateSubscriber'])->name('update.subscriber');
                     Route::delete('/', [SubscriberController::class, 'deleteSubscriber'])->name('delete.subscriber');
+                });
+            });
+
+            //  Subscriber Messages
+            Route::prefix('subscriber-messages')
+                ->middleware(['project.permission:View subscriber messages'])->group(function () {
+                Route::get('/', [SubscriberMessageController::class, 'showSubscriberMessages'])->name('show.subscriber.messages');
+
+                Route::prefix('{subscriber_message}')->group(function () {
+                    Route::get('/', [SubscriberMessageController::class, 'showSubscriberMessage']);
+                });
+            });
+
+            //  Billing Transactions
+            Route::prefix('billing-transactions')
+                ->middleware(['project.permission:View billing transactions'])->group(function () {
+                Route::get('/', [BillingTransactionController::class, 'showBillingTransactions'])->name('show.billing.transactions');
+
+                Route::prefix('{billing_transaction}')->group(function () {
+                    Route::get('/', [BillingTransactionController::class, 'showBillingTransaction']);
                 });
             });
 
@@ -147,8 +171,25 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
+            //  Sms Campaigns
+            Route::prefix('sms-campaigns')->group(function () {
+                Route::get('/', [SmsCampaignController::class, 'showSmsCampaigns'])->middleware(['project.permission:View sms campaigns'])->name('show.sms.campaigns');
+                Route::post('/', [SmsCampaignController::class, 'createSmsCampaign'])->middleware(['project.permission:Manage sms campaigns'])->name('create.sms.campaign');
+
+                Route::prefix('{sms_campaign}')->middleware(['project.permission:Manage sms campaigns'])->group(function () {
+                    Route::get('/', [SmsCampaignController::class, 'showSmsCampaign'])->name('show.sms.campaign');
+                    Route::put('/', [SmsCampaignController::class, 'updateSmsCampaign'])->name('update.sms.campaign');
+                    Route::delete('/', [SmsCampaignController::class, 'deleteSmsCampaign'])->name('delete.sms.campaign');
+                    Route::get('/job-batches', [SmsCampaignController::class, 'showSmsCampaignJobBatches'])
+                            ->withoutMiddleware(['project.permission:Manage sms campaigns'])
+                            ->middleware(['project.permission:View sms campaigns'])
+                            ->name('show.sms.campaign.job.batches');
+                });
+            });
+
             //  Auto Billing Subscription Plans
             Route::prefix('auto-billing/subscription-plans')->group(function () {
+
                 Route::get('/', [AutoBillingSubscriptionPlanController::class, 'showAutoBillingSubscriptionPlans'])->middleware(['project.permission:View auto billing subscription plans'])->name('show.auto.billing.subscription.plans');
 
                 Route::prefix('{subscription_plan}')->middleware(['project.permission:Manage auto billing subscription plans'])->group(function () {
@@ -159,18 +200,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
-            //  Topics
-            Route::prefix('topics')->group(function () {
-                Route::get('/', [TopicController::class, 'showTopics'])->middleware(['project.permission:View topics'])->name('show.topics');
-                Route::post('/', [TopicController::class, 'createTopic'])->middleware(['project.permission:Manage topics'])->name('create.topic');
+            //  Auto Billing Reminder Subscription Plans
+            Route::prefix('auto-billing-reminder/subscription-plans')->middleware(['project.permission:View auto billing reminder subscription plans'])->group(function () {
 
-                Route::prefix('{topic}')->middleware(['project.permission:Manage topics'])->group(function () {
-                    Route::get('/', [TopicController::class, 'showTopic'])
-                        ->withoutMiddleware(['project.permission:Manage topics'])
-                        ->middleware(['project.permission:View topics'])
-                        ->name('show.topic');
-                    Route::put('/', [TopicController::class, 'updateTopic'])->name('update.topic');
-                    Route::delete('/', [TopicController::class, 'deleteTopic'])->name('delete.topic');
+                Route::get('/', [AutoBillingReminderSubscriptionPlanController::class, 'showAutoBillingReminderSubscriptionPlans'])->name('show.auto.billing.reminder.subscription.plans');
+
+                Route::prefix('{subscription_plan}')->group(function () {
+                    Route::get('/job-batches', [AutoBillingReminderSubscriptionPlanController::class, 'showAutoBillingReminderSubscriptionPlanJobBatches'])
+                            ->name('show.auto.billing.subscription.plan.reminder.job.batches');
                 });
             });
 
@@ -180,12 +217,27 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 });
 
+Route::get('/test-conversion', function() {
+
+    $subscriber = Subscriber::find(1);
+    $subscription = Subscription::find(1);
+    $subscriptionPlan = SubscriptionPlan::find(9);
+
+    /**
+     *  @var Subscription $subscriptionWithFurthestEndAt
+     */
+    $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
+                                                ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+
+    return $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscriptionWithFurthestEndAt, $subscriptionWithFurthestEndAt);
+
+});
+
 Route::get('/test-sms', function() {
 
     $project = Project::find(1);
     $message = Message::find(3);
     $subscriber = Subscriber::find(1);
-
     return SmsService::sendSms($project, $subscriber, $message);
 
 });
@@ -196,7 +248,40 @@ Route::get('/test-billing', function() {
     $subscriber = Subscriber::find(1);
     $subscriptionPlan = SubscriptionPlan::find(6);
 
-    return BillingService::billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::YES);
+    /**
+     *  Bill the subscriber using artime.
+     *
+     *  @var BillingTransaction $billingTransaction
+     */
+    $billingTransaction = BillingTransaction::find(10);
+
+    return $billingTransaction;
+
+    //  Set the billing transaction status
+    $isSuccessful = $billingTransaction->is_successful;
+
+    //  If the subscriber was billed successfully
+    if($isSuccessful) {
+
+        //  Success message
+        $message = 'Subscription created successfully';
+
+        // Create a new subscription using the repository
+        $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO, $billingTransaction);
+
+    }else {
+
+        //  Failure message
+        $message = $billingTransaction->failure_reason;
+
+    }
+
+    // Return JSON response
+    return response()->json([
+        'message' => $message,
+        'created' => $isSuccessful,
+        'subscription' => $isSuccessful ? new SubscriptionResource($subscription) : null,
+    ]);
 
 });
 

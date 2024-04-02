@@ -5,6 +5,7 @@ namespace App\Jobs\AutoBillingReminder;
 use App\Models\Project;
 use App\Enums\MessageType;
 use App\Models\Subscriber;
+use App\Models\Subscription;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
@@ -104,11 +105,17 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
             $messageType = MessageType::AutoBillingReminder;
 
             /**
+             *  @var Subscription $subscriptionWithFurthestEndAt
+             */
+            $subscriptionWithFurthestEndAt = $this->subscriber->subscriptionWithFurthestEndAt()
+                                                  ->where('subscription_plan_id', $this->subscriptionPlan->id)->first();
+
+            /**
              *  Set the next auto billing reminder sms message
              *
              *  @var string $messageContent
              */
-            $messageContent = $this->subscriptionPlan->next_auto_billing_reminder_sms_message;
+            $messageContent = $this->subscriptionPlan->craftNextAutoBillingReminderSmsMessage($subscriptionWithFurthestEndAt);
 
             /**
              *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance

@@ -17,7 +17,7 @@ use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\CancelSubscriptionsRequest;
 
-class SubscriptionApiController extends Controller
+class SubscriptionController extends Controller
 {
     protected $project;
     protected $subscriberRepository;
@@ -69,7 +69,7 @@ class SubscriptionApiController extends Controller
             $message = 'Subscription created successfully';
 
             // Create a new subscription using the repository
-            $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO);
+            $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO, $billingTransaction);
 
         }else {
 
@@ -104,13 +104,37 @@ class SubscriptionApiController extends Controller
         return response()->json(['message' => 'Updated Successfully']);
     }
 
-    public function cancelSubscription(CancelSubscriptionsRequest $request): JsonResponse
+    public function cancelSubscription(): JsonResponse
+    {
+        // Cancel the subscription
+        $status = $this->subscriptionRepository->cancelProjectSubscription();
+
+        // Return a success JSON response
+        return response()->json([
+            'message' => $status ? 'Subscription cancelled successfully' : 'Failed to cancel subscription',
+            'status' => $status
+        ]);
+    }
+
+    public function uncancelSubscription(): JsonResponse
+    {
+        // Uncancel the subscription
+        $status = $this->subscriptionRepository->uncancelProjectSubscription();
+
+        // Return a success JSON response
+        return response()->json([
+            'message' => $status ? 'Subscription uncancelled successfully' : 'Failed to uncancel subscription',
+            'status' => $status
+        ]);
+    }
+
+    public function cancelSubscriptions(CancelSubscriptionsRequest $request): JsonResponse
     {
         //  Get the MSISDN
         $msisdn = $request->input('msisdn');
 
-        // Cancel the active subscriptions matching the specified subscriber msisdn
-        $status = $this->subscriptionRepository->cancelProjectSubscriberSubscriptions($msisdn);
+        // Cancel the subscriptions matching the specified subscriber msisdn
+        $status = $this->subscriptionRepository->cancelProjectSubscriptionsByMsisdn($msisdn);
 
         // Return a success JSON response
         return response()->json([

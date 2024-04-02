@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use App\Casts\Json;
+use App\Casts\JsonToArray;
 use App\Traits\Models\ProjectTrait;
+use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Pivots\ProjectUserAsTeamMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,7 +23,10 @@ class Project extends Model
         'View sms campaigns', 'Manage sms campaigns',
         'View project settings', 'Manage project settings',
         'View subscription plans', 'Manage subscription plans',
+        'View subscriber messages', 'Manage subscriber messages',
+        'View billing transactions', 'Manage billing transactions',
         'View auto billing subscription plans', 'Manage auto billing subscription plans',
+        'View auto billing reminder subscription plans', 'Manage auto billing reminder subscription plans',
     ];
 
     /**
@@ -31,9 +35,9 @@ class Project extends Model
      * @var string
      */
     protected $casts = [
-        'settings' => Json::class,
         'can_auto_bill' => 'boolean',
         'can_send_messages' => 'boolean',
+        'settings' => JsonToArray::class,
     ];
 
     /**
@@ -124,6 +128,14 @@ class Project extends Model
     }
 
     /**
+     *  Get the subscriber messages associated with the project
+     */
+    public function subscriberMessages()
+    {
+        return $this->hasMany(SubscriberMessage::class);
+    }
+
+    /**
      * Get the subscriptions associated with the project.
      */
     public function subscriptions()
@@ -146,6 +158,14 @@ class Project extends Model
     {
         return $this->belongsToMany(User::class, 'subscription_plan_auto_billing_reminders', 'project_id', 'auto_billing_reminder_id')
                     ->using(SubscriptionPlanAutoBillingReminder::class);
+    }
+
+    /**
+     * Get the billing transactions associated with the project.
+     */
+    public function billingTransactions()
+    {
+        return $this->hasMany(BillingTransaction::class);
     }
 
 }

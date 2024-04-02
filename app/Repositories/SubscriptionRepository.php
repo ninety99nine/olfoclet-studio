@@ -9,6 +9,9 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\DB;
 use App\Enums\CreatedUsingAutoBilling;
+use App\Enums\MessageType;
+use App\Models\BillingTransaction;
+use App\Services\SmsService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use \Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -64,11 +67,12 @@ class SubscriptionRepository
      *
      *  @param Subscriber $subscriber The subscriber for whom the subscription will be created.
      *  @param SubscriptionPlan $subscriptionPlan The subscription plan associated with the subscription.
-     *  @param CreatedUsingAutoBilling $createdUsingAutoBilling Whether this subscription was created using auto billing
+     *  @param CreatedUsingAutoBilling $createdUsingAutoBilling Whether this subscription was created using auto billing.
+     *  @param BillingTransaction|null $billingTransaction The BillingTransaction associated with the subscription.
      *
      *  @return Subscription The newly created subscription instance.
      */
-    public function createProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): Subscription
+    public function createProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO, BillingTransaction|null $billingTransaction = null): Subscription
     {
         $startAt = Carbon::now();
         $endAt = $this->calculateEndDate($subscriptionPlan);
@@ -83,8 +87,43 @@ class SubscriptionRepository
             'end_at' => $endAt,
         ]);
 
-        //  Update the auto billing schedule
-        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $createdUsingAutoBilling);
+        /**
+         *  @var Subscription $subscriptionWithFurthestEndAt
+         */
+        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
+                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+
+        //  Update the subscriber metadata
+        $this->updateSubscriberMetadata($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt);
+
+        if($billingTransaction) {
+
+            $billingTransaction->update([
+                'subscription_id' => $subscription->id,
+            ]);
+
+            //  Update the auto billing schedule
+            $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt, $createdUsingAutoBilling);
+
+            //  If the project has the SMS credentials
+            if( $this->project->hasSmsCredentials() ) {
+
+                //  Set the message type
+                $messageType = MessageType::PaymentConfirmation;
+
+                /**
+                 *  Set the successful payment sms message
+                 *
+                 *  @var string $messageContent
+                 */
+                $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription, $subscriptionWithFurthestEndAt);
+
+                //  Send the successful payment SMS message
+                SmsService::sendSms($this->project, $subscriber, $messageContent, $messageType);
+
+            }
+
+        }
 
         return $subscription;
     }
@@ -116,10 +155,43 @@ class SubscriptionRepository
             'end_at' => $endAt
         ]);
 
+        /**
+         *  @var Subscription $subscriptionWithFurthestEndAt
+         */
+        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
+                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+
+        //  Update the subscriber metadata
+        $this->updateSubscriberMetadata($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt);
+
         //  Update the auto billing schedule
-        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan);
+        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt);
 
         return $status;
+    }
+
+    /**
+     *  Update the subscriber metadata
+     *
+     *  @param Subscriber $subscriber The subscriber for whom the auto billing schedule will be updated.
+     *  @param SubscriptionPlan $subscriptionPlan The new subscription plan associated with the subscription.
+     *  @param Subscription $subscriptionWithFurthestEndAt The subscription with the furthest end at datetime.
+     *
+     *  @return void
+     */
+    public function updateSubscriberMetadata(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, Subscription $subscriptionWithFurthestEndAt): void
+    {
+        //  If the subscription end at reference name is provided
+        if(!empty($subscriptionPlan->subscription_end_at_reference_name)) {
+
+            //  Set the end_at timestamp of the subscription with the furthest end_at using the provided reference name
+            $subscriber->update([
+                'metadata' => array_merge(($subscriber->metadata ?? []), [
+                    $subscriptionPlan->subscription_end_at_reference_name => $subscriptionWithFurthestEndAt->end_at->timestamp
+                ])
+            ]);
+
+        }
     }
 
     /**
@@ -127,11 +199,12 @@ class SubscriptionRepository
      *
      *  @param Subscriber $subscriber The subscriber for whom the auto billing schedule will be updated.
      *  @param SubscriptionPlan $subscriptionPlan The new subscription plan associated with the subscription.
-     *  @param CreatedUsingAutoBilling $createdUsingAutoBilling Whether this subscription was created using auto billing
+     *  @param Subscription $subscriptionWithFurthestEndAt The subscription with the furthest end at datetime.
+     *  @param CreatedUsingAutoBilling $createdUsingAutoBilling Whether this subscription was created using auto billing.
      *
      *  @return void
      */
-    public function updateAutoBillingSchedule(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): void
+    public function updateAutoBillingSchedule(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, Subscription $subscriptionWithFurthestEndAt, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): void
     {
         /**
          *  @var bool $autoBillingEnabled Whether auto billing is enabled for the auto billing schedule.
@@ -151,12 +224,6 @@ class SubscriptionRepository
          *  subscription plan was not running on auto billing.
          */
         $autoBillingEnabled = $subscriptionPlan->can_auto_bill;
-
-        /**
-         *  @var Subscription $subscriptionWithFurthestEndAt
-         */
-        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
-                                      ->where('subscription_plan_id', $subscriptionPlan->id)->first();
 
         /**
          *  @var bool $nextAttemptDate The date and time for auto billing to be attempted
@@ -216,7 +283,7 @@ class SubscriptionRepository
      */
     public function cancelProjectSubscription(): bool
     {
-        return $this->subscription->update([
+        return $this->project->subscriptions()->active()->where('subscriptions.id', $this->subscription->id)->update([
             'cancelled_at' => Carbon::now()
         ]);
     }
@@ -229,7 +296,7 @@ class SubscriptionRepository
      */
     public function uncancelProjectSubscription(): bool
     {
-        return $this->subscription->update([
+        return $this->project->subscriptions()->active()->where('subscriptions.id', $this->subscription->id)->update([
             'cancelled_at' => null
         ]);
     }
@@ -240,7 +307,7 @@ class SubscriptionRepository
      *  @param string $msisdn The MSISDN (Mobile Subscriber Integrated Services Digital Network Number).
      *  @return bool True if the update is successful, false otherwise.
      */
-    public function cancelProjectSubscriberSubscriptions(string $msisdn): bool
+    public function cancelProjectSubscriptionsByMsisdn(string $msisdn): bool
     {
         return $this->project->subscriptions()->active()->whereHas('subscriber', function (Builder $query) use ($msisdn) {
 

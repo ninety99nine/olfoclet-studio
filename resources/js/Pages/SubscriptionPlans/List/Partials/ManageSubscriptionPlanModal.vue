@@ -3,46 +3,43 @@
     <div>
 
         <!-- Add Subscription Plan Button -->
-        <div v-if="showHeader" class="grid grid-cols-2 mb-6 gap-4">
+        <div v-if="showHeader" class="grid grid-cols-12 mb-6 gap-4">
 
-            <div>
-                <div class="bg-gray-50 pt-3 pl-6 border-b rounded-t">
+            <div class="col-span-8 bg-gray-50 pt-4 pl-6 border-b rounded-t">
 
-                    <div class="text-2xl font-semibold leading-6 text-gray-500 mb-4">{{ parentSubscriptionPlan ? parentSubscriptionPlan.name : 'Subscription Plans' }}</div>
+                <div class="text-2xl font-semibold leading-6 text-gray-500 border-b pb-4 mb-4">{{ parentSubscriptionPlan ? parentSubscriptionPlan.name : 'Subscription Plans' }}</div>
 
-                    <template v-if="parentSubscriptionPlan">
+                <div v-if="parentSubscriptionPlan" class="border-b">
 
-                        <el-breadcrumb separator=">" class="mb-4">
-                            <el-breadcrumb-item @click="nagivateToSubscriptionPlan()">
-                                <span class="hover:underline hover:text-green-600 text-green-500 font-semibold cursor-pointer">Subscription Plans</span>
-                            </el-breadcrumb-item>
+                    <jet-secondary-button @click="goBackToPreviousPage()" class="py-1 mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
+                        </svg>
+                        <span class="ml-2">Go Back</span>
+                    </jet-secondary-button>
 
-                            <el-breadcrumb-item v-for="breadcrumb in breadcrumbs" :key="breadcrumb.id" @click="nagivateToSubscriptionPlan(breadcrumb)">
-                                <span class="hover:underline hover:text-green-600 text-green-500 font-semibold cursor-pointer">{{ breadcrumb.name }}</span>
-                            </el-breadcrumb-item>
-                        </el-breadcrumb>
+                    <el-breadcrumb separator=">" class="mb-4">
+                        <el-breadcrumb-item @click="nagivateToSubscriptionPlan()">
+                            <span class="hover:underline hover:text-green-600 text-green-500 font-semibold cursor-pointer">Subscription Plans</span>
+                        </el-breadcrumb-item>
 
-                        <jet-secondary-button @click="goBackToPreviousPage()" class="py-1 mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                            </svg>
-                            <span class="ml-2">Go Back</span>
-                        </jet-secondary-button>
-
-                    </template>
+                        <el-breadcrumb-item v-for="breadcrumb in breadcrumbs" :key="breadcrumb.id" @click="nagivateToSubscriptionPlan(breadcrumb)">
+                            <span class="hover:underline hover:text-green-600 text-green-500 font-semibold cursor-pointer">{{ breadcrumb.name }}</span>
+                        </el-breadcrumb-item>
+                    </el-breadcrumb>
 
                 </div>
 
-                <div class="bg-gray-50 border-b pl-6 py-3 rounded-t text-gray-500 text-sm mb-6">
-                    <span class="font-bold mr-2">Api Link:</span>
-                    <span v-if="parentSubscriptionPlan">{{ route('api.show.subscription.plan', { project: route().params.project, subscription_plan: parentSubscriptionPlan.id, type: 'children' }) }}</span>
-                    <span v-else>{{ route('api.show.subscription.plans', { project: route().params.project }) }}</span>
+                <div class="text-sm text-gray-500 my-2">
+                    <span class="font-bold mr-2">GET / POST:</span>
+                    <span v-if="parentSubscriptionPlan" class="text-green-500 font-semibold">{{ route('api.show.subscription.plan', { project: route().params.project, subscription_plan: parentSubscriptionPlan.id, type: 'children' }) }}</span>
+                    <span v-else class="text-green-500 font-semibold">{{ route('api.show.subscription.plans', { project: route().params.project }) }}</span>
                 </div>
+
             </div>
 
-            <div v-if="$inertia.page.props.projectPermissions.includes('Manage subscription plans')">
-                <jet-button @click="openModal()" class="w-fit float-right">Add Subscription Plan</jet-button>
-                <div class="clear-both"></div>
+            <div v-if="$inertia.page.props.projectPermissions.includes('Manage subscription plans')" class="col-span-4 flex justify-end items-start">
+                <jet-button @click="openModal()">Add Subscription Plan</jet-button>
             </div>
 
         </div>
@@ -193,12 +190,19 @@
                                 <jet-input-error :message="form.errors.description" class="mt-2" />
                             </div>
 
+                            <!-- Subscriber Reference Name -->
+                            <div class="mb-4">
+                                <jet-label for="subscription_end_at_reference_name" value="Subscription End At Reference Name" />
+                                <jet-input id="subscription_end_at_reference_name" type="text" class="w-full mt-1 block " v-model="form.subscription_end_at_reference_name" placeholder="subscriptionEndAt"/>
+                                <jet-input-error :message="form.errors.subscription_end_at_reference_name" class="mt-2" />
+                            </div>
+
                             <!-- Insufficient Funds Message -->
                             <div class="mb-4">
                                 <div class="flex mb-1">
                                     <jet-label for="sub-pl-insufficient-funds-message" value="Insufficient Funds Message" />
 
-                                    <el-popover :width="300">
+                                    <el-popover :width="400">
                                         <template #reference>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
@@ -208,6 +212,27 @@
                                             <span class="break-normal">
                                                 While billing, this message will be shown to the subscriber if they have insufficient funds to complete the transaction
                                             </span>
+                                            <div class="mt-4">
+                                                <table class="w-full divide-y divide-gray-200">
+                                                    <thead>
+                                                        <tr class="font-bold">
+                                                            <td>Variable</td>
+                                                            <td>Meaning</td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-gray-200">
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionPlanName</td>
+                                                            <td>The Subscription Plan name</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionPlanPrice</td>
+                                                            <td>The Subscription Plan price</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
                                         </template>
                                     </el-popover>
 
@@ -221,7 +246,7 @@
                                 <div class="flex mb-1">
                                     <jet-label for="sub-pl-successful-payment-sms-message" value="Successful Payment SMS Message" />
 
-                                    <el-popover :width="300">
+                                    <el-popover :width="400">
                                         <template #reference>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
@@ -231,6 +256,43 @@
                                             <span class="break-normal">
                                                 While billing, this SMS message will be sent to the subscriber if they have sufficient funds to complete the transaction
                                             </span>
+                                            <div class="mt-4">
+                                                <table class="w-full divide-y divide-gray-200">
+                                                    <thead>
+                                                        <tr class="font-bold">
+                                                            <td>Variable</td>
+                                                            <td>Meaning</td>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody class="divide-y divide-gray-200">
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionId</td>
+                                                            <td>The Subscription ID</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">nextBillableDate</td>
+                                                            <td>The next billable date</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionEndDate</td>
+                                                            <td>The Subscription end date</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionStartDate</td>
+                                                            <td>The Subscription start date</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionPlanName</td>
+                                                            <td>The Subscription Plan name</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionPlanPrice</td>
+                                                            <td>The Subscription Plan price</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+
                                         </template>
                                     </el-popover>
 
@@ -271,7 +333,7 @@
                                     <div class="flex mb-1">
                                         <jet-label for="sub-pl-next-auto-billing-reminder-sms-message" value="Next Auto Billing Reminder SMS Message" />
 
-                                        <el-popover :width="300">
+                                        <el-popover :width="400">
                                             <template #reference>
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
@@ -281,6 +343,31 @@
                                                 <span class="break-normal">
                                                     Before billing, this SMS message will be sent to the subscriber to notify them 24 hours before auto billing
                                                 </span>
+                                                <div class="mt-4">
+                                                    <table class="w-full divide-y divide-gray-200">
+                                                        <thead>
+                                                            <tr class="font-bold">
+                                                                <td>Variable</td>
+                                                                <td>Meaning</td>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-gray-200">
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500">nextBillableDate</td>
+                                                                <td>The next billable date</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500">subscriptionPlanName</td>
+                                                                <td>The Subscription Plan name</td>
+                                                            </tr>
+                                                        <tr>
+                                                            <td class="font-semibold text-green-500">subscriptionPlanPrice</td>
+                                                            <td>The Subscription Plan price</td>
+                                                        </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
                                             </template>
                                         </el-popover>
                                     </div>
@@ -595,10 +682,11 @@
                     price: this.hasSubscriptionPlan ? this.subscriptionPlan.price.amount_without_currency : null,
                     max_auto_billing_attempts: this.hasSubscriptionPlan ? this.subscriptionPlan.max_auto_billing_attempts : 5,
                     duration: this.hasSubscriptionPlan ? (this.subscriptionPlan.is_folder ? null : this.subscriptionPlan.duration.toString()) : '3',
+                    subscription_end_at_reference_name: this.hasSubscriptionPlan ? this.subscriptionPlan.subscription_end_at_reference_name : 'subscriptionEndAt',
                     auto_billing_reminder_ids: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_reminders.map((autoBillingReminder) => autoBillingReminder.id) : [],
-                    successful_payment_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.successful_payment_sms_message : 'Your payment was successful. Thank you',
                     insufficient_funds_message: this.hasSubscriptionPlan ? this.subscriptionPlan.insufficient_funds_message : 'You do not have enough funds to complete this transaction',
-                    next_auto_billing_reminder_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.next_auto_billing_reminder_sms_message : 'You will be billed $price for $name on $date. To unsubscribe dial *123#',
+                    next_auto_billing_reminder_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.next_auto_billing_reminder_sms_message : 'You will be automatically billed {{ subscriptionPlanPrice }} on {{ nextBillableDate }} for {{ subscriptionPlanName }}. Dial *xxx# to unsubscribe.',
+                    successful_payment_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.successful_payment_sms_message : 'Your payment for {{ subscriptionPlanName }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }}. Dial *xxx# to unsubscribe.',
                 });
             },
         },
