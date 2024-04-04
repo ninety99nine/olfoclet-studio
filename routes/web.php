@@ -246,7 +246,14 @@ Route::get('/test-conversion', function() {
 
 });
 
-Route::get('/test-email', function() {
+Route::get('/StartCreatingBillingReports', function() {
+
+    StartCreatingBillingReports::dispatch();
+    return 'DONE';
+
+});
+
+Route::get('/MonthlyBillingReport', function() {
 
     $project = Project::find(1);
     $billingReport = BillingReport::find(1);
