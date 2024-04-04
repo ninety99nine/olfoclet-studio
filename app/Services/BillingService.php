@@ -44,60 +44,22 @@ class BillingService
             'created_using_auto_billing' => $createdUsingAutoBilling->value,
         ]);
 
-        /**
-         *  ------------------------
-         *  Request the access token
-         *  ------------------------
-         *
-         *  On Success, the response payload is as follows:
-         *
-         *  [
-         *      "status" => true
-         *      "body" => [
-         *          "access_token" => "c0352550-14c4-3a74-b82e-31bd8d09a556",
-         *          "scope" => "am_application_scope default",
-         *          "token_type" => "Bearer",
-         *          "expires_in" => 3600
-         *      ]
-         *  ]
-         *
-         *  On Fail, the response payload is as follows =>
-         *
-         *  [
-         *      "status" => false
-         *      "body" => [
-         *          "error_description" => "Oauth application is not in active state.",
-         *          "error" => "invalid_client"
-         *      ]
-         *  ]
-         */
-        $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret);
-
-        if($status = $response['status']) {
-
-            $accessToken = $response['body']['access_token'];
+        try {
 
             /**
-             *  -----------------------------
-             *  Request the product inventory
-             *  -----------------------------
+             *  ------------------------
+             *  Request the access token
+             *  ------------------------
              *
              *  On Success, the response payload is as follows:
              *
              *  [
              *      "status" => true
              *      "body" => [
-             *          [
-             *              "id" => "8037c89b-f204-428e-9336-d3a4bca1b3fe",
-             *              "ratingType" => "Postpaid",
-             *              "status" => "Active",
-             *              "isBundle" => true,
-             *              "startDate" => "2020-09-17T00 =>00 =>00+0000",
-             *              "productOffering" => [
-             *                  "id" => "Orange_Postpaid",
-             *                  "name" => "MySim"
-             *              ]
-             *          ]
+             *          "access_token" => "c0352550-14c4-3a74-b82e-31bd8d09a556",
+             *          "scope" => "am_application_scope default",
+             *          "token_type" => "Bearer",
+             *          "expires_in" => 3600
              *      ]
              *  ]
              *
@@ -106,283 +68,338 @@ class BillingService
              *  [
              *      "status" => false
              *      "body" => [
-             *          "code" => 4001,
-             *          "message" => "Missing parameter",
-             *          "description" => "Parameter publicKey is missing, null or empty"
+             *          "error_description" => "Oauth application is not in active state.",
+             *          "error" => "invalid_client"
              *      ]
              *  ]
              */
-            $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken);
+            $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret);
 
             if($status = $response['status']) {
 
-                //  Get the first item of the product inventory array
-                $productInventory = $response['body'][0];
+                $accessToken = $response['body']['access_token'];
 
-                //  Determine if this is an active account
-                $isAnActiveAccount = $productInventory['status'] == 'Active';
+                /**
+                 *  -----------------------------
+                 *  Request the product inventory
+                 *  -----------------------------
+                 *
+                 *  On Success, the response payload is as follows:
+                 *
+                 *  [
+                 *      "status" => true
+                 *      "body" => [
+                 *          [
+                 *              "id" => "8037c89b-f204-428e-9336-d3a4bca1b3fe",
+                 *              "ratingType" => "Postpaid",
+                 *              "status" => "Active",
+                 *              "isBundle" => true,
+                 *              "startDate" => "2020-09-17T00 =>00 =>00+0000",
+                 *              "productOffering" => [
+                 *                  "id" => "Orange_Postpaid",
+                 *                  "name" => "MySim"
+                 *              ]
+                 *          ]
+                 *      ]
+                 *  ]
+                 *
+                 *  On Fail, the response payload is as follows =>
+                 *
+                 *  [
+                 *      "status" => false
+                 *      "body" => [
+                 *          "code" => 4001,
+                 *          "message" => "Missing parameter",
+                 *          "description" => "Parameter publicKey is missing, null or empty"
+                 *      ]
+                 *  ]
+                 */
+                $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken);
 
-                //  If this is an active account
-                if( $status = $isAnActiveAccount ) {
+                if($status = $response['status']) {
 
-                    //  Get the account rating type
-                    $ratingType = $productInventory['ratingType'];
+                    //  Get the first item of the product inventory array
+                    $productInventory = $response['body'][0];
 
-                    //  Determine if this is a prepaid account
-                    $isPrepaidAccount = ($ratingType == 'Prepaid');
+                    //  Determine if this is an active account
+                    $isAnActiveAccount = $productInventory['status'] == 'Active';
 
-                    //  Determine if this is a postpaid account
-                    $isPostpaidAccount = ($ratingType == 'Postpaid');
+                    //  If this is an active account
+                    if( $status = $isAnActiveAccount ) {
 
-                    //  If this is a postpaid account, we assume to always have enough funds
-                    $hasEnoughFunds = $isPostpaidAccount;
+                        //  Get the account rating type
+                        $ratingType = $productInventory['ratingType'];
 
-                    /**
-                     *  If this is a prepaid account, we need to check the
-                     *  account balance to know if we have enough funds.
-                     */
-                    if( $isPrepaidAccount ) {
+                        //  Determine if this is a prepaid account
+                        $isPrepaidAccount = ($ratingType == 'Prepaid');
+
+                        //  Determine if this is a postpaid account
+                        $isPostpaidAccount = ($ratingType == 'Postpaid');
+
+                        //  If this is a postpaid account, we assume to always have enough funds
+                        $hasEnoughFunds = $isPostpaidAccount;
 
                         /**
-                         *  -----------------------------
-                         *  Request the usage consumption
-                         *  -----------------------------
-                         *
-                         *  On Success, the response payload is as follows:
-                         *
-                         *  [
-                         *      "status" => true
-                         *      "body" => [
-                         *          "id" => "2b778311-ab1b-4f9b-bdb7-e8f3632a6ca9",
-                         *          "effectiveDate" => "2022-01-21T13:24:33+0000",
-                         *          "bucket" => [
-                         *              ...,
-                         *              [
-                         *                  "id" => "OCS-0",
-                         *                  "name" => "Main Balance",
-                         *                  "usageType" => "accountBalance",
-                         *                  "bucketBalance" => [
-                         *                      [
-                         *                          "unit" => "BWP",
-                         *                          "remainingValue" => 0,
-                         *                          "validFor" => [
-                         *                              "startDateTime" => "2019-04-04T00:00:00+0000",
-                         *                              "endDateTime" => "2023-01-06T00:00:00+0000"
-                         *                          ]
-                         *                      ]
-                         *                  ]
-                         *              ],
-                         *              ...
-                         *          ]
-                         *      ]
-                         *  ]
-                         *
-                         *  On Fail, the response payload is as follows =>
-                         *
-                         *  [
-                         *      "status" => false
-                         *      "body" => [
-                         *          "code" => 4001,
-                         *          "message" => "Missing parameter",
-                         *          "description" => "Parameter publicKey is missing, null or empty"
-                         *      ]
-                         *  ]
+                         *  If this is a prepaid account, we need to check the
+                         *  account balance to know if we have enough funds.
                          */
-                        $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken);
+                        if( $isPrepaidAccount ) {
 
-                        if($status = $response['status']) {
+                            /**
+                             *  -----------------------------
+                             *  Request the usage consumption
+                             *  -----------------------------
+                             *
+                             *  On Success, the response payload is as follows:
+                             *
+                             *  [
+                             *      "status" => true
+                             *      "body" => [
+                             *          "id" => "2b778311-ab1b-4f9b-bdb7-e8f3632a6ca9",
+                             *          "effectiveDate" => "2022-01-21T13:24:33+0000",
+                             *          "bucket" => [
+                             *              ...,
+                             *              [
+                             *                  "id" => "OCS-0",
+                             *                  "name" => "Main Balance",
+                             *                  "usageType" => "accountBalance",
+                             *                  "bucketBalance" => [
+                             *                      [
+                             *                          "unit" => "BWP",
+                             *                          "remainingValue" => 0,
+                             *                          "validFor" => [
+                             *                              "startDateTime" => "2019-04-04T00:00:00+0000",
+                             *                              "endDateTime" => "2023-01-06T00:00:00+0000"
+                             *                          ]
+                             *                      ]
+                             *                  ]
+                             *              ],
+                             *              ...
+                             *          ]
+                             *      ]
+                             *  ]
+                             *
+                             *  On Fail, the response payload is as follows =>
+                             *
+                             *  [
+                             *      "status" => false
+                             *      "body" => [
+                             *          "code" => 4001,
+                             *          "message" => "Missing parameter",
+                             *          "description" => "Parameter publicKey is missing, null or empty"
+                             *      ]
+                             *  ]
+                             */
+                            $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken);
 
-                            //  Get the bucket with the id of "OCS-0" as it holds information about the "Main Balance"
-                            $accountMainBalanceBucket = collect($response['body']['bucket'])->firstWhere('id', 'OCS-0');
+                            if($status = $response['status']) {
 
-                            //  If the bucket with the id of "OCS-0" was extracted successfully
-                            if( $status = !empty($accountMainBalanceBucket) ) {
+                                //  Get the bucket with the id of "OCS-0" as it holds information about the "Main Balance"
+                                $accountMainBalanceBucket = collect($response['body']['bucket'])->firstWhere('id', 'OCS-0');
 
-                                //  Get the remaining value (The Airtime left that we can bill from the bucket balance)
-                                $remainingValue = $accountMainBalanceBucket['bucketBalance'][0]['remainingValue'];
+                                //  If the bucket with the id of "OCS-0" was extracted successfully
+                                if( $status = !empty($accountMainBalanceBucket) ) {
 
-                                //  Determine if we have enough funds
-                                $status = $hasEnoughFunds = ($remainingValue >= $amount);
+                                    //  Get the remaining value (The Airtime left that we can bill from the bucket balance)
+                                    $remainingValue = $accountMainBalanceBucket['bucketBalance'][0]['remainingValue'];
 
-                                //  Set the funds before deduction
-                                $fundsBeforeDeduction = $remainingValue;
+                                    //  Determine if we have enough funds
+                                    $status = $hasEnoughFunds = ($remainingValue >= $amount);
 
-                                //  Set the funds after deduction
-                                $fundsAfterDeduction = $hasEnoughFunds ? ($remainingValue - $amount) : $remainingValue;
+                                    //  Set the funds before deduction
+                                    $fundsBeforeDeduction = $remainingValue;
 
-                                //  If we do not have enough funds
-                                if( !$hasEnoughFunds ) {
+                                    //  Set the funds after deduction
+                                    $fundsAfterDeduction = $hasEnoughFunds ? ($remainingValue - $amount) : $remainingValue;
 
-                                    $failureType = BillingTransactionFailureType::InsufficientFunds;
-                                    $failureReason = $subscriptionPlan->craftInsufficientFundsMessage();
+                                    //  If we do not have enough funds
+                                    if( !$hasEnoughFunds ) {
+
+                                        $failureType = BillingTransactionFailureType::InsufficientFunds;
+                                        $failureReason = $subscriptionPlan->craftInsufficientFundsMessage();
+
+                                    }
+
+                                }else{
+
+                                    $failureType = BillingTransactionFailureType::UsageConsumptionRetrievalFailed;
+                                    $failureReason = 'The Main Balance information was not found on the usage consumption response payload';
 
                                 }
 
                             }else{
 
                                 $failureType = BillingTransactionFailureType::UsageConsumptionRetrievalFailed;
-                                $failureReason = 'The Main Balance information was not found on the usage consumption response payload';
+                                $failureReason = $response['body']['description'];
 
-                            }
+                                if(isset($response['body']['message']) && isset($response['body']['message'])) {
+                                    $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
+                                }else if(isset($response['body']['message'])) {
+                                    $failureReason = trim($response['body']['message']);
+                                }else if(isset($response['body']['description'])) {
+                                    $failureReason = trim($response['body']['description']);
+                                }
 
-                        }else{
-
-                            $failureType = BillingTransactionFailureType::UsageConsumptionRetrievalFailed;
-                            $failureReason = $response['body']['description'];
-
-                            if(isset($response['body']['message']) && isset($response['body']['message'])) {
-                                $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
-                            }else if(isset($response['body']['message'])) {
-                                $failureReason = trim($response['body']['message']);
-                            }else if(isset($response['body']['description'])) {
-                                $failureReason = trim($response['body']['description']);
                             }
 
                         }
 
-                    }
+                        if( $status ) {
 
-                    if( $status ) {
+                            /**
+                             *  --------------------------
+                             *  Request to bill subscriber
+                             *  --------------------------
+                             *
+                             *  On Success, the response payload is as follows:
+                             *
+                             *  [
+                             *      "status" => true
+                             *      "body" => [
+                             *          "amountTransaction" => [
+                             *              "endUserId" => "tel:+ [MSISDN_WITH_COUNTRYCODE]",
+                             *              "paymentAmount" => [
+                             *                  "chargingInformation" => [
+                             *                      "amount" => 5 ,
+                             *                      "currency" => "XOF",
+                             *                      "description" => [
+                             *                          "Short description of the charge"
+                             *                      ]
+                             *                  ],
+                             *                  "totalAmountCharged" => 5 ,
+                             *                  "chargingMetaData" => [
+                             *                      "productId" => "Daily_subscription",
+                             *                      "serviceId" => "Football_results",
+                             *                      "purchaseCategoryCode" => "Daily_autorenew_pack "
+                             *                  ]
+                             *              ],
+                             *              "clientCorrelator" => "unique-technical-id",
+                             *              "referenceCode" => "Service_provider_payment_reference",
+                             *              "transactionOperationStatus" => "Charged",
+                             *              "serverReferenceCode" => "5b9bb0235c2dbe6d16d6b5b2",
+                             *              "resourceURL" => "/payment/v1/tel%3A%2B [MSISDN_WITH_COUNTRYCODE] /transactions/amount/5b9bb0235c2dbe6d16d6b5b2",
+                             *              "link" => []
+                             *          ]
+                             *      ]
+                             *  ]
+                             *
+                             *  On Fail, the response payload is as follows =>
+                             *
+                             *  Policy error example:
+                             *
+                             *  [
+                             *      "status" => false
+                             *      "body" => [
+                             *          "requestError" => [
+                             *              "policyException" => [
+                             *                  "messageId" => "POL2206",
+                             *                  "text" => "User forbidden."
+                             *              ]
+                             *          ]
+                             *      ]
+                             *  ]
+                             *
+                             *  or
+                             *
+                             *  Server error example:
+                             *
+                             *  [
+                             *      "status" => false
+                             *      "body" => [
+                             *          "requestError" => [
+                             *              "serviceException" => [
+                             *                  "messageId": "SVC0005",
+                             *                  "text": "duplicate correlatorId cc1d2d34",
+                             *                  "variables": [
+                             *                      "cc1d2d34"
+                             *                  ]
+                             *              ]
+                             *          ]
+                             *      ]
+                             *  ]
+                             */
+                            $response = self::requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $description, $accessToken);
 
-                        /**
-                         *  --------------------------
-                         *  Request to bill subscriber
-                         *  --------------------------
-                         *
-                         *  On Success, the response payload is as follows:
-                         *
-                         *  [
-                         *      "status" => true
-                         *      "body" => [
-                         *          "amountTransaction" => [
-                         *              "endUserId" => "tel:+ [MSISDN_WITH_COUNTRYCODE]",
-                         *              "paymentAmount" => [
-                         *                  "chargingInformation" => [
-                         *                      "amount" => 5 ,
-                         *                      "currency" => "XOF",
-                         *                      "description" => [
-                         *                          "Short description of the charge"
-                         *                      ]
-                         *                  ],
-                         *                  "totalAmountCharged" => 5 ,
-                         *                  "chargingMetaData" => [
-                         *                      "productId" => "Daily_subscription",
-                         *                      "serviceId" => "Football_results",
-                         *                      "purchaseCategoryCode" => "Daily_autorenew_pack "
-                         *                  ]
-                         *              ],
-                         *              "clientCorrelator" => "unique-technical-id",
-                         *              "referenceCode" => "Service_provider_payment_reference",
-                         *              "transactionOperationStatus" => "Charged",
-                         *              "serverReferenceCode" => "5b9bb0235c2dbe6d16d6b5b2",
-                         *              "resourceURL" => "/payment/v1/tel%3A%2B [MSISDN_WITH_COUNTRYCODE] /transactions/amount/5b9bb0235c2dbe6d16d6b5b2",
-                         *              "link" => []
-                         *          ]
-                         *      ]
-                         *  ]
-                         *
-                         *  On Fail, the response payload is as follows =>
-                         *
-                         *  Policy error example:
-                         *
-                         *  [
-                         *      "status" => false
-                         *      "body" => [
-                         *          "requestError" => [
-                         *              "policyException" => [
-                         *                  "messageId" => "POL2206",
-                         *                  "text" => "User forbidden."
-                         *              ]
-                         *          ]
-                         *      ]
-                         *  ]
-                         *
-                         *  or
-                         *
-                         *  Server error example:
-                         *
-                         *  [
-                         *      "status" => false
-                         *      "body" => [
-                         *          "requestError" => [
-                         *              "serviceException" => [
-                         *                  "messageId": "SVC0005",
-                         *                  "text": "duplicate correlatorId cc1d2d34",
-                         *                  "variables": [
-                         *                      "cc1d2d34"
-                         *                  ]
-                         *              ]
-                         *          ]
-                         *      ]
-                         *  ]
-                         */
-                        $response = self::requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $description, $accessToken);
+                            if($status = $response['status']) {
 
-                        if($status = $response['status']) {
+                                //  The billing is successful at this point
 
-                            //  The billing is successful at this point
+                            }else{
 
-                        }else{
+                                $failureType = BillingTransactionFailureType::ProductInventoryRetrievalFailed;
 
-                            $failureType = BillingTransactionFailureType::ProductInventoryRetrievalFailed;
+                                if(isset($response['body']['requestError'])) {
+                                    if(isset($response['body']['requestError']['policyException'])) $failureReason = $response['body']['requestError']['policyException']['text'];
+                                    if(isset($response['body']['requestError']['serviceException'])) $failureReason = $response['body']['requestError']['serviceException']['text'];
+                                }
 
-                            if(isset($response['body']['requestError'])) {
-                                if(isset($response['body']['requestError']['policyException'])) $failureReason = $response['body']['requestError']['policyException']['text'];
-                                if(isset($response['body']['requestError']['serviceException'])) $failureReason = $response['body']['requestError']['serviceException']['text'];
-                            }
+                                if(isset($response['body']['message'])) {
+                                    $failureReason = $response['body']['message'];
+                                }
 
-                            if(isset($response['body']['message'])) {
-                                $failureReason = $response['body']['message'];
-                            }
+                                if(!isset($failureReason)){
+                                    $failureReason = json_encode($response['body']);
+                                }
 
-                            if(!isset($failureReason)){
-                                $failureReason = json_encode($response['body']);
                             }
 
                         }
+
+                    }else{
+
+                        $failureType = BillingTransactionFailureType::InactiveAccount;
+                        $failureReason = 'The account using the mobile number '.$msisdn.' is inactive';
 
                     }
 
                 }else{
 
-                    $failureType = BillingTransactionFailureType::InactiveAccount;
-                    $failureReason = 'The account using the mobile number '.$msisdn.' is inactive';
+                    $failureType = BillingTransactionFailureType::ProductInventoryRetrievalFailed;
+
+                    if(isset($response['body']['message']) && isset($response['body']['message'])) {
+                        $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
+                    }else if(isset($response['body']['message'])) {
+                        $failureReason = trim($response['body']['message']);
+                    }else if(isset($response['body']['description'])) {
+                        $failureReason = trim($response['body']['description']);
+                    }
 
                 }
 
             }else{
 
-                $failureType = BillingTransactionFailureType::ProductInventoryRetrievalFailed;
-
-                if(isset($response['body']['message']) && isset($response['body']['message'])) {
-                    $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
-                }else if(isset($response['body']['message'])) {
-                    $failureReason = trim($response['body']['message']);
-                }else if(isset($response['body']['description'])) {
-                    $failureReason = trim($response['body']['description']);
-                }
+                $failureType = BillingTransactionFailureType::TokenGenerationFailed;
+                $failureReason = $response['body']['error_description'];
 
             }
 
-        }else{
+            //  Update billing transaction
+            $billingTransaction->update([
+                'is_successful' => $status,
+                'rating_type' => isset($ratingType) ? $ratingType : null,
+                'failure_reason' => isset($failureReason) ? $failureReason : null,
+                'failure_type' => isset($failureType) ? $failureType->value : null,
+                'funds_after_deduction' => isset($fundsAfterDeduction) ? $fundsAfterDeduction : null,
+                'funds_before_deduction' => isset($fundsBeforeDeduction) ? $fundsBeforeDeduction : null,
+            ]);
 
-            $failureType = BillingTransactionFailureType::TokenGenerationFailed;
-            $failureReason = $response['body']['error_description'];
+            //  Return a fresh instance of the billing transaction
+            return $billingTransaction->fresh();
+
+        } catch (\Throwable $th) {
+
+            $failureType = BillingTransactionFailureType::InternalFailure;
+
+            $billingTransaction->update([
+                'is_successful' => false,
+                'failure_type' => $failureType->value,
+                'failure_reason' => $th->getMessage()
+            ]);
+
+            //  Return a fresh instance of the billing transaction
+            return $billingTransaction->fresh();
 
         }
-
-        //  Update billing transaction
-        $billingTransaction->update([
-            'is_successful' => $status,
-            'rating_type' => isset($ratingType) ? $ratingType : null,
-            'failure_reason' => isset($failureReason) ? $failureReason : null,
-            'failure_type' => isset($failureType) ? $failureType->value : null,
-            'funds_after_deduction' => isset($fundsAfterDeduction) ? $fundsAfterDeduction : null,
-            'funds_before_deduction' => isset($fundsBeforeDeduction) ? $fundsBeforeDeduction : null,
-        ]);
-
-        //  Return afresh instance of the billing transaction
-        return $billingTransaction->fresh();
 
     }
 

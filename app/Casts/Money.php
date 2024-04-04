@@ -2,12 +2,15 @@
 
 namespace App\Casts;
 
+use stdClass;
+use App\Traits\Base\BaseTrait;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
-use stdClass;
 
 class Money implements CastsAttributes
 {
+    use BaseTrait;
+
     /**
      * Cast the given value.
      *
@@ -22,15 +25,7 @@ class Money implements CastsAttributes
 
         }else{
 
-            $symbol = config('app.CURRENCY_SYMBOL');
-            $money = number_format($value, 2, '.', ',');
-
-            $obj = new stdClass();
-            $obj->amount = $value;
-            $obj->amount_without_currency = $money;
-            $obj->amount_with_currency = $symbol . $money;
-
-            return $obj;
+            return $this->convertToMoneyFormat($value);
 
         }
     }
@@ -42,6 +37,6 @@ class Money implements CastsAttributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): string|null
     {
-        return $value instanceof stdClass ? $value->amount : $value;
+        return $model->getRawOriginal($key);
     }
 }

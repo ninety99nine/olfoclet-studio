@@ -3,9 +3,10 @@
 namespace App\Models;
 
 use App\Casts\JsonToArray;
+use App\Casts\LinkToUploads;
 use App\Traits\Models\ProjectTrait;
-use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Pivots\SubscriberMessage;
 use App\Models\Pivots\ProjectUserAsTeamMember;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
@@ -15,13 +16,14 @@ class Project extends Model
     use HasFactory, ProjectTrait;
 
     const PERMISSIONS = [
+        'View billing reports',
+        'Manage project settings',
         'View users', 'Manage users',
         'View topics', 'Manage topics',
         'View messages', 'Manage messages',
         'View subscribers', 'Manage subscribers',
         'View subscriptions', 'Manage subscriptions',
         'View sms campaigns', 'Manage sms campaigns',
-        'View project settings', 'Manage project settings',
         'View subscription plans', 'Manage subscription plans',
         'View subscriber messages', 'Manage subscriber messages',
         'View billing transactions', 'Manage billing transactions',
@@ -36,8 +38,12 @@ class Project extends Model
      */
     protected $casts = [
         'can_auto_bill' => 'boolean',
+        'costs' => JsonToArray::class,
         'can_send_messages' => 'boolean',
         'settings' => JsonToArray::class,
+        'pdf_path' => LinkToUploads::class,
+        'can_send_billing_reports' => 'boolean',
+        'billing_report_email_addresses' => JsonToArray::class,
     ];
 
     /**
@@ -45,7 +51,11 @@ class Project extends Model
      *
      * @var array
      */
-    protected $fillable = ['name', 'description', 'can_auto_bill', 'can_send_messages', 'settings'];
+    protected $fillable = [
+        'name', 'description', 'pdf_path', 'website_url', 'can_auto_bill', 'can_send_messages', 'settings',
+        'costs', 'can_send_billing_reports', 'our_share_percentage', 'thier_share_percentage',
+        'billing_report_email_addresses'
+    ];
 
     /**
      *  Scope projects that can auto bill
@@ -166,6 +176,14 @@ class Project extends Model
     public function billingTransactions()
     {
         return $this->hasMany(BillingTransaction::class);
+    }
+
+    /**
+     * Get the billing reports associated with the project.
+     */
+    public function billingReports()
+    {
+        return $this->hasMany(BillingReport::class);
     }
 
 }

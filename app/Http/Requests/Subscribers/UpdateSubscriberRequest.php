@@ -11,14 +11,15 @@ class UpdateSubscriberRequest extends FormRequest
     {
         return [
             'msisdn' => [
-                'required', 'string', 'regex:/^267\d{8}$/',
+                'sometimes', 'required', 'string', 'regex:/^267\d{8}$/',
                 Rule::unique('subscribers')->where(function ($query) {
 
                     // Make sure that this project does not already have this subscriber msisdn
                     return $query->where('project_id', request()->route('project'));
 
                 })->ignore(request()->route('subscriber'))
-            ]
+            ],
+            'metadata' => ['sometimes', 'array']
         ];
     }
 

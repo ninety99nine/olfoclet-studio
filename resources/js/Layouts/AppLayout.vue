@@ -74,6 +74,14 @@ const links = ref([
         permission: 'View subscriptions'
     },
     {
+        label: 'Billing Reports',
+        routeName: 'show.billing.reports',
+        activeRouteNames: [
+            'show.billing.reports'
+        ],
+        permission: 'View billing reports'
+    },
+    {
         label: 'Sms Campaigns',
         routeName: 'show.sms.campaigns',
         activeRouteNames: [

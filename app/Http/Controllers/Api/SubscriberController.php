@@ -15,14 +15,14 @@ use App\Http\Requests\Subscribers\UpdateSubscriberRequest;
 class SubscriberController extends Controller
 {
     protected $project;
+    protected $subscriber;
     protected $subscriberRepository;
 
     public function __construct()
     {
         $this->project = Project::findOrFail(request()->route('project'));
-        $subscriber = request()->route('subscriber') ? Subscriber::findOrFail(request()->route('subscriber')) : null;
-
-        $this->subscriberRepository = new SubscriberRepository($this->project, $subscriber);
+        $this->subscriber = request()->msisdn ? Subscriber::where('msisdn', request()->msisdn)->firstOrFail() : null;
+        $this->subscriberRepository = new SubscriberRepository($this->project, $this->subscriber);
     }
 
     public function showSubscriber()
@@ -61,7 +61,7 @@ class SubscriberController extends Controller
         return response()->json([
             'message' => 'Created successfully',
             'subscriber' => new SubscriberResource($subscriber)
-        ]);
+        ], 201);
     }
 
     public function updateSubscriber(UpdateSubscriberRequest $request)
@@ -83,7 +83,8 @@ class SubscriberController extends Controller
 
         // Return JSON response
         return response()->json([
-            'message' => 'Updated successfully'
+            'message' => 'Updated successfully',
+            'subscriber' => new SubscriberResource($this->subscriber->fresh())
         ]);
     }
 

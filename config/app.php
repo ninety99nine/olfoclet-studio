@@ -18,6 +18,7 @@ return [
     'CAN_RUN_AUTO_BILLING' => env('CAN_RUN_AUTO_BILLING', true),
     'SMS_NUMBER_EXTENSION' => env('SMS_NUMBER_EXTENSION', '267'),
     'CAN_RUN_SMS_CAMPAIGNS' => env('CAN_RUN_SMS_CAMPAIGNS', true),
+    'CAN_CREATE_BILLING_REPORTS' => env('CAN_CREATE_BILLING_REPORTS', true),
     'ORANGE_SMS_ENDPOINT' => env('ORANGE_SMS_ENDPOINT', 'https://aas-bw.com.intraorange:443'),
     'ORANGE_BILLING_ENDPOINT' => env('ORANGE_BILLING_ENDPOINT', 'https://aas-bw.api.intraorange:443'),
 

@@ -135,7 +135,7 @@ class SubscriptionPlanRepository
         //  Update the subscription plan auto billing reminders
         $this->updateAutoBillingReminders($autoBillingReminderIds);
 
-        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanApiController
+        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanController
         Cache::flush();
 
         return $this->subscriptionPlan;
@@ -195,7 +195,7 @@ class SubscriptionPlanRepository
         //  Update the subscription plan auto billing reminders
         $this->updateAutoBillingReminders($autoBillingReminderIds);
 
-        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanApiController
+        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanController
         Cache::flush();
 
         return $status;
@@ -238,7 +238,7 @@ class SubscriptionPlanRepository
         // Delete subscription plan
         $status = $this->subscriptionPlan->delete();
 
-        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanApiController
+        //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanController
         Cache::flush();
 
         return $status;

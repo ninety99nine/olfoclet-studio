@@ -16,6 +16,7 @@ use App\Http\Resources\SubscriptionResource;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\CancelSubscriptionsRequest;
+use App\Http\Resources\BillingTransactionResource;
 
 class SubscriptionController extends Controller
 {
@@ -81,9 +82,10 @@ class SubscriptionController extends Controller
         // Return JSON response
         return response()->json([
             'message' => $message,
-            'created' => $isSuccessful,
-            'subscription' => $isSuccessful ? new SubscriptionResource($subscription) : null,
-        ]);
+            'successful' => $isSuccessful,
+            'billingTransaction' => new BillingTransactionResource($billingTransaction),
+            'subscription' => $isSuccessful ? new SubscriptionResource($subscription) : null
+        ], 201);
     }
 
     public function updateSubscription(UpdateSubscriptionRequest $request): JsonResponse

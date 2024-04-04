@@ -3,6 +3,7 @@
 use App\Enums\CreatedUsingAutoBilling;
 use App\Http\Controllers\AutoBillingReminderSubscriptionPlanController;
 use App\Http\Controllers\AutoBillingSubscriptionPlanController;
+use App\Http\Controllers\BillingReportController;
 use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\SubscriptionPlanController;
 use App\Http\Controllers\SubscriptionController;
@@ -11,12 +12,16 @@ use App\Http\Controllers\SmsCampaignController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\SubscriberMessageController;
-use App\Jobs\SmsCampaign\StartSmsCampaign;
 use App\Http\Controllers\TopicController;
 use Illuminate\Database\Eloquent\Builder;
 use App\Http\Controllers\UserController;
+use App\Http\Resources\SubscriptionResource;
+use App\Jobs\BillingReport\StartCreatingBillingReports;
+use App\Mail\MonthlyBillingReport;
+use App\Models\BillingReport;
 use App\Models\BillingTransaction;
 use App\Models\Message;
+use Illuminate\Support\Facades\Mail;
 use App\Models\Pivots\SubscriberMessage;
 use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
 use Illuminate\Support\Facades\Storage;
@@ -57,10 +62,6 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
             //  Project
             Route::middleware(['project.permission:Manage project settings'])->group(function () {
-                Route::get('/', [ProjectController::class, 'showProject'])
-                        ->withoutMiddleware(['project.permission:Manage project settings'])
-                        ->middleware(['project.permission:View project settings'])
-                        ->name('show.project');
                 Route::put('/', [ProjectController::class, 'updateProject'])->name('update.project');
                 Route::delete('/', [ProjectController::class, 'deleteProject'])->name('delete.project');
             });
@@ -143,6 +144,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
+            //  Billing Reports
+            Route::prefix('billing-reports')
+                ->middleware(['project.permission:View billing reports'])->group(function () {
+                Route::get('/', [BillingReportController::class, 'showBillingReports'])->name('show.billing.reports');
+
+                Route::prefix('{billing_report}')->group(function () {
+                    Route::get('/', [BillingReportController::class, 'showBillingReport']);
+                });
+            });
+
             //  Subscriptions
             Route::prefix('subscriptions')->group(function () {
                 Route::get('/', [SubscriptionController::class, 'showSubscriptions'])->middleware(['project.permission:View subscriptions'])->name('show.subscriptions');
@@ -219,6 +230,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/test-conversion', function() {
 
+    return \Carbon\Carbon::now()->addDay()->timestamp;
+
     $subscriber = Subscriber::find(1);
     $subscription = Subscription::find(1);
     $subscriptionPlan = SubscriptionPlan::find(9);
@@ -230,6 +243,22 @@ Route::get('/test-conversion', function() {
                                                 ->where('subscription_plan_id', $subscriptionPlan->id)->first();
 
     return $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscriptionWithFurthestEndAt, $subscriptionWithFurthestEndAt);
+
+});
+
+Route::get('/test-email', function() {
+
+    $project = Project::find(1);
+    $billingReport = BillingReport::find(1);
+
+    foreach($project->billing_report_email_addresses as $emailAddress) {
+
+        //  Send Monthly Billing Report Email
+        Mail::to($emailAddress)->send(new MonthlyBillingReport($project, $billingReport));
+
+    }
+
+    return 'DONE';
 
 });
 

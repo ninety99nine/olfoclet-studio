@@ -2,6 +2,7 @@
 
 namespace App\Models\Pivots;
 
+use App\Enums\MessageFailureType;
 use App\Models\Message;
 use App\Models\Project;
 use App\Models\Subscriber;
@@ -26,6 +27,12 @@ class SubscriberMessage extends Pivot
         MessageType::Content->value,
         MessageType::PaymentConfirmation->value,
         MessageType::AutoBillingReminder->value,
+    ];
+
+    const FAILURE_TYPES = [
+        MessageFailureType::InternalFailure->value,
+        MessageFailureType::MessageSendingFailed->value,
+        MessageFailureType::TokenGenerationFailed->value
     ];
 
     /**

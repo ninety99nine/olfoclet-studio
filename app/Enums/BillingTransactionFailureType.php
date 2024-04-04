@@ -3,6 +3,7 @@
 namespace App\Enums;
 
 enum BillingTransactionFailureType:string {
+    case InternalFailure = 'Internal Failure';
     case InactiveAccount = 'Inactive Account';
     case InsufficientFunds = 'Insufficient Funds';
     case TokenGenerationFailed = 'Token Generation Failed';

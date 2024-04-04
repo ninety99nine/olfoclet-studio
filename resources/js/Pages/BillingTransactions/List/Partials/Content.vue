@@ -227,7 +227,7 @@
 
                                     <!-- Content -->
                                     <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No subscriber messages</div>
+                                        <div class="text-center text-gray-900 text-sm p-6">No billing transactions</div>
                                     </td>
 
                                 </tr>

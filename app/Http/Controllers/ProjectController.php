@@ -9,6 +9,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ProjectController extends Controller
@@ -34,7 +35,7 @@ class ProjectController extends Controller
         //  Validate the request inputs
         Validator::make($request->all(), [
             'name' => ['required', 'string', 'min:3', 'max:500'],
-            'about_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
+            'website_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
             'can_send_messages' => ['sometimes', 'boolean'],
             'settings.sms_sender_name' => ['sometimes', 'nullable', 'string', 'max:11'],
             'settings.sms_client_credentials' => ['sometimes', 'nullable', 'string', 'max:255'],
@@ -46,8 +47,8 @@ class ProjectController extends Controller
         //  Set name
         $name = $request->input('name');
 
-        //  Set about url
-        $aboutUrl = $request->input('about_url');
+        //  Set website url
+        $websiteUrl = $request->input('website_url');
 
         //  Set description
         $description = $request->input('description');
@@ -61,11 +62,19 @@ class ProjectController extends Controller
         //  Set settings
         $settings = $request->input('settings');
 
+        // Handle file upload
+        if ($request->hasFile('pdf')) {
+            $pdfPath = $request->file('pdf')->store('pdf_files', 'public_uploads');
+        } else {
+            $pdfPath = null;
+        }
+
         //  Create new project
         $project = Project::create([
             'name' => $name,
+            'pdf_path' => $pdfPath,
             'settings' => $settings,
-            'about_url' => $aboutUrl,
+            'website_url' => $websiteUrl,
             'description' => $description,
             'can_auto_bill' => $canAutoBill,
             'can_send_messages' => $canSendMessages
@@ -83,20 +92,12 @@ class ProjectController extends Controller
         return redirect()->back()->with('message', 'Created Successfully');
     }
 
-    public function showProject(Request $request, Project $project)
-    {
-        //  Render the project view
-        return Inertia::render('Projects/Show/Main', [
-            'project' => $project
-        ]);
-    }
-
     public function updateProject(Request $request, Project $project)
     {
         //  Validate the request inputs
         Validator::make($request->all(), [
             'name' => ['required', 'string', 'min:3', 'max:500'],
-            'about_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
+            'website_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
             'can_send_messages' => ['sometimes', 'boolean'],
             'settings.sms_sender_name' => ['sometimes', 'string', 'max:11'],
             'settings.sms_client_credentials' => ['sometimes', 'string', 'max:255'],
@@ -108,8 +109,8 @@ class ProjectController extends Controller
         //  Set name
         $name = $request->input('name');
 
-        //  Set about url
-        $aboutUrl = $request->input('about_url');
+        //  Set website url
+        $websiteUrl = $request->input('website_url');
 
         //  Set description
         $description = $request->input('description');
@@ -121,13 +122,71 @@ class ProjectController extends Controller
         $canSendMessages = $request->input('can_send_messages');
 
         //  Set settings
-        $settings = $request->filled('settings') ? $request->input('settings') : $project->settings;
+        $settings = $request->input('settings');
+
+        // Handle file upload
+        if ($request->hasFile('pdf')) {
+
+            //  If the project has reference to an existing PDF file
+            if(!empty($project->pdf_path)) {
+
+                //  Check if the PDF file exists in storage
+                if( Storage::disk('public_uploads')->exists($project->getRawOriginal('pdf_path')) ) {
+
+                    // Delete the existing PDF file
+                    Storage::disk('public_uploads')->delete($project->getRawOriginal('pdf_path'));
+
+                }
+
+            }
+
+            //  Get the original PDF name
+            $originalFileName = $request->file('pdf')->getClientOriginalName();
+
+            //  If the original PDF name is already taken
+            if( Storage::disk('public_uploads')->exists("pdf_files/$originalFileName") ) {
+
+                //  Store the new PDF file using a unique name
+                $pdfPath = $request->file('pdf')->store('pdf_files', 'public_uploads');
+
+            }else{
+
+                //  Store the new PDF file using the original PDF name
+                $pdfPath = $request->file('pdf')->storeAs('pdf_files', $originalFileName, 'public_uploads');
+
+            }
+
+        } else {
+
+            // If we want to remove the existing PDF File
+            if(!empty($project->pdf_path) && empty($request->input('pdf_path'))) {
+
+                //  Check if the PDF file exists in storage
+                if(Storage::disk('public_uploads')->exists($project->getRawOriginal('pdf_path'))) {
+
+                    // Delete the existing PDF file
+                    Storage::disk('public_uploads')->delete($project->getRawOriginal('pdf_path'));
+
+                }
+
+                //  Reset the $pdfPath
+                $pdfPath = null;
+
+            } else {
+
+                //  Set the existing PDF file
+                $pdfPath = $project->pdf_path;
+
+            }
+
+        }
 
         //  Update project
         $project->update([
             'name' => $name,
+            'pdf_path' => $pdfPath,
             'settings' => $settings,
-            'about_url' => $aboutUrl,
+            'website_url' => $websiteUrl,
             'description' => $description,
             'can_auto_bill' => $canAutoBill,
             'can_send_messages' => $canSendMessages
@@ -141,7 +200,7 @@ class ProjectController extends Controller
         //  Delete project
         $project->delete();
 
-        return redirect()->back()->with('message', 'Deleted Successfully');
+        return redirect()->route('show.projects')->with('message', 'Deleted Successfully');
     }
 
     public function showProjectAbout(Request $request, Project $project)

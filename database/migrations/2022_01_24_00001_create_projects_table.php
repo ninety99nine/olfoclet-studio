@@ -17,9 +17,13 @@ class CreateProjectsTable extends Migration
             $table->id();
             $table->string('name');
             $table->string('description', 500)->nullable();
-            $table->string('about_url')->nullable();
+            $table->string('pdf_path')->nullable();
+            $table->string('website_url')->nullable();
             $table->boolean('can_auto_bill')->default(false);
             $table->boolean('can_send_messages')->default(false);
+            $table->boolean('can_send_billing_reports')->default(false);
+            $table->json('billing_report_email_addresses')->nullable();
+            $table->json('costs')->nullable();
             $table->json('settings')->nullable();
             $table->timestamps();
 

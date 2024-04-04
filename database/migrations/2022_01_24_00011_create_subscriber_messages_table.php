@@ -25,6 +25,7 @@ class CreateSubscriberMessagesTable extends Migration
             $table->boolean('is_successful')->nullable();
             $table->string('delivery_status')->nullable();
             $table->string('delivery_status_endpoint')->nullable();
+            $table->enum('failure_type', SubscriberMessage::FAILURE_TYPES)->nullable();
             $table->text('failure_reason')->nullable();
             $table->boolean('delivery_status_update_is_successful')->nullable();
             $table->text('delivery_status_update_failure_reason')->nullable();

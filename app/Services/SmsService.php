@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\MessageFailureType;
 use App\Enums\MessageType;
 use GuzzleHttp\Client;
 use App\Models\Message;
@@ -153,6 +154,8 @@ class SmsService
 
                 }else{
 
+                    $failureType = MessageFailureType::MessageSendingFailed;
+
                     if(isset($response['body']['requestError']) && isset($response['body']['requestError']['serviceException'])) {
                         $failureReason = $response['body']['requestError']['serviceException']['text'];
                     }
@@ -165,6 +168,8 @@ class SmsService
 
             }else{
 
+                $failureType = MessageFailureType::TokenGenerationFailed;
+
                 if(isset($response['body']['error_description'])) {
                     $failureReason = $response['body']['error_description'];
                 }
@@ -172,17 +177,20 @@ class SmsService
             }
 
             if($status == false && !isset($failureReason) && isset($response['body'])) {
+
                 /**
                  *  Final alternative to retrieve the error information in the event that we could not acquire the
                  *  information directly on the "requestError->serviceException->text" or the "error_description".
                  */
                 $failureReason = json_encode($response['body']);
+
             }
 
             //  Update the subscriber message record
             $subscriberMessage->update([
                 'is_successful' => $status,
                 'failure_reason' => isset($failureReason) ? $failureReason : null,
+                'failure_type' => isset($failureType) ? $failureType->value : null,
                 'delivery_status' => $status ? $response['body']['outboundSMSMessageRequest']['resourceURL'] : null,
                 'delivery_status_endpoint' => $status ? $response['body']['outboundSMSMessageRequest']['deliveryInfoList']['resourceURL'] : null,
                 'delivery_status' => $status ? $response['body']['outboundSMSMessageRequest']['deliveryInfoList']['deliveryInfo'][0]['deliveryStatus'] : null,
@@ -192,12 +200,16 @@ class SmsService
 
         } catch (\Throwable $th) {
 
+            $failureType = MessageFailureType::InternalFailure;
+
             $subscriberMessage->update([
                 'is_successful' => false,
+                'failure_type' => $failureType->value,
                 'failure_reason' => $th->getMessage()
             ]);
 
-            return $subscriberMessage;
+            //  Return a fresh instance of the subscriber message
+            return $subscriberMessage->fresh();
 
         }
     }

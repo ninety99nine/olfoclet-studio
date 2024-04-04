@@ -13,6 +13,7 @@ class BillingTransaction extends Model
     use HasFactory, HasEagerLimit;
 
     const FAILURE_TYPES = [
+        BillingTransactionFailureType::InternalFailure->value,
         BillingTransactionFailureType::InactiveAccount->value,
         BillingTransactionFailureType::InsufficientFunds->value,
         BillingTransactionFailureType::TokenGenerationFailed->value,

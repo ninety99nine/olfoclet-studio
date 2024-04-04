@@ -69,7 +69,7 @@
 
                 var url = null;
 
-                if(project.about_url != '' || project.about_url != null) {
+                if(project.website_url != null || project.pdf_path != null) {
 
                     url = route('show.project.about', { project: project.id });
 
@@ -92,10 +92,6 @@
                 }else if(this.canShowLink(project, 'View sms campaigns')) {
 
                     url = route('show.sms.campaigns', { project: project.id });
-
-                }else if(this.canShowLink(project, 'View project settings')) {
-
-                    url = route('show.project', { project: project.id });
 
                 }else if(this.canShowLink(project, 'View subscription plans')) {
 

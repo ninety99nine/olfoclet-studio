@@ -2,12 +2,13 @@
 
 namespace App\Console;
 
-use App\Jobs\AutoBilling\AutoBillingBySubscriptionPlans;
-use App\Jobs\AutoBillingReminder\NextAutoBillingBySubscriptionPlans;
 use App\Jobs\SmsCampaign\StartSmsCampaigns;
-use App\Jobs\SmsDeliveryStatus\StartSmsDeliveryStatusUpdate;
 use Illuminate\Console\Scheduling\Schedule;
+use App\Jobs\BillingReport\StartCreatingBillingReports;
+use App\Jobs\AutoBilling\AutoBillingBySubscriptionPlans;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Jobs\SmsDeliveryStatus\StartSmsDeliveryStatusUpdate;
+use App\Jobs\AutoBillingReminder\NextAutoBillingBySubscriptionPlans;
 
 class Kernel extends ConsoleKernel
 {
@@ -55,14 +56,22 @@ class Kernel extends ConsoleKernel
 
         //  Log::channel('slack')->info('Schedule run');
 
+        //  If we can create Billing Reports
+        if(config('app.CAN_CREATE_BILLING_REPORTS')) {
+
+            //  Add this job to the queue for processing
+            $schedule->job(new StartCreatingBillingReports)->name('StartCreatingBillingReports')->hourly()->between('00:00', '06:00')->withoutOverlapping();
+
+        }
+
         //  If we can run Auto Billing
         if(config('app.CAN_RUN_AUTO_BILLING')) {
 
             //  Add this job to the queue for processing
-            //  $schedule->job(new AutoBillingBySubscriptionPlans)->name('AutoBillingBySubscriptionPlansJob')->everyMinute()->withoutOverlapping();
+            $schedule->job(new AutoBillingBySubscriptionPlans)->name('AutoBillingBySubscriptionPlansJob')->everyTwoHours()->withoutOverlapping();
 
             //  Add this job to the queue for processing
-            //  $schedule->job(new NextAutoBillingBySubscriptionPlans)->name('NextAutoBillingBySubscriptionPlansJob')->everyMinute()->withoutOverlapping();
+            $schedule->job(new NextAutoBillingBySubscriptionPlans)->name('NextAutoBillingBySubscriptionPlansJob')->everyMinute()->withoutOverlapping();
 
         }
 

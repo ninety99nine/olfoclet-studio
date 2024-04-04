@@ -75,10 +75,43 @@
                             </div>
 
                             <div class="col-span-12">
-                                <!-- About URL -->
-                                <jet-label for="about_url" value="About URL" />
-                                <jet-input id="about_url" type="text" class="w-full mt-1 block " v-model="form.about_url" />
-                                <jet-input-error :message="form.errors.about_url" class="mt-2" />
+                                <!-- Website URL -->
+                                <jet-label for="website_url" value="Website URL" />
+                                <jet-input id="website_url" type="text" class="w-full mt-1 block " v-model="form.website_url" />
+                                <jet-input-error :message="form.errors.website_url" class="mt-2" />
+                            </div>
+
+                            <div class="col-span-12">
+
+                                <div class="flex justify-between items-center">
+
+                                    <div>
+                                        <!-- PDF Upload -->
+                                        <jet-label for="pdf" :value="form.pdf_path ? 'Change PDF' : 'Upload PDF'" />
+                                        <input type="file" id="pdf" class="w-full mt-1" @change="handleSelectedPDF" accept=".pdf" />
+                                        <jet-input-error :message="form.errors.pdf" class="mt-2" />
+                                    </div>
+
+                                    <div v-if="form.pdf_path != null">
+
+                                        <jet-danger-button @click="form.pdf_path = null" class="mr-2">
+                                            Remove PDF
+                                        </jet-danger-button>
+
+                                    </div>
+
+                                </div>
+
+                                <!-- Preview PDF if selected -->
+                                <div v-if="form.pdf">
+                                    <embed :src="pdfPreview" type="application/pdf" width="100%" height="400px" class="mt-4 block border border-gray-500">
+                                </div>
+
+                                <!-- Preview PDF if already uploaded -->
+                                <div v-else-if="form.pdf_path">
+                                    <embed :src="form.pdf_path" type="application/pdf" width="100%" height="400px" class="mt-4 block border border-gray-500">
+                                </div>
+
                             </div>
 
                             <div class="col-span-12">
@@ -90,15 +123,15 @@
                                 </span>
                             </div>
 
-                            </div>
+                        </div>
 
-                            <div class="mt-10 mb-10">
+                        <div class="mt-10 mb-10">
 
                             <el-divider content-position="left"><span class="font-semibold">Sms Account Settings</span></el-divider>
 
-                            </div>
+                        </div>
 
-                            <div class="grid grid-cols-6 gap-6">
+                        <div class="grid grid-cols-6 gap-6">
 
                             <div class="col-span-6 sm:col-span-12">
                                 <jet-label for="sms_sender_name" value="Sender Name" />
@@ -122,15 +155,15 @@
                                 </div>
                             </div>
 
-                            </div>
+                        </div>
 
-                            <div class="mt-10 mb-10">
+                        <div class="mt-10 mb-10">
 
                             <el-divider content-position="left"><span class="font-semibold">Auto Billing Settings</span></el-divider>
 
-                            </div>
+                        </div>
 
-                            <div class="grid grid-cols-6 gap-6">
+                        <div class="grid grid-cols-6 gap-6">
 
                             <div class="col-span-12">
                                 <!-- Can Send Messages -->
@@ -198,18 +231,18 @@
 
 <script>
 
-    import { defineComponent } from 'vue'
-
-    import JetInput from '@/Components/TextInput.vue'
-    import JetLabel from '@/Components/InputLabel.vue'
-    import JetTextarea from '@/Components/Textarea.vue'
-    import JetButton from '@/Components/PrimaryButton.vue'
-    import JetInputError from '@/Components/InputError.vue'
-    import JetSelectInput from '@/Components/SelectInput.vue'
-    import JetDialogModal from '@/Components/DialogModal.vue'
-    import JetDangerButton from '@/Components/DangerButton.vue'
-    import JetActionMessage from '@/Components/ActionMessage.vue'
-    import JetSecondaryButton from '@/Components/SecondaryButton.vue'
+    import { defineComponent } from 'vue';
+    import { useForm } from '@inertiajs/vue3';
+    import JetInput from '@/Components/TextInput.vue';
+    import JetLabel from '@/Components/InputLabel.vue';
+    import JetTextarea from '@/Components/Textarea.vue';
+    import JetButton from '@/Components/PrimaryButton.vue';
+    import JetInputError from '@/Components/InputError.vue';
+    import JetSelectInput from '@/Components/SelectInput.vue';
+    import JetDialogModal from '@/Components/DialogModal.vue';
+    import JetDangerButton from '@/Components/DangerButton.vue';
+    import JetActionMessage from '@/Components/ActionMessage.vue';
+    import JetSecondaryButton from '@/Components/SecondaryButton.vue';
 
     export default defineComponent({
         components: {
@@ -292,6 +325,18 @@
             }
         },
         methods: {
+            handleSelectedPDF(event) {
+
+                //  Unset any existing PDF file reference
+                this.form.pdf_path = null;
+
+                //  Set the PDF file on the form
+                this.form.pdf = event.target.files[0];
+
+                // Update PDF preview source
+                this.pdfPreview = URL.createObjectURL(event.target.files[0]);
+
+            },
 
             /**
              *  MODAL METHODS
@@ -302,14 +347,13 @@
             closeModal() {
                 this.showModal = false;
             },
-
-            /**
-             *  FORM METHODS
-             */
             create() {
+
                 var options = {
 
-                    preserveState: true, preserveScroll: true, replace: true,
+                    replace: true,
+                    preserveState: true,
+                    preserveScroll: true,
 
                     onSuccess: (response) => {
 
@@ -339,8 +383,9 @@
             },
             update() {
                 var options = {
-
-                    preserveState: true, preserveScroll: true, replace: true,
+                    replace: true,
+                    preserveState: true,
+                    preserveScroll: true,
 
                     onSuccess: (response) => {
 
@@ -355,7 +400,15 @@
                     },
                 };
 
-                this.form.put(route('update.project', { project: this.project.id }), options);
+                /**
+                 *  This form.post is preferred to support the file upload. Inertia will
+                 *  allow Laravel to covert this post to put since we have included the
+                 *  { _method: 'put' } as part of the post data. Refer to the reset()
+                 *  method below. Also check out the inertia docs.
+                 *
+                 *  Reference: https://inertiajs.com/file-uploads
+                 */
+                this.form.post(route('update.project', { project: this.project.id }), options);
             },
             destroy() {
 
@@ -400,9 +453,12 @@
 
             },
             reset() {
-                this.form = this.$inertia.form({
+
+                var data = {
+                    pdf: null,
                     name: this.hasProject ? this.project.name : null,
-                    about_url: this.hasProject ? this.project.about_url : null,
+                    pdf_path: this.hasProject ? this.project.pdf_path : null,
+                    website_url: this.hasProject ? this.project.website_url : null,
                     description: this.hasProject ? this.project.description : null,
                     can_auto_bill: this.hasProject ? this.project.can_auto_bill : false,
                     can_send_messages: this.hasProject ? this.project.can_send_messages : false,
@@ -413,7 +469,28 @@
                         auto_billing_client_id: '',
                         auto_billing_client_secret: '',
                     }
-                });
+                };
+
+                if(this.hasProject) {
+
+                    /**
+                     *  Uploading files using a multipart/form-data request is not natively supported in some server-side
+                     *  frameworks when using the PUT,PATCH, or DELETE HTTP methods. The simplest workaround for this
+                     *  limitation is to simply upload files using a POST request instead.
+                     *
+                     *  However, some frameworks, such as Laravel and Rails, support form method spoofing, which allows you
+                     *  to upload the files using POST, but have the framework handle the request as a PUT or PATCH request.
+                     *  This is done by including a _method attribute in the data of your request.
+                     *
+                     *  Also check out the inertia docs.
+                     *
+                     *  Reference: https://inertiajs.com/file-uploads
+                     */
+                    data._method = 'put';
+
+                }
+
+                this.form = useForm(data);
             },
         },
         created(){

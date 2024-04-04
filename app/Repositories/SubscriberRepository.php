@@ -116,22 +116,28 @@ class SubscriberRepository
     /**
      *  Update the MSISDN of the associated project subscriber.
      *
-     *  @param string $msisdn - The new MSISDN for the subscriber.
+     *  @param string|null $msisdn - The new MSISDN for the subscriber.
      *  @param array|null $metadata - The metadata of the subscriber.
      *  @return bool True if the update is successful, false otherwise.
      *  @throws ModelNotFoundException If the associated subscriber is not found or does not belong to the project.
      *  @throws \Exception If an error occurs during the update process.
      */
-    public function updateProjectSubscriber(string $msisdn, array|null $metadata): bool
+    public function updateProjectSubscriber(string|null $msisdn, array|null $metadata): bool
     {
         // Make sure the subscriber exists and belongs to the project
         if ($this->subscriber === null || $this->subscriber->project_id !== $this->project->id) {
+            dd($this->subscriber);
             throw new ModelNotFoundException();
         }
 
-        //  Update subscriber
-        $this->subscriber->msisdn = $msisdn;
-        $this->subscriber->metadata = $metadata;
+        if($msisdn != null) {
+            $this->subscriber->msisdn = $msisdn;
+        }
+
+        if($metadata != null) {
+            $this->subscriber->metadata = $metadata;
+        }
+
         return $this->subscriber->save();
     }
 
