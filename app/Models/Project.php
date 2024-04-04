@@ -78,6 +78,14 @@ class Project extends Model
     }
 
     /**
+     *  Scope projects that can send billing reports
+     */
+    public function scopeCanSendBillingReports($query)
+    {
+        return $query->where('can_send_billing_reports', '1');
+    }
+
+    /**
      *  Get the Users that have been assigned to this Project as a team member
      *
      *  @return Illuminate\Database\Eloquent\Concerns\HasRelationships::belongsToMany
