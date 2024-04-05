@@ -106,10 +106,7 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            //  Send error report here
-            //  Log::channel('slack')->error('UpdateSmsDeliveryStatus Job Failed: '. $th->getMessage());
+            Log::error('UpdateSmsDeliveryStatus Job Failed: '. $th->getMessage());
 
             return false;
 

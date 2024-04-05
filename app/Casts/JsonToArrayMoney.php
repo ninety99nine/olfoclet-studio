@@ -62,6 +62,25 @@ class JsonToArrayMoney implements CastsAttributes
      */
     public function set($model, $key, $value, $attributes)
     {
-        return $model->getRawOriginal($key);
+        if(is_array($value)) {
+
+            foreach($value as $key => $money) {
+
+                $value[$key] = $money instanceof stdClass ? $money->amount : $money;
+
+            }
+
+            /**
+             *  Json encode the data to convert array to json string
+             *
+             *  Reference: https://www.php.net/manual/en/function.json-decode.php
+             */
+            return json_encode($value);
+
+        }else{
+
+            return $value;
+
+        }
     }
 }

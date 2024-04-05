@@ -38,10 +38,6 @@
             margin-bottom: 20px;
         }
 
-        th {
-            white-space: nowrap;
-        }
-
         th, td {
             border: 1px solid #ddd;
             padding: 8px;

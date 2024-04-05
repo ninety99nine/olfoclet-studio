@@ -51,8 +51,6 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, AutoBillingReminder $autoBillingReminder)
     {
-        Log::info('SendAutoBillingReminderSms __construct()');
-
         $this->project = $project;
         $this->subscriber = $subscriber;
         $this->subscriptionPlan = $subscriptionPlan;
@@ -164,10 +162,7 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('SendAutoBillingReminderSms Job Failed: '. $th->getMessage());
+            Log::error('SendAutoBillingReminderSms Job Failed: '. $th->getMessage());
 
             return false;
 

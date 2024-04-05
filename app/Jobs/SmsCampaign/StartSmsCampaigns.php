@@ -59,10 +59,7 @@ class StartSmsCampaigns implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('StartSmsCampaigns Job Failed: '. $th->getMessage());
+            Log::error('StartSmsCampaigns Job Failed: '. $th->getMessage());
 
         }
     }

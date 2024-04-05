@@ -93,9 +93,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     {
         try{
 
-            Log::info('StartSmsCampaign');
-            Log::info('canStartSmsCampaign: '.$this->smsCampaign->canStartSmsCampaign());
-
             //  If this sms campaign can be started
             if( $this->smsCampaign->canStartSmsCampaign() ) {
 
@@ -168,12 +165,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                 //  Convert to collection
                 $messages = collect($messages);
 
-                Log::info('$messages->count(): '.$messages->count());
-
                 //  If this sms campaign has messages to send
                 if( $messages->count() > 0 ) {
-
-                    Log::info('stage 1');
 
                     /**
                      *  Query the subscribers that are ready to receive the next sms message
@@ -246,7 +239,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                      */
                     }])->select('subscribers.id', 'subscribers.msisdn');
 
-                    Log::info('stage 2');
                     //  If this sms campaign requires the subscribers to have an active subscription
                     if( count($subscriptionPlanIds = $this->smsCampaign->subscriptionPlans()->pluck('subscription_plan_id')) ) {
 
@@ -257,8 +249,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         $subscribers = $subscribers->hasActiveNonCancelledSubscription($subscriptionPlanIds);
 
                     }
-                    Log::info('stage 3');
-                    Log::info('$subscribers->count(): '.$subscribers->count());
 
                     //  If this sms campaign has subscribers to send messages
                     if( $subscribers->count() > 0 ) {
@@ -403,10 +393,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('StartSmsCampaign Job Failed: '. $th->getMessage());
+            Log::error('StartSmsCampaign Job Failed: '. $th->getMessage());
 
         }
     }

@@ -17,7 +17,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use App\Jobs\AutoBilling\AutoBillSubscriber;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use App\Jobs\AutoBillingReminder\SendAutoBillingReminderSms;
 
@@ -210,12 +209,9 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
+            Log::error('NextAutoBillingBySubscriptionPlan Job Failed: '. $th->getMessage());
 
             return false;
-
-            // Send error report here
-            //  Log::channel('slack')->error('NextAutoBillingBySubscriptionPlan Job Failed: '. $th->getMessage());
 
         }
     }

@@ -55,6 +55,18 @@ class LinkToUploads implements CastsAttributes
      */
     public function set($model, $key, $value, $attributes)
     {
-        return $model->getRawOriginal($key);
+        if( is_null($value) ) {
+
+            return null;
+
+        }else if( Str::startsWith($value, $this->prefix) ) {
+
+            return Str::replaceFirst($this->prefix, '', $value);
+
+        }else{
+
+            return $value;
+
+        }
     }
 }

@@ -51,10 +51,7 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('StartSmsDeliveryStatusUpdate Job Failed: '. $th->getMessage());
+            Log::error('StartSmsDeliveryStatusUpdate Job Failed: '. $th->getMessage());
 
         }
     }

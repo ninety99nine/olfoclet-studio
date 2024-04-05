@@ -87,10 +87,7 @@ class NextAutoBillingBySubscriptionPlans implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('NextAutoBillingBySubscriptionPlans Job Failed: '. $th->getMessage());
+            Log::error('NextAutoBillingBySubscriptionPlans Job Failed: '. $th->getMessage());
 
         }
     }

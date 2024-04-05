@@ -87,6 +87,7 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     public function handle()
     {
         try{
+
             $gross_revenue = $this->project->billingTransactions()->where('is_successful', '1')
                                      ->whereMonth('created_at', $this->date->month)
                                      ->whereYear('created_at', $this->date->year)
@@ -146,15 +147,11 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
 
             }
 
-
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
+            Log::error('CreateBillingReport Job Failed: '. $th->getMessage());
 
             return false;
-
-            // Send error report here
-            //  Log::channel('slack')->error('CreateBillingReport Job Failed: '. $th->getMessage());
 
         }
     }

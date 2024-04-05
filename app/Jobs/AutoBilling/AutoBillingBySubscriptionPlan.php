@@ -92,8 +92,6 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
     {
         try{
 
-            Log::info('AutoBillingBySubscriptionPlan');
-
             /**
              *  Query the subscribers that are ready for billing.
              *
@@ -201,8 +199,6 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
 
              })->select('subscribers.id', 'subscribers.msisdn');
 
-            Log::info('$subscribers->count() before: '.$subscribers->count());
-
             //  If we have subscribers to auto bill
             if( $subscribers->count() > 0 ) {
 
@@ -213,10 +209,6 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
 
                     //  Foreach subscriber we retrieved from the query
                     foreach ($chunked_subscribers as $subscriber) {
-
-                        Log::info('$subscriber msisdn: '.$subscriber->msisdn);
-
-                        Log::info('hasBillingCredentials(): '.$this->project->hasBillingCredentials());
 
                         //  If this project has the billing credentials then continue
                         if( $this->project->hasBillingCredentials() ) {
@@ -267,10 +259,7 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::info($th);
-
-            // Send error report here
-            //Log::channel('slack')->error('AutoBillingBySubscriptionPlan Job Failed: '. $th->getMessage());
+            Log::error('AutoBillingBySubscriptionPlan Job Failed: '. $th->getMessage());
 
         }
     }

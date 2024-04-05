@@ -57,10 +57,7 @@ class StartCreatingBillingReports implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('CreateBillingReport Job Failed: '. $th->getMessage());
+            Log::error('StartCreatingBillingReports Job Failed: '. $th->getMessage());
 
         }
     }

@@ -35,6 +35,7 @@ use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
 use App\Services\BillingService;
 use App\Services\SmsService;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 /*
@@ -248,6 +249,8 @@ Route::get('/test-conversion', function() {
 
 Route::get('/StartCreatingBillingReports', function() {
 
+    Log::info('Hello');
+    return 'Logged!';
     StartCreatingBillingReports::dispatch();
     return 'DONE';
 

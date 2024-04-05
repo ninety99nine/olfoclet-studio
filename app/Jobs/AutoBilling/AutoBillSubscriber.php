@@ -97,17 +97,12 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
     {
         try {
 
-            Log::info('AutoBillSubscriber');
-
             /**
              *  Bill the subscriber using artime.
              *
              *  @var BillingTransaction $billingTransaction
              */
             $billingTransaction = BillingService::billUsingAirtime($this->project, $this->subscriptionPlan, $this->subscriber, CreatedUsingAutoBilling::YES);
-
-            Log::info('$billingTransaction');
-            Log::info($billingTransaction);
 
             //  Set the billing attempt datetime
             $this->billingAttemptAt = $billingTransaction->created_at;
@@ -138,10 +133,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('AutoBillSubscriber Job Failed: '. $th->getMessage());
+            Log::error('AutoBillSubscriber Job Failed: '. $th->getMessage());
 
             return false;
 

@@ -6,6 +6,7 @@ use stdClass;
 use App\Traits\Base\BaseTrait;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Money implements CastsAttributes
 {
@@ -37,6 +38,6 @@ class Money implements CastsAttributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): string|null
     {
-        return $model->getRawOriginal($key);
+        return $value instanceof stdClass ? $value->amount : $value;
     }
 }

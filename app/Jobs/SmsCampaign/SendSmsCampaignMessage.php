@@ -118,7 +118,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
 
             }else{
 
-                Log::channel('slack')->error('Message: "'. $this->message->content.'" failed to send to '.$this->subscriber->msisdn);
+                Log::error('Message: "'. $this->message->content.'" failed to send to '.$this->subscriber->msisdn);
 
             }
 
@@ -132,10 +132,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::info('Error: '. $th->getMessage());
-
-            // Send error report here
-            //  Log::channel('slack')->error('SendSmsCampaignMessage Job Failed: '. $th->getMessage());
+            Log::error('SendSmsCampaignMessage Job Failed: '. $th->getMessage());
 
             return false;
 
