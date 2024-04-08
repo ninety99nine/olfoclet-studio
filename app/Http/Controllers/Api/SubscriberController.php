@@ -31,7 +31,7 @@ class SubscriberController extends Controller
         $msisdn = request()->msisdn;
 
         //  Get the subscriber (if any)
-        $subscriber = $this->project->subscribers()->where('msisdn', $msisdn)->first();
+        $subscriber = $this->project->subscribers()->where('msisdn', $msisdn)->with(['activeSubscriptions.subscriptionPlan'])->first();
 
         // Return JSON response
         return response()->json([

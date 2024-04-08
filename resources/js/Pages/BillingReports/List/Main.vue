@@ -3,7 +3,7 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                <BillingReportsContent :billingReportsPayload="billingReportsPayload" />
+                <BillingReportsContent :projectPayload="projectPayload" :billingReportsPayload="billingReportsPayload" />
 
             </div>
         </div>
@@ -21,6 +21,7 @@
             BillingReportsContent
         },
         props: {
+            projectPayload: Object,
             billingReportsPayload: Object
         }
     })

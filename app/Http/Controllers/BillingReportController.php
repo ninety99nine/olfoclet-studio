@@ -28,6 +28,7 @@ class BillingReportController extends Controller
 
         // Render the billing transaction view
         return Inertia::render('BillingReports/List/Main', [
+            'projectPayload' => $this->project,
             'billingReportsPayload' => $billingReports
         ]);
     }
@@ -35,6 +36,7 @@ class BillingReportController extends Controller
     public function showBillingReport()
     {
         return Inertia::render('BillingReport/List/Main', [
+            'projectPayload' => $this->project,
             'billingReport' => $this->billingReport
         ]);
     }

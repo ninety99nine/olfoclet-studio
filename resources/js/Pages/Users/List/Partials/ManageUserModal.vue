@@ -61,14 +61,14 @@
                         <!-- Name -->
                         <div class="mb-4">
                             <jet-label for="name" value="Name" />
-                            <jet-input id="name" type="text" class="w-full mt-1 block " v-model="form.name" placeholder = "John Doe" />
+                            <jet-input id="name" type="text" class="w-full mt-1 block" v-model="form.name" placeholder = "John Doe" />
                             <jet-input-error :message="form.errors.name" class="mt-2" />
                         </div>
 
                         <!-- Email -->
                         <div class="mb-4">
                             <jet-label for="email" value="Email" />
-                            <jet-input id="email" type="email" class="w-full mt-1 block " v-model="form.email" placeholder = "example@gmail.com" />
+                            <jet-input id="email" type="email" class="w-full mt-1 block" v-model="form.email" placeholder = "example@gmail.com" />
                             <jet-input-error :message="form.errors.email" class="mt-2" />
                         </div>
 

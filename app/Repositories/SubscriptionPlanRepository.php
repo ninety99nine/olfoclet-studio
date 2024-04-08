@@ -85,38 +85,39 @@ class SubscriptionPlanRepository
      *  Create a new subscription plan for the project.
      *
      *  @param string $name - The name of the subscription plan.
-     *  @param string $description - The description of the subscription plan.
+     *  @param string|null $description - The description of the subscription plan.
      *  @param bool $active - Whether the subscription plan is active.
      *  @param bool $isFolder - Whether the subscription plan is a folder.
      *  @param string|null $price - The price of the subscription plan.
      *  @param string|null $duration - The duration of the subscription plan.
      *  @param string|null $frequency - The frequency of the subscription plan.
-     *  @param bool $canAutoBill - Can auto bill status of the subscription plan.
-     *  @param bool $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
-     *  @param string $insufficientFundsMessage - The insufficient funds message of the subscription plan.
-     *  @param string $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
-     *  @param string $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
-     *  @param string $subscriptionEndAtReferenceName - The subscription end at reference name.
-     *  @param string|null $parentId - The id of the parent subscription plan.
+     *  @param array|null $tags - The tags of the subscription plan.
+     *  @param bool|null $canAutoBill - Can auto bill status of the subscription plan.
+     *  @param int|null $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
+     *  @param string|null $insufficientFundsMessage - The insufficient funds message of the subscription plan.
+     *  @param string|null $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
+     *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
+     *  @param array|null $autoBillingReminderIds - The auto billing reminder ids of the subscription plan.
+     *  @param int|null $parentId - The id of the parent subscription plan.
      *
      *  @return SubscriptionPlan The newly created subscription plan instance.
      */
     public function createProjectSubscriptionPlan(
         string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
-        string|null $frequency, bool $canAutoBill, bool $maxAutoBillingAttempts, string $insufficientFundsMessage,
-        string $successfulPaymentSmsMessage, string|null $nextAutoBillingReminderSmsMessage,
-        string|null $subscriptionEndAtReferenceName, array $autoBillingReminderIds,
-        int|null $parentId,
+        string|null $frequency, array|null $tags, bool|null $canAutoBill, int|null $maxAutoBillingAttempts,
+        string|null $insufficientFundsMessage, string|null $successfulPaymentSmsMessage,
+        string|null $nextAutoBillingReminderSmsMessage,
+        array|null $autoBillingReminderIds,
+        int|null $parentId
     ): SubscriptionPlan
     {
         $this->subscriptionPlan = SubscriptionPlan::create([
             'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
-            'subscription_end_at_reference_name' => $subscriptionEndAtReferenceName,
             'successful_payment_sms_message' => $successfulPaymentSmsMessage,
+            'max_auto_billing_attempts' => $maxAutoBillingAttempts ?? 3,
             'insufficient_funds_message' => $insufficientFundsMessage,
-            'max_auto_billing_attempts' => $maxAutoBillingAttempts,
+            'can_auto_bill' => $canAutoBill ?? false,
             'project_id' => $this->project->id,
-            'can_auto_bill' => $canAutoBill,
             'description' => $description,
             'frequency' => $frequency,
             'is_folder' => $isFolder,
@@ -124,6 +125,7 @@ class SubscriptionPlanRepository
             'active' => $active,
             'price' => $price,
             'name' => $name,
+            'tags' => $tags,
         ]);
 
         if( $parentSubscriptionPlan = SubscriptionPlan::find($parentId) ) {
@@ -132,8 +134,12 @@ class SubscriptionPlanRepository
 
         }
 
-        //  Update the subscription plan auto billing reminders
-        $this->updateAutoBillingReminders($autoBillingReminderIds);
+        if(!is_null($autoBillingReminderIds)) {
+
+            //  Update the subscription plan auto billing reminders
+            $this->updateAutoBillingReminders($autoBillingReminderIds);
+
+        }
 
         //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanController
         Cache::flush();
@@ -145,18 +151,19 @@ class SubscriptionPlanRepository
      *  Update an existing subscription plan for the project.
      *
      *  @param string $name - The name of the subscription plan.
-     *  @param string $description - The description of the subscription plan.
+     *  @param string|null $description - The description of the subscription plan.
      *  @param bool $active - Whether the subscription plan is active.
      *  @param bool $isFolder - Whether the subscription plan is a folder.
      *  @param string|null $price - The price of the subscription plan.
      *  @param string|null $duration - The duration of the subscription plan.
      *  @param string|null $frequency - The frequency of the subscription plan.
-     *  @param bool $canAutoBill - Can auto bill status of the subscription plan.
-     *  @param bool $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
-     *  @param string $insufficientFundsMessage - The insufficient funds message of the subscription plan.
-     *  @param string $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
+     *  @param array|null $tags - The tags of the subscription plan.
+     *  @param bool|null $canAutoBill - Can auto bill status of the subscription plan.
+     *  @param int|null $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
+     *  @param string|null $insufficientFundsMessage - The insufficient funds message of the subscription plan.
+     *  @param string|null $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
      *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
-     *  @param string $subscriptionEndAtReferenceName - The subscription end at reference name.
+     *  @param array|null $autoBillingReminderIds - The auto billing reminder ids of the subscription plan.
      *
      *  @return bool True if the update is successful, false otherwise.
      *
@@ -165,9 +172,10 @@ class SubscriptionPlanRepository
      */
     public function updateProjectSubscriptionPlan(
         string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
-        string|null $frequency, bool $canAutoBill, bool $maxAutoBillingAttempts, string $insufficientFundsMessage,
-        string $successfulPaymentSmsMessage, string|null $nextAutoBillingReminderSmsMessage,
-        string|null $subscriptionEndAtReferenceName, array $autoBillingReminderIds,
+        string|null $frequency, array|null $tags, bool|null $canAutoBill, int|null $maxAutoBillingAttempts,
+        string|null $insufficientFundsMessage, string|null $successfulPaymentSmsMessage,
+        string|null $nextAutoBillingReminderSmsMessage,
+        array|null $autoBillingReminderIds
     ): bool
     {
         // Make sure the subscription plan exists and belongs to the project
@@ -176,24 +184,28 @@ class SubscriptionPlanRepository
         }
 
         $status = $this->subscriptionPlan->update([
+            'max_auto_billing_attempts' => !is_null($maxAutoBillingAttempts) ? $maxAutoBillingAttempts : $this->subscriptionPlan->max_auto_billing_attempts,
+            'can_auto_bill' => !is_null($canAutoBill) ? $canAutoBill : $this->subscriptionPlan->can_auto_bill,
+            'is_folder' => !is_null($isFolder) ? $isFolder : $this->subscriptionPlan->is_folder,
             'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
-            'subscription_end_at_reference_name' => $subscriptionEndAtReferenceName,
+            'active' => !is_null($active) ? $active : $this->subscriptionPlan->active,
             'successful_payment_sms_message' => $successfulPaymentSmsMessage,
             'insufficient_funds_message' => $insufficientFundsMessage,
-            'max_auto_billing_attempts' => $maxAutoBillingAttempts,
             'project_id' => $this->project->id,
-            'can_auto_bill' => $canAutoBill,
             'description' => $description,
             'frequency' => $frequency,
-            'is_folder' => $isFolder,
             'duration' => $duration,
-            'active' => $active,
             'price' => $price,
             'name' => $name,
+            'tags' => $tags
         ]);
 
-        //  Update the subscription plan auto billing reminders
-        $this->updateAutoBillingReminders($autoBillingReminderIds);
+        if(!is_null($autoBillingReminderIds)) {
+
+            //  Update the subscription plan auto billing reminders
+            $this->updateAutoBillingReminders($autoBillingReminderIds);
+
+        }
 
         //  Clear the entire cache since we cache the API subscription plans on the Api\SubscriptionPlanController
         Cache::flush();

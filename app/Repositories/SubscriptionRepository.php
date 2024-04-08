@@ -93,9 +93,6 @@ class SubscriptionRepository
         $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
                                                     ->where('subscription_plan_id', $subscriptionPlan->id)->first();
 
-        //  Update the subscriber metadata
-        $this->updateSubscriberMetadata($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt);
-
         if($billingTransaction) {
 
             $billingTransaction->update([
@@ -161,37 +158,10 @@ class SubscriptionRepository
         $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
                                                     ->where('subscription_plan_id', $subscriptionPlan->id)->first();
 
-        //  Update the subscriber metadata
-        $this->updateSubscriberMetadata($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt);
-
         //  Update the auto billing schedule
         $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt);
 
         return $status;
-    }
-
-    /**
-     *  Update the subscriber metadata
-     *
-     *  @param Subscriber $subscriber The subscriber for whom the auto billing schedule will be updated.
-     *  @param SubscriptionPlan $subscriptionPlan The new subscription plan associated with the subscription.
-     *  @param Subscription $subscriptionWithFurthestEndAt The subscription with the furthest end at datetime.
-     *
-     *  @return void
-     */
-    public function updateSubscriberMetadata(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, Subscription $subscriptionWithFurthestEndAt): void
-    {
-        //  If the subscription end at reference name is provided
-        if(!empty($subscriptionPlan->subscription_end_at_reference_name)) {
-
-            //  Set the end_at timestamp of the subscription with the furthest end_at using the provided reference name
-            $subscriber->update([
-                'metadata' => array_merge(($subscriber->metadata ?? []), [
-                    $subscriptionPlan->subscription_end_at_reference_name => $subscriptionWithFurthestEndAt->end_at->timestamp
-                ])
-            ]);
-
-        }
     }
 
     /**

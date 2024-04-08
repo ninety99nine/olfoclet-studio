@@ -140,7 +140,7 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                  *  the first, and the third attempt will occur 24 hours later after the
                  *  second attempt.
                  *
-                 *  Each subscription plan can have 1, 2 or 3 maximum auto billing attempts.
+                 *  Each subscription plan can have from 1 up to 10 maximum auto billing attempts.
                  *  The following is a timeline of how the auto billing occurs based on the maximum
                  *  auto billing attempts set on the subscription plan (max_auto_billing_attempts).
                  *
@@ -163,10 +163,13 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                  *  3) Attempt #2 (24 hours later)          2024-01-02 08:00:00
                  *  4) Attempt #3 (24 hours later)          2024-01-03 08:00:00
                  *  ---------------------------------------------------------------------------------
+                 *  This approach continues until the maximum auto billing attempts on the
+                 *  subscription plan (max_auto_billing_attempts) are exhausted.
+                 *  ---------------------------------------------------------------------------------
                  *
                  *  In theory, the first attempt date is the same as the subscription end date,
                  *  the second attempt date is the 24 hours after the first attempt date,
-                 *  the third attempt date is the 48 hours after the second attempt date.
+                 *  the third attempt date is the 24 hours after the second attempt date.
                  *  This is how the theoretical timeline might look like:
                  *
                  *  Subscription end|             |            |

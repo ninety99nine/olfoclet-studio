@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\Money;
+use App\Casts\JsonToArray;
 use Kalnoy\Nestedset\NodeTrait;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Models\SubscriptionPlanTrait;
@@ -22,7 +23,8 @@ class SubscriptionPlan extends Model
         'active' => 'boolean',
         'price' => Money::class,
         'is_folder' => 'boolean',
-        'can_auto_bill' => 'boolean'
+        'can_auto_bill' => 'boolean',
+        'tags' => JsonToArray::class
     ];
 
     /**
@@ -31,10 +33,10 @@ class SubscriptionPlan extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'description', 'active', 'is_folder', 'price', 'frequency', 'duration',
+        'name', 'description', 'active', 'is_folder', 'price', 'frequency', 'duration', 'tags',
         'can_auto_bill', 'max_auto_billing_attempts', 'insufficient_funds_message',
         'successful_payment_sms_message', 'next_auto_billing_reminder_sms_message',
-        'subscription_end_at_reference_name', 'project_id'
+        'project_id'
     ];
 
     /**

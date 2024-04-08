@@ -123,7 +123,7 @@
                         <!-- Name -->
                         <div class="mb-4">
                             <jet-label for="name" value="Name" />
-                            <jet-input id="name" type="text" class="w-full mt-1 block " v-model="form.name" placeholder="Daily @ P95.00"/>
+                            <jet-input id="name" type="text" class="w-full mt-1 block" v-model="form.name" placeholder="Daily @ P95.00"/>
                             <jet-input-error :message="form.errors.name" class="mt-2" />
                         </div>
 
@@ -148,7 +148,7 @@
                                 <!-- Duration -->
                                 <div class="mb-4">
                                     <jet-label for="duration" value="Duration" />
-                                    <jet-number-input id="duration" class="w-full mt-1 block " v-model.string="form.duration" placeholder="1"/>
+                                    <jet-number-input id="duration" class="w-full mt-1 block" v-model.string="form.duration" placeholder="1"/>
                                     <jet-input-error :message="form.errors.duration" class="mt-2" />
                                 </div>
 
@@ -163,7 +163,7 @@
                             <!-- Price -->
                             <div class="mb-4">
                                 <jet-label for="price" value="Price" class="mb-1" />
-                                <jet-number-input id="price" class="w-full mt-1 block " v-model="form.price" placeholder="95.00"/>
+                                <jet-number-input id="price" class="w-full mt-1 block" v-model="form.price" placeholder="95.00"/>
                                 <jet-input-error :message="form.errors.price" class="mt-2" />
                             </div>
 
@@ -186,15 +186,26 @@
                                     </el-popover>
 
                                 </div>
-                                <jet-textarea id="sub-pl-description" class="w-full mt-1 block " v-model="form.description" />
+                                <jet-textarea id="sub-pl-description" class="w-full mt-1 block" v-model="form.description" />
                                 <jet-input-error :message="form.errors.description" class="mt-2" />
                             </div>
 
-                            <!-- Subscriber Reference Name -->
-                            <div class="mb-4">
-                                <jet-label for="subscription_end_at_reference_name" value="Subscription End At Reference Name" />
-                                <jet-input id="subscription_end_at_reference_name" type="text" class="w-full mt-1 block " v-model="form.subscription_end_at_reference_name" placeholder="subscriptionEndAt"/>
-                                <jet-input-error :message="form.errors.subscription_end_at_reference_name" class="mt-2" />
+                            <div class="flex bg-slate-50 rounded-lg p-4 mb-4">
+
+                                <span class="font-bold mr-2">Category</span>
+
+                                <el-tag v-for="tag in form.tags" :key="tag" class="mx-1" closable :disable-transitions="false" @close="handleRemoveTag(tag)">{{ tag }}</el-tag>
+
+                                <span v-if="showAddTagInput" class="w-20">
+                                    <el-input ref="addTagInputRef" v-model="addTagInput" size="small"
+                                        @keyup.enter="handleAddTag"
+                                        @blur="handleAddTag"/>
+                                </span>
+
+                                <el-button v-else class="button-new-tag ml-1" size="small" @click="showInput">
+                                    + New Tag
+                                </el-button>
+
                             </div>
 
                             <!-- Insufficient Funds Message -->
@@ -222,22 +233,24 @@
                                                     </thead>
                                                     <tbody class="divide-y divide-gray-200">
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionPlanName</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanName }}'"></td>
                                                             <td>The Subscription Plan name</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionPlanPrice</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanPrice }}'"></td>
                                                             <td>The Subscription Plan price</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
 
+                                            <p class="mt-4"><strong>Example:</strong> <span v-html="'You do not have enough funds to complete this transaction'"></span></p>
+
                                         </template>
                                     </el-popover>
 
                                 </div>
-                                <jet-textarea id="sub-pl-insufficient-funds-message" class="w-full mt-1 block " v-model="form.insufficient_funds_message" />
+                                <jet-textarea id="sub-pl-insufficient-funds-message" class="w-full mt-1 block" v-model="form.insufficient_funds_message" />
                                 <jet-input-error :message="form.errors.insufficient_funds_message" class="mt-2" />
                             </div>
 
@@ -266,38 +279,40 @@
                                                     </thead>
                                                     <tbody class="divide-y divide-gray-200">
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionId</td>
-                                                            <td>The Subscription ID</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionId }}'"></td>
+                                                            <td >The Subscription ID</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">nextBillableDate</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ nextBillableDate }}'"></td>
                                                             <td>The next billable date</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionEndDate</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionEndDate }}'"></td>
                                                             <td>The Subscription end date</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionStartDate</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionStartDate }}'"></td>
                                                             <td>The Subscription start date</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionPlanName</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanName }}'"></td>
                                                             <td>The Subscription Plan name</td>
                                                         </tr>
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionPlanPrice</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanPrice }}'"></td>
                                                             <td>The Subscription Plan price</td>
                                                         </tr>
                                                     </tbody>
                                                 </table>
                                             </div>
 
+                                            <p class="mt-4"><strong>Example:</strong> <span v-html="'Your payment for {{ subscriptionPlanName }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }}. Dial *xxx# to unsubscribe.'"></span></p>
+
                                         </template>
                                     </el-popover>
 
                                 </div>
-                                <jet-textarea id="sub-pl-successful-payment-sms-message" class="w-full mt-1 block " v-model="form.successful_payment_sms_message" />
+                                <jet-textarea id="sub-pl-successful-payment-sms-message" class="w-full mt-1 block" v-model="form.successful_payment_sms_message" />
                                 <jet-input-error :message="form.errors.successful_payment_sms_message" class="mt-2" />
                             </div>
 
@@ -313,7 +328,7 @@
                                 <!-- Maximum Auto Billing Attempts -->
                                 <div class="mb-4">
                                     <jet-label for="max_auto_billing_attempts" value="Maximum Auto Billing Attempts" />
-                                    <jet-number-input id="max_auto_billing_attempts" class="w-full mt-1" v-model.string="form.max_auto_billing_attempts" min="1" max="3" placeholder="3"/>
+                                    <jet-number-input id="max_auto_billing_attempts" class="w-full mt-1" v-model.string="form.max_auto_billing_attempts" min="1" max="10" placeholder="3"/>
                                     <jet-input-error :message="form.errors.max_auto_billing_attempts" class="mt-2" />
                                 </div>
 
@@ -353,25 +368,27 @@
                                                         </thead>
                                                         <tbody class="divide-y divide-gray-200">
                                                             <tr>
-                                                                <td class="font-semibold text-green-500">nextBillableDate</td>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ nextBillableDate }}'"></td>
                                                                 <td>The next billable date</td>
                                                             </tr>
                                                             <tr>
-                                                                <td class="font-semibold text-green-500">subscriptionPlanName</td>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanName }}'"></td>
                                                                 <td>The Subscription Plan name</td>
                                                             </tr>
                                                         <tr>
-                                                            <td class="font-semibold text-green-500">subscriptionPlanPrice</td>
+                                                            <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanPrice }}'"></td>
                                                             <td>The Subscription Plan price</td>
                                                         </tr>
                                                         </tbody>
                                                     </table>
+
+                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You will be automatically billed {{ subscriptionPlanPrice }} on {{ nextBillableDate }} for {{ subscriptionPlanName }}. Dial *xxx# to unsubscribe.'"></span></p>
                                                 </div>
 
                                             </template>
                                         </el-popover>
                                     </div>
-                                    <jet-textarea id="sub-pl-next-auto-billing-reminder-sms-message" class="w-full mt-1 block " v-model="form.next_auto_billing_reminder_sms_message" />
+                                    <jet-textarea id="sub-pl-next-auto-billing-reminder-sms-message" class="w-full mt-1 block" v-model="form.next_auto_billing_reminder_sms_message" />
                                     <jet-input-error :message="form.errors.next_auto_billing_reminder_sms_message" class="mt-2" />
                                 </div>
 
@@ -414,17 +431,17 @@
 
 <script>
 
-    import { defineComponent } from 'vue'
-    import JetLabel from '@/Components/InputLabel.vue'
-    import JetInput from '@/Components/TextInput.vue'
-    import JetTextarea from '@/Components/Textarea.vue'
-    import JetButton from '@/Components/PrimaryButton.vue'
-    import JetInputError from '@/Components/InputError.vue'
-    import JetNumberInput from '@/Components/NumberInput.vue'
-    import JetSelectInput from '@/Components/SelectInput.vue'
-    import JetDialogModal from '@/Components/DialogModal.vue'
-    import JetDangerButton from '@/Components/DangerButton.vue'
-    import JetSecondaryButton from '@/Components/SecondaryButton.vue'
+    import { nextTick, defineComponent } from 'vue';
+    import JetInput from '@/Components/TextInput.vue';
+    import JetLabel from '@/Components/InputLabel.vue';
+    import JetTextarea from '@/Components/Textarea.vue';
+    import JetButton from '@/Components/PrimaryButton.vue';
+    import JetInputError from '@/Components/InputError.vue';
+    import JetNumberInput from '@/Components/NumberInput.vue';
+    import JetSelectInput from '@/Components/SelectInput.vue';
+    import JetDialogModal from '@/Components/DialogModal.vue';
+    import JetDangerButton from '@/Components/DangerButton.vue';
+    import JetSecondaryButton from '@/Components/SecondaryButton.vue';
 
     export default defineComponent({
         components: {
@@ -445,14 +462,19 @@
         },
         data() {
             return {
+
                 //  Form attributes
                 form: null,
+
+                addTagInput: '',
+                showAddTagInput: false,
 
                 //  Modal attributes
                 showModal: this.modelValue,
 
                 showSuccessMessage: false,
-                showErrorMessage: false
+                showErrorMessage: false,
+
             }
         },
 
@@ -552,6 +574,29 @@
             },
             closeModal() {
                 this.showModal = false;
+            },
+
+            /**
+             *  TAG METHODS
+             */
+            handleAddTag() {
+                if (this.addTagInput) {
+                    const newTag = this.addTagInput.trim();
+                    if (!this.form.tags.includes(newTag)) {
+                        this.form.tags.push(newTag);
+                    }
+                }
+                this.showAddTagInput = false;
+                this.addTagInput = '';
+            },
+            handleRemoveTag(tag) {
+                this.form.tags.splice(this.form.tags.indexOf(tag), 1);
+            },
+            showInput() {
+                this.showAddTagInput = true;
+                nextTick(() => {
+                    this.$refs.addTagInputRef.focus();
+                });
             },
 
             /**
@@ -673,16 +718,16 @@
             reset() {
                 this.form = this.$inertia.form({
                     name: this.hasSubscriptionPlan ? this.subscriptionPlan.name : null,
-                    active: this.hasSubscriptionPlan ? this.subscriptionPlan.active : true,
+                    active: this.hasSubscriptionPlan ? this.subscriptionPlan.active : false,
+                    tags: this.hasSubscriptionPlan ? this.subscriptionPlan.tags ?? [] : [],
                     is_folder: this.hasSubscriptionPlan ? this.subscriptionPlan.is_folder : false,
                     frequency: this.hasSubscriptionPlan ? this.subscriptionPlan.frequency : 'Days',
                     parent_id: this.parentSubscriptionPlan ? this.parentSubscriptionPlan.id : null,
                     description: this.hasSubscriptionPlan ? this.subscriptionPlan.description : null,
-                    can_auto_bill: this.hasSubscriptionPlan ? this.subscriptionPlan.can_auto_bill : true,
-                    price: this.hasSubscriptionPlan ? this.subscriptionPlan.price.amount_without_currency : null,
-                    max_auto_billing_attempts: this.hasSubscriptionPlan ? this.subscriptionPlan.max_auto_billing_attempts : 5,
+                    can_auto_bill: this.hasSubscriptionPlan ? this.subscriptionPlan.can_auto_bill : false,
+                    price: this.hasSubscriptionPlan ? ((this.subscriptionPlan.price ?? {}).amount_without_currency) : null,
+                    max_auto_billing_attempts: this.hasSubscriptionPlan ? this.subscriptionPlan.max_auto_billing_attempts : 3,
                     duration: this.hasSubscriptionPlan ? (this.subscriptionPlan.is_folder ? null : this.subscriptionPlan.duration.toString()) : '3',
-                    subscription_end_at_reference_name: this.hasSubscriptionPlan ? this.subscriptionPlan.subscription_end_at_reference_name : 'subscriptionEndAt',
                     auto_billing_reminder_ids: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_reminders.map((autoBillingReminder) => autoBillingReminder.id) : [],
                     insufficient_funds_message: this.hasSubscriptionPlan ? this.subscriptionPlan.insufficient_funds_message : 'You do not have enough funds to complete this transaction',
                     next_auto_billing_reminder_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.next_auto_billing_reminder_sms_message : 'You will be automatically billed {{ subscriptionPlanPrice }} on {{ nextBillableDate }} for {{ subscriptionPlanName }}. Dial *xxx# to unsubscribe.',

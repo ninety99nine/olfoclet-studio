@@ -21,11 +21,11 @@ use App\Mail\MonthlyBillingReport;
 use App\Models\BillingReport;
 use App\Models\BillingTransaction;
 use App\Models\Message;
+
+use Spatie\LaravelPdf\Facades\Pdf;
 use Illuminate\Support\Facades\Mail;
 use App\Models\Pivots\SubscriberMessage;
 use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\DB;
 use App\Models\SmsCampaign;
@@ -247,10 +247,22 @@ Route::get('/test-conversion', function() {
 
 });
 
+Route::get('/save-pdf', function() {
+
+    $project = Project::find(1);
+    $billingReport = BillingReport::find(1);
+
+    return Pdf::view('pdfs/monthly-billing-report', [
+            'project' => $project,
+            'billingReport' => $billingReport,
+        ])->disk('public_uploads')
+          ->save('pdf_files/monthly-billing-report.pdf')->pathinfo;
+
+    return 'PDF DONE!';
+});
+
 Route::get('/StartCreatingBillingReports', function() {
 
-    Log::info('Hello');
-    return 'Logged!';
     StartCreatingBillingReports::dispatch();
     return 'DONE';
 

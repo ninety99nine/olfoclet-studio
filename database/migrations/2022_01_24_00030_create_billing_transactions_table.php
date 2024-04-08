@@ -16,12 +16,12 @@ class CreateBillingTransactionsTable extends Migration
     {
         Schema::create('billing_transactions', function (Blueprint $table) {
             $table->id();
-            $table->float('amount');
+            $table->decimal('amount', 10, 2);
             $table->string('description');
             $table->boolean('is_successful');
             $table->boolean('rating_type')->nullable();
-            $table->float('funds_before_deduction')->nullable();
-            $table->float('funds_after_deduction')->nullable();
+            $table->decimal('funds_before_deduction', 10, 2)->nullable();
+            $table->decimal('funds_after_deduction', 10, 2)->nullable();
             $table->enum('failure_type', BillingTransaction::FAILURE_TYPES)->nullable();
             $table->text('failure_reason')->nullable();
             $table->boolean('created_using_auto_billing')->default(0);

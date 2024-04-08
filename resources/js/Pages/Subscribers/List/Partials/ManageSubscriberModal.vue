@@ -74,7 +74,7 @@
                         <!-- Mobile -->
                         <div class="mb-4">
                             <jet-label for="msisdn" value="Mobile" />
-                            <jet-input id="msisdn" type="text" class="w-full mt-1 block " v-model="form.msisdn" placeholder = "26772000001" />
+                            <jet-input id="msisdn" type="text" class="w-full mt-1 block" v-model="form.msisdn" placeholder = "26772000001" />
                             <jet-input-error :message="form.errors.msisdn" class="mt-2" />
                         </div>
 

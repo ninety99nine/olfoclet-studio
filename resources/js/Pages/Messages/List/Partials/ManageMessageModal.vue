@@ -126,7 +126,7 @@
                         <!-- Content -->
                         <div class="mb-4">
                             <jet-label for="content" value="Content" />
-                            <jet-textarea id="content" class="w-full mt-1 block " v-model="form.content" />
+                            <jet-textarea id="content" class="w-full mt-1 block" v-model="form.content" />
                             <jet-input-error :message="form.errors.content" class="mt-2" />
 
                             <!-- Other errors -->

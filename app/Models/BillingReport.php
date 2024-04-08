@@ -37,7 +37,7 @@ class BillingReport extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'gross_revenue', 'costs', 'cost_breakdown', 'sharable_revenue', 'our_share', 'their_share', 'total_transactions',
+        'name', 'month', 'year', 'gross_revenue', 'costs', 'cost_breakdown', 'sharable_revenue', 'our_share', 'their_share', 'total_transactions',
         'overview_pdf_path', 'successful_transactions_csv_path', 'invoice_pdf_path', 'project_id'
     ];
 

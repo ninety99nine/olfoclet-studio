@@ -42,7 +42,7 @@ class Project extends Model
         'can_send_messages' => 'boolean',
         'settings' => JsonToArray::class,
         'pdf_path' => LinkToUploads::class,
-        'can_send_billing_reports' => 'boolean',
+        'can_create_billing_reports' => 'boolean',
         'billing_report_email_addresses' => JsonToArray::class,
     ];
 
@@ -53,7 +53,7 @@ class Project extends Model
      */
     protected $fillable = [
         'name', 'description', 'pdf_path', 'website_url', 'can_auto_bill', 'can_send_messages', 'settings',
-        'costs', 'can_send_billing_reports', 'our_share_percentage', 'thier_share_percentage',
+        'costs', 'can_create_billing_reports', 'our_share_percentage', 'their_share_percentage',
         'billing_report_email_addresses'
     ];
 
@@ -80,9 +80,9 @@ class Project extends Model
     /**
      *  Scope projects that can send billing reports
      */
-    public function scopeCanSendBillingReports($query)
+    public function scopeCanCreateBillingReports($query)
     {
-        return $query->where('can_send_billing_reports', '1');
+        return $query->where('can_create_billing_reports', '1');
     }
 
     /**

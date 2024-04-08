@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use App\Models\Project;
 use App\Models\BillingReport;
 use Illuminate\Bus\Queueable;
+use Spatie\LaravelPdf\Facades\Pdf;
 use App\Mail\MonthlyBillingReport;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -88,16 +89,30 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     {
         try{
 
+            Log::info('Stage 1');
+
             $gross_revenue = $this->project->billingTransactions()->where('is_successful', '1')
                                      ->whereMonth('created_at', $this->date->month)
                                      ->whereYear('created_at', $this->date->year)
                                      ->sum('amount');
 
-            $cost_percentage = collect($this->project->costs)->sum() / 100;
+            Log::info('Stage 2');
+
+            $cost_percentage = collect($this->project->costs)->sum('percentage') / 100;
+
+            Log::info('Stage 3');
 
             $costs = $gross_revenue * $cost_percentage;
 
-            $cost_breakdown = collect($this->project->costs)->mapWithKeys(function($value, $key) use ($gross_revenue) {
+            Log::info('Stage 4');
+
+            $cost_breakdown = collect($this->project->costs)->mapWithKeys(function($cost, $key) use ($gross_revenue) {
+
+
+                Log::info('$key');
+                Log::info($key);
+                Log::info('$cost');
+                Log::info($cost);
 
                 return [
 
@@ -109,21 +124,29 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
                      *  VAT (14%) => 2000 * 14/100
                      *  Dealer Commission (Airtime) => 2000 * 13.5/100
                      */
-                    $key => $gross_revenue * $value / 100
+                    $cost['name'] => $gross_revenue * $cost['percentage'] / 100
 
                 ];
 
             })->all();
 
+            Log::info('Stage 5');
+
             $sharable_revenue = $gross_revenue - $costs;
+            Log::info('Stage 6');
             $name = BillingReport::getNameFromDate($this->date);
+            Log::info('Stage 7');
             $our_share = $sharable_revenue * $this->project->our_share_percentage / 100;
-            $their_share = $sharable_revenue * $this->project->thier_share_percentage / 100;
+            Log::info('Stage 8');
+            $their_share = $sharable_revenue * $this->project->their_share_percentage / 100;
+            Log::info('Stage 9');
 
             $billingReport = BillingReport::create([
                 'name' => $name,
                 'costs' => $costs,
                 'our_share' => $our_share,
+                'year' => $this->date->year,
+                'month' => $this->date->month,
                 'their_share' => $their_share,
                 'gross_revenue' => $gross_revenue,
                 'project_id' => $this->project->id,
@@ -131,14 +154,30 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
                 'sharable_revenue' => $sharable_revenue,
                 'total_transactions' => $this->billingTransactionsCount
             ]);
+            Log::info('Stage 10');
 
-            $filePathName = 'csv_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Transactions-'.$this->project->id.'.csv';
+            $overviewPdfPath = $this->project->id.'/pdf_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Overview.pdf';
 
-            (new BillingReportTransactionsExport($this->project, $this->date))->store($filePathName, 'public_uploads');
+            //  Create the monthly billing report pdf file
+            Pdf::view('pdfs/monthly-billing-report-overview', [
+                'project' => $this->project,
+                'billingReport' => $billingReport,
+            ])->disk('public_uploads')
+              ->save($overviewPdfPath);
+
+            Log::info('Stage 11');
+
+            $successfulTransactionsCsvPath = $this->project->id.'/csv_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Transactions.csv';
+
+            //  Create the monthly billing report transactions xml file
+            (new BillingReportTransactionsExport($this->project, $this->date))->store($successfulTransactionsCsvPath, 'public_uploads');
 
             $billingReport->update([
-                'successful_transactions_csv_path' => $filePathName
+                'overview_pdf_path' => $overviewPdfPath,
+                'successful_transactions_csv_path' => $successfulTransactionsCsvPath
             ]);
+
+            Log::info('Stage 12');
 
             foreach($this->project->billing_report_email_addresses as $emailAddress) {
 

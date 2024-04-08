@@ -216,6 +216,14 @@ class Subscriber extends Model
     }
 
     /**
+     *  Get the active subscriptions associated with the subscriber.
+     */
+    public function activeSubscriptions()
+    {
+        return $this->subscriptions()->active();
+    }
+
+    /**
      *  Get the latest subscription associated with the subscriber.
      */
     public function latestSubscription()

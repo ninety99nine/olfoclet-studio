@@ -16,12 +16,14 @@ class CreateBillingReportsTable extends Migration
         Schema::create('billing_reports', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->float('gross_revenue')->nullable();
-            $table->float('costs')->nullable();
+            $table->unsignedTinyInteger('month');
+            $table->unsignedSmallInteger('year');
+            $table->decimal('gross_revenue', 10, 2)->nullable();
+            $table->decimal('costs', 10, 2)->nullable();
             $table->json('cost_breakdown')->nullable();
-            $table->float('sharable_revenue')->nullable();
-            $table->float('our_share')->nullable();
-            $table->float('their_share')->nullable();
+            $table->decimal('sharable_revenue', 10, 2)->nullable();
+            $table->decimal('our_share', 10, 2)->nullable();
+            $table->decimal('their_share', 10, 2)->nullable();
             $table->unsignedInteger('total_transactions');
             $table->string('overview_pdf_path')->nullable();
             $table->string('successful_transactions_csv_path')->nullable();

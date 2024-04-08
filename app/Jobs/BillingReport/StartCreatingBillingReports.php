@@ -30,7 +30,7 @@ class StartCreatingBillingReports implements ShouldQueue
             $date = Carbon::now()->subMonth();
             $name = BillingReport::getNameFromDate($date);
 
-            $projects = Project::canSendBillingReports()->has('billingTransactions')->whereDoesntHave('billingReports', function($query) use ($name) {
+            $projects = Project::canCreateBillingReports()->has('billingTransactions')->whereDoesntHave('billingReports', function($query) use ($name) {
 
                 return $query->where('name', $name);
 

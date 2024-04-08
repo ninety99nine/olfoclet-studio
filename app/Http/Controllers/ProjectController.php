@@ -7,6 +7,7 @@ use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Project;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -32,20 +33,84 @@ class ProjectController extends Controller
 
     public function createProject(Request $request)
     {
+        $requiredIfCanAutoBill = Rule::requiredIf(in_array(request()->input('can_auto_bill'), [true, 1]));
+        $requiredIfCanSendMessages = Rule::requiredIf(in_array(request()->input('can_send_messages'), [true, 1]));
+        $requiredIfCanCreateBillingReports = Rule::requiredIf(in_array(request()->input('can_create_billing_reports'), [true, 1]));
+
+        $sharePercentageValidation = function ($attribute, $value, $fail) {
+
+            $ourSharePercentage = (float) request()->input('our_share_percentage');
+            $theirSharePercentage = (float) request()->input('their_share_percentage');
+
+            $percentage = $ourSharePercentage + $theirSharePercentage;
+
+            if( $percentage > 100 ) {
+
+                $fail('The share percentages combined exceed 100%');
+
+            }else if ( $percentage < 0 ) {
+
+                $fail('The share percentages combined are less than 0%');
+
+            }
+
+        };
+
+        $costsValidation = function ($attribute, $value, $fail) {
+
+            $costs = request()->input('costs');
+            $percentage = collect($costs)->sum('percentage');
+
+            if( $percentage > 100 ) {
+
+                $fail('The cost percentages combined exceed 100%');
+
+            }else if ( $percentage < 0 ) {
+
+                $fail('The cost percentages combined are less than 0%');
+
+            }
+
+        };
+
         //  Validate the request inputs
         Validator::make($request->all(), [
+            'can_auto_bill' => ['required', 'boolean'],
+            'can_send_messages' => ['required', 'boolean'],
+            'costs.*.name' => ['string', 'min:1', 'max:40'],
+            'costs.*.percentage' => ['integer', 'min:1', 'max:100'],
+            'costs' => [$requiredIfCanCreateBillingReports, 'array', $costsValidation],
             'name' => ['required', 'string', 'min:3', 'max:500'],
+            'can_create_billing_reports' => ['required', 'boolean'],
+            'billing_report_email_addresses.*' => ['email'],
+            'billing_report_email_addresses' => [$requiredIfCanCreateBillingReports, 'array', 'max:2'],
+            'our_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
             'website_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
-            'can_send_messages' => ['sometimes', 'boolean'],
-            'settings.sms_sender_name' => ['sometimes', 'nullable', 'string', 'max:11'],
-            'settings.sms_client_credentials' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'settings.sms_sender_number' => ['sometimes', 'nullable', 'string', 'starts_with:'.config('app.SMS_NUMBER_EXTENSION', '267'), 'regex:/^[0-9]+$/', 'size:11'],
-            'settings.auto_billing_client_id' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'settings.auto_billing_client_secret' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'their_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
+            'settings.sms_sender_name' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:11'],
+            'settings.sms_client_credentials' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:255'],
+            'settings.sms_sender_number' => [$requiredIfCanSendMessages, 'nullable', 'string', 'starts_with:'.config('app.SMS_NUMBER_EXTENSION', '267'), 'regex:/^[0-9]+$/', 'size:11'],
+            'settings.auto_billing_client_id' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
+            'settings.auto_billing_client_secret' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
+        ], [
+
+            //  Messages
+
+        ], [
+            //  Attributes
+            'costs.*.name' => 'cost name',
+            'our_share_percentage' => 'percentage',
+            'their_share_percentage' => 'percentage',
+            'costs.*.percentage' => 'cost percentage',
+            'billing_report_email_addresses.*' => 'email address',
+
         ])->validate();
 
         //  Set name
         $name = $request->input('name');
+
+        //  Set costs
+        $costs = $request->input('costs');
 
         //  Set website url
         $websiteUrl = $request->input('website_url');
@@ -59,26 +124,42 @@ class ProjectController extends Controller
         //  Set can send messages
         $canSendMessages = $request->input('can_send_messages');
 
+        //  Set can create billing reports
+        $canCreateBillingReports = $request->input('can_create_billing_reports');
+
+        //  Set our share percentage
+        $ourSharePercentage = $request->input('our_share_percentage');
+
+        //  Set their share percentage
+        $theirSharePercentage = $request->input('their_share_percentage');
+
         //  Set settings
         $settings = $request->input('settings');
-
-        // Handle file upload
-        if ($request->hasFile('pdf')) {
-            $pdfPath = $request->file('pdf')->store('pdf_files', 'public_uploads');
-        } else {
-            $pdfPath = null;
-        }
 
         //  Create new project
         $project = Project::create([
             'name' => $name,
-            'pdf_path' => $pdfPath,
+            'costs' => $costs,
             'settings' => $settings,
             'website_url' => $websiteUrl,
             'description' => $description,
             'can_auto_bill' => $canAutoBill,
-            'can_send_messages' => $canSendMessages
+            'can_send_messages' => $canSendMessages,
+            'our_share_percentage' => $ourSharePercentage,
+            'their_share_percentage' => $theirSharePercentage,
+            'can_create_billing_reports' => $canCreateBillingReports,
         ]);
+
+        // Handle file upload
+        if ($request->hasFile('pdf')) {
+
+            $pdfPath = $request->file('pdf')->store("$project->id/pdf_files", 'public_uploads');
+
+            $project->update([
+                'pdf_path' => $pdfPath
+            ]);
+
+        }
 
         //  Add user to project
         DB::table('user_projects')->insert([
@@ -94,20 +175,84 @@ class ProjectController extends Controller
 
     public function updateProject(Request $request, Project $project)
     {
+        $requiredIfCanAutoBill = Rule::requiredIf(in_array(request()->input('can_auto_bill'), [true, 1]));
+        $requiredIfCanSendMessages = Rule::requiredIf(in_array(request()->input('can_send_messages'), [true, 1]));
+        $requiredIfCanCreateBillingReports = Rule::requiredIf(in_array(request()->input('can_create_billing_reports'), [true, 1]));
+
+        $sharePercentageValidation = function ($attribute, $value, $fail) {
+
+            $ourSharePercentage = (float) request()->input('our_share_percentage');
+            $theirSharePercentage = (float) request()->input('their_share_percentage');
+
+            $percentage = $ourSharePercentage + $theirSharePercentage;
+
+            if( $percentage > 100 ) {
+
+                $fail('The share percentages combined exceed 100%');
+
+            }else if ( $percentage < 0 ) {
+
+                $fail('The share percentages combined are less than 0%');
+
+            }
+
+        };
+
+        $costsValidation = function ($attribute, $value, $fail) {
+
+            $costs = request()->input('costs');
+            $percentage = collect($costs)->sum('percentage');
+
+            if( $percentage > 100 ) {
+
+                $fail('The cost percentages combined exceed 100%');
+
+            }else if ( $percentage < 0 ) {
+
+                $fail('The cost percentages combined are less than 0%');
+
+            }
+
+        };
+
         //  Validate the request inputs
         Validator::make($request->all(), [
+            'can_auto_bill' => ['required', 'boolean'],
+            'can_send_messages' => ['required', 'boolean'],
+            'costs.*.name' => ['string', 'min:1', 'max:40'],
+            'costs.*.percentage' => ['min:1', 'max:100'],
+            'costs' => [$requiredIfCanCreateBillingReports, 'array', $costsValidation],
             'name' => ['required', 'string', 'min:3', 'max:500'],
+            'can_create_billing_reports' => ['required', 'boolean'],
+            'billing_report_email_addresses.*' => ['email'],
+            'billing_report_email_addresses' => [$requiredIfCanCreateBillingReports, 'array', 'max:2'],
+            'our_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
             'website_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
-            'can_send_messages' => ['sometimes', 'boolean'],
-            'settings.sms_sender_name' => ['sometimes', 'string', 'max:11'],
-            'settings.sms_client_credentials' => ['sometimes', 'string', 'max:255'],
-            'settings.sms_sender_number' => ['sometimes', 'string', 'starts_with:'.config('app.SMS_NUMBER_EXTENSION', '267'), 'regex:/^[0-9]+$/', 'size:11'],
-            'settings.auto_billing_client_id' => ['string', 'max:255'],
-            'settings.auto_billing_client_secret' => ['string', 'max:255'],
+            'their_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
+            'settings.sms_sender_name' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:11'],
+            'settings.sms_client_credentials' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:255'],
+            'settings.sms_sender_number' => [$requiredIfCanSendMessages, 'nullable', 'string', 'starts_with:'.config('app.SMS_NUMBER_EXTENSION', '267'), 'regex:/^[0-9]+$/', 'size:11'],
+            'settings.auto_billing_client_id' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
+            'settings.auto_billing_client_secret' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
+        ], [
+
+            //  Messages
+
+        ], [
+            //  Attributes
+            'costs.*.name' => 'cost name',
+            'our_share_percentage' => 'percentage',
+            'their_share_percentage' => 'percentage',
+            'costs.*.percentage' => 'cost percentage',
+            'billing_report_email_addresses.*' => 'email address',
+
         ])->validate();
 
         //  Set name
         $name = $request->input('name');
+
+        //  Set costs
+        $costs = $request->input('costs');
 
         //  Set website url
         $websiteUrl = $request->input('website_url');
@@ -120,6 +265,15 @@ class ProjectController extends Controller
 
         //  Set can send messages
         $canSendMessages = $request->input('can_send_messages');
+
+        //  Set can create billing reports
+        $canCreateBillingReports = $request->input('can_create_billing_reports');
+
+        //  Set our share percentage
+        $ourSharePercentage = $request->input('our_share_percentage');
+
+        //  Set their share percentage
+        $theirSharePercentage = $request->input('their_share_percentage');
 
         //  Set settings
         $settings = $request->input('settings');
@@ -144,15 +298,15 @@ class ProjectController extends Controller
             $originalFileName = $request->file('pdf')->getClientOriginalName();
 
             //  If the original PDF name is already taken
-            if( Storage::disk('public_uploads')->exists("pdf_files/$originalFileName") ) {
+            if( Storage::disk('public_uploads')->exists("$project->id/pdf_files/$originalFileName") ) {
 
                 //  Store the new PDF file using a unique name
-                $pdfPath = $request->file('pdf')->store('pdf_files', 'public_uploads');
+                $pdfPath = $request->file('pdf')->store("$project->id/pdf_files", 'public_uploads');
 
             }else{
 
                 //  Store the new PDF file using the original PDF name
-                $pdfPath = $request->file('pdf')->storeAs('pdf_files', $originalFileName, 'public_uploads');
+                $pdfPath = $request->file('pdf')->storeAs("$project->id/pdf_files", $originalFileName, 'public_uploads');
 
             }
 
@@ -184,12 +338,16 @@ class ProjectController extends Controller
         //  Update project
         $project->update([
             'name' => $name,
+            'costs' => $costs,
             'pdf_path' => $pdfPath,
             'settings' => $settings,
             'website_url' => $websiteUrl,
             'description' => $description,
             'can_auto_bill' => $canAutoBill,
-            'can_send_messages' => $canSendMessages
+            'can_send_messages' => $canSendMessages,
+            'our_share_percentage' => $ourSharePercentage,
+            'their_share_percentage' => $theirSharePercentage,
+            'can_create_billing_reports' => $canCreateBillingReports,
         ]);
 
         return redirect()->back()->with('message', 'Updated Successfully');

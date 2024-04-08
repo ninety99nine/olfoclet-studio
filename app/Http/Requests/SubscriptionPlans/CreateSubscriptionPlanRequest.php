@@ -20,10 +20,9 @@ class CreateSubscriptionPlanRequest extends FormRequest
             'can_auto_bill' => [$requiredIfIsNotFolder, 'sometimes', 'boolean'],
             'price' => [$requiredIfIsNotFolder, 'sometimes', 'regex:/^\d+(\.\d{1,2})?$/'],
             'description' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
-            'max_auto_billing_attempts' => [$requiredIfIsNotFolder, 'sometimes', 'integer', 'min:1', 'max:3'],
+            'max_auto_billing_attempts' => [$requiredIfIsNotFolder, 'sometimes', 'integer', 'min:1', 'max:10'],
             'insufficient_funds_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
             'successful_payment_sms_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
-            'subscription_end_at_reference_name' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
             'next_auto_billing_reminder_sms_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
         ];
     }

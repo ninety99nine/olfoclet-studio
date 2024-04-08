@@ -116,22 +116,18 @@
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
                                         <div class="text-sm text-gray-900">{{ subscription.subscription_plan.name }}</div>
                                     </td>
-
                                     <!-- Subscription Plan Description -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
                                         {{ subscription.subscription_plan.description == null ? '...' : subscription.subscription_plan.description }}
                                     </td>
-
                                     <!-- Subscription Plan Active -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
                                         <SubscriptionPlanActiveStatusBadge :subscriptionPlan="subscription.subscription_plan"></SubscriptionPlanActiveStatusBadge>
                                     </td>
-
                                     <!-- Subscription Plan Duration -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
                                         {{ subscription.subscription_plan.duration_in_words == null ? '...' : subscription.subscription_plan.duration_in_words }}
                                     </td>
-
                                     <!-- Subscription Plan Price -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
                                         {{ subscription.subscription_plan.price == null ? '...' : subscription.subscription_plan.price.amount_with_currency }}
@@ -140,6 +136,9 @@
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
                                         {{ subscription.subscription_plan.created_at == null ? '...' : moment(subscription.subscription_plan.created_at).format('lll') }}
                                     </td>
+
+
+
 
                                     <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                         <a v-if="$inertia.page.props.projectPermissions.includes('Manage subscriptions')" href="#" @click.prevent="showModal(subscription, 'update')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
@@ -151,7 +150,7 @@
                                 <tr v-if="subscriptionsPayload.data.length == 0">
 
                                     <!-- Content -->
-                                    <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
+                                    <td :colspan="13" class="px-6 py-3 whitespace-nowrap">
                                         <div class="text-center text-gray-900 text-sm p-6">No subscriptions</div>
                                     </td>
 

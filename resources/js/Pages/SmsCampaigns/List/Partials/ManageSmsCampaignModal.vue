@@ -62,14 +62,14 @@
                         <!-- Name -->
                         <div class="mb-4">
                             <jet-label for="name" value="Name" />
-                            <jet-input id="name" type="text" class="w-full mt-1 block " v-model="form.name" />
+                            <jet-input id="name" type="text" class="w-full mt-1 block" v-model="form.name" />
                             <jet-input-error :message="form.errors.name" class="mt-2" />
                         </div>
 
                         <!-- Description -->
                         <div class="mb-8">
                             <jet-label for="description" value="Description" />
-                            <jet-textarea id="description" class="w-full mt-1 block " v-model="form.description" />
+                            <jet-textarea id="description" class="w-full mt-1 block" v-model="form.description" />
                             <jet-input-error :message="form.errors.description" class="mt-2" />
                         </div>
 

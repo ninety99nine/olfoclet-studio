@@ -24,6 +24,7 @@
         "@heroicons/vue": "^2.0.16",
         "element-plus": "^2.2.36",
         "moment": "^2.29.4",
+        "puppeteer": "^22.6.3",
         "simple-code-editor": "^2.0.9"
     }
 }

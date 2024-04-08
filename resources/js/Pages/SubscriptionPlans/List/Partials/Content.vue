@@ -26,6 +26,9 @@
                                     <span>Active</span>
                                 </th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
+                                    <span>Tags</span>
+                                </th>
+                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
                                     <span>Duration</span>
                                 </th>
                                 <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider text-center">
@@ -62,6 +65,15 @@
                                     <!-- Active -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
                                         <ActiveStatusBadge :subscriptionPlan="subscriptionPlan"></ActiveStatusBadge>
+                                    </td>
+                                    <!-- Tags -->
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
+                                        <div v-if="subscriptionPlan.tags.length == 0">...</div>
+                                        <div class="flex space-x-2">
+                                            <div v-for="(tag, index) in subscriptionPlan.tags" :key="index" class="bg-blue-50 text-blue-500 border border-blue-300 py-1 px-2 text-xs rounded">
+                                                {{ tag }}
+                                            </div>
+                                        </div>
                                     </td>
                                     <!-- Duration -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
@@ -139,7 +151,7 @@
             }
         },
         methods: {
-            getPercentageOfCoverage(subscriptionsCount){
+            getPercentageOfCoverage(subscriptionsCount) {
                 if( this.totalSubscriptions > 0 ){
                     return Math.round((subscriptionsCount / this.totalSubscriptions) * 100)
                 }

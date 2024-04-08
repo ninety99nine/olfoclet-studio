@@ -52,6 +52,7 @@ class MonthlyBillingReport extends Mailable
     public function attachments(): array
     {
         return [
+            Attachment::fromPath(public_path('uploads/'.$this->billingReport->getRawOriginal('overview_pdf_path'))),
             Attachment::fromPath(public_path('uploads/'.$this->billingReport->getRawOriginal('successful_transactions_csv_path'))),
         ];
     }

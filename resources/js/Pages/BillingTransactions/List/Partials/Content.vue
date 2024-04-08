@@ -14,7 +14,7 @@
 
                 <!-- Search -->
                 <div class="mb-4">
-                    <jet-input id="search" type="text" class="w-full mt-1 block " v-model="form.search" placeholder = "26772000001" />
+                    <jet-input id="search" type="text" class="w-full mt-1 block" v-model="form.search" placeholder = "26772000001" />
                     <jet-input-error :message="form.errors.search" class="mt-2" />
                 </div>
 

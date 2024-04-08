@@ -80,15 +80,19 @@
                         <!-- Mobile -->
                         <div class="mb-4">
                             <jet-label for="msisdn" value="Mobile" />
-                            <jet-input id="msisdn" type="text" class="w-full mt-1 block " v-model="form.msisdn" placeholder = "26772000001" />
+                            <jet-input id="msisdn" type="text" class="w-full mt-1 block" v-model="form.msisdn" placeholder = "26772000001" />
                             <jet-input-error :message="form.errors.msisdn" class="mt-2" />
                         </div>
 
-                        <!-- Subscription Plan -->
-                        <div class="mb-4">
-                            <jet-label for="subscription-plan" value="Subscription Plan" class="mb-1" />
-                            <jet-select-input id="subscription-plan" placeholder="Select subscription plan" :options="subscriptionPlanOptions" v-model="form.subscription_plan_id" />
-                            <jet-input-error :message="form.errors.subscription_plan_id" class="mt-2" />
+                        <div>
+
+                            <!-- Subscription Plan -->
+                            <div class="fmb-4">
+                                <jet-label for="subscription-plan" value="Subscription Plan" class="mb-1" />
+                                <el-cascader id="subscription-plan" v-model="form.subscription_plan_id" :props="getPropsForMessages()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
+                                <jet-input-error :message="form.errors.subscription_plan_id" class="mt-2" />
+                            </div>
+
                         </div>
 
                     </template>
@@ -238,6 +242,57 @@
         },
         methods: {
 
+            getPropsForMessages() {
+
+                return {
+                    lazy: true,
+                    multiple: false,
+                    checkStrictly: false,
+                    lazyLoad: function(node, resolve) {
+
+                        const { level } = node;
+
+                        //  If this is the first list of options
+                        if( level === 0  ){
+
+                            var url = route('api.show.subscription.plans', { project: route().params.project });
+
+                        //  If this is the nested list of options
+                        }else{
+
+                            var url = route('api.show.subscription.plan', { project: route().params.project, subscription_plan: node.data.value, type: 'children' });
+
+                        }
+
+                        axios.get(url)
+                            .then((response) => {
+
+                                var nodes = response.data.data.map((subscriptionPlan) => {
+
+                                    var isActive = subscriptionPlan.active;
+                                    var isFolder = subscriptionPlan.is_folder;
+                                    var hasChildren = subscriptionPlan.children_count > 0;
+
+                                    var leaf = !hasChildren;
+                                    var value = subscriptionPlan.id;
+                                    var label = subscriptionPlan.name.length < 40 ? String (subscriptionPlan.name) : String (subscriptionPlan.name).substring(0, 40);
+
+                                    return {
+                                        leaf: leaf,
+                                        value: value,
+                                        label: label,
+                                        disabled: (isFolder && !hasChildren) || !isActive
+                                    }
+
+                                });
+
+                                resolve(nodes);
+
+                            }).catch(() => resolve([]));
+                    },
+                }
+            },
+
             /**
              *  MODAL METHODS
              */
@@ -270,7 +325,18 @@
 
                 };
 
-                this.form.post(route('create.subscription', { project: route().params.project }), options);
+                this.form.transform((data) => {
+
+                    if(data.subscription_plan_id.length > 0) {
+
+                        //  Cpature the last id on this array of subscription ids
+                        data.subscription_plan_id = data.subscription_plan_id[data.subscription_plan_id.length - 1];
+
+                    }
+
+                    return data;
+
+                }).post(route('create.subscription', { project: route().params.project }), options);
             },
             update() {
                 var options = {
@@ -376,9 +442,9 @@
             },
             reset() {
                 this.form = this.$inertia.form({
-                    msisdn: this.hasSubscriber ? (this.subscription.subscriber.msisdn ?? null) : null,
                     cancelled_at: this.hasSubscriber ? this.subscription.cancelled_at : null,
-                    subscription_plan_id: this.hasSubscription ? this.subscription.subscription_plan_id : (this.subscriptionPlanOptions.length ? this.subscriptionPlanOptions[0].value: null)
+                    msisdn: this.hasSubscriber ? (this.subscription.subscriber.msisdn ?? null) : null,
+                    subscription_plan_id: this.hasSubscription ? [this.subscription.subscription_plan_id] : []
                 });
             },
         },
