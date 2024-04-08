@@ -89,30 +89,16 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     {
         try{
 
-            Log::info('Stage 1');
-
             $gross_revenue = $this->project->billingTransactions()->where('is_successful', '1')
                                      ->whereMonth('created_at', $this->date->month)
                                      ->whereYear('created_at', $this->date->year)
                                      ->sum('amount');
 
-            Log::info('Stage 2');
-
             $cost_percentage = collect($this->project->costs)->sum('percentage') / 100;
-
-            Log::info('Stage 3');
 
             $costs = $gross_revenue * $cost_percentage;
 
-            Log::info('Stage 4');
-
             $cost_breakdown = collect($this->project->costs)->mapWithKeys(function($cost, $key) use ($gross_revenue) {
-
-
-                Log::info('$key');
-                Log::info($key);
-                Log::info('$cost');
-                Log::info($cost);
 
                 return [
 
@@ -130,16 +116,14 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
 
             })->all();
 
-            Log::info('Stage 5');
-
             $sharable_revenue = $gross_revenue - $costs;
-            Log::info('Stage 6');
+
             $name = BillingReport::getNameFromDate($this->date);
-            Log::info('Stage 7');
+
             $our_share = $sharable_revenue * $this->project->our_share_percentage / 100;
-            Log::info('Stage 8');
+
             $their_share = $sharable_revenue * $this->project->their_share_percentage / 100;
-            Log::info('Stage 9');
+
 
             $billingReport = BillingReport::create([
                 'name' => $name,
@@ -154,7 +138,6 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
                 'sharable_revenue' => $sharable_revenue,
                 'total_transactions' => $this->billingTransactionsCount
             ]);
-            Log::info('Stage 10');
 
             $overviewPdfPath = $this->project->id.'/pdf_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Overview.pdf';
 
@@ -165,8 +148,6 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
             ])->disk('public_uploads')
               ->save($overviewPdfPath);
 
-            Log::info('Stage 11');
-
             $successfulTransactionsCsvPath = $this->project->id.'/csv_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Transactions.csv';
 
             //  Create the monthly billing report transactions xml file
@@ -176,8 +157,6 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
                 'overview_pdf_path' => $overviewPdfPath,
                 'successful_transactions_csv_path' => $successfulTransactionsCsvPath
             ]);
-
-            Log::info('Stage 12');
 
             foreach($this->project->billing_report_email_addresses as $emailAddress) {
 
