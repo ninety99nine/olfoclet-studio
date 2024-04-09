@@ -168,13 +168,6 @@
             },
             getLatestSubscriptionPlanBatchJob(subscriptionPlan)
             {
-                console.log('subscriptionPlan');
-                console.log(subscriptionPlan);
-                console.log('subscriptionPlan.latest_auto_billing_job_batch');
-                console.log(subscriptionPlan.latest_auto_billing_job_batch);
-                console.log('subscriptionPlan.latest_auto_billing_job_batch[0]');
-                console.log(subscriptionPlan.latest_auto_billing_job_batch[0]);
-
                 if( subscriptionPlan.latest_auto_billing_job_batch.length ) {
                     return subscriptionPlan.latest_auto_billing_job_batch[0];
                 }

@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Project;
-use App\Models\Subscription;
-use App\Services\BillingService;
 use App\Models\SubscriptionPlan;
 use App\Http\Controllers\Controller;
 use App\Enums\CreatedUsingAutoBilling;
@@ -26,15 +24,15 @@ class SubscriptionController extends Controller
 
     public function __construct()
     {
-        $project = Project::findOrFail(request()->route('project'));
+        $this->project = Project::findOrFail(request()->route('project'));
 
-        if(request()->routeIs('show.subscription')) {
+        if(request()->routeIs('api.show.subscription')) {
 
-            $this->subscription = $this->project->subscription()->where('id', request()->subscription)->with(['subscriptionPlan'])->first();
+            $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->with(['subscriptionPlan'])->first();
 
         }else{
 
-            if(request()->routeIs(['update.subscription']) || request()->routeIs(['delete.subscription'])) {
+            if(!empty(request()->subscription)) {
 
                 $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->firstOrFail();
 
@@ -42,9 +40,9 @@ class SubscriptionController extends Controller
 
         }
 
-        $this->subscriberRepository = new SubscriberRepository($project, null);
-        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($project, null);
-        $this->subscriptionRepository = new SubscriptionRepository($project, $this->subscription);
+        $this->subscriberRepository = new SubscriberRepository($this->project, null);
+        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($this->project, null);
+        $this->subscriptionRepository = new SubscriptionRepository($this->project, $this->subscription);
     }
 
     public function showSubscriptions()

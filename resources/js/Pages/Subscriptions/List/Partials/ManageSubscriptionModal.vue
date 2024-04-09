@@ -270,8 +270,8 @@
                                 var nodes = response.data.data.map((subscriptionPlan) => {
 
                                     var isActive = subscriptionPlan.active;
-                                    var isFolder = subscriptionPlan.is_folder;
-                                    var hasChildren = subscriptionPlan.children_count > 0;
+                                    var isFolder = subscriptionPlan.isFolder;
+                                    var hasChildren = subscriptionPlan.childrenCount > 0;
 
                                     var leaf = !hasChildren;
                                     var value = subscriptionPlan.id;

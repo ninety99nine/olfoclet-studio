@@ -28,7 +28,7 @@ class SubscriberController extends Controller
 
         }else{
 
-            if(request()->routeIs(['api.update.subscriber']) || request()->routeIs(['api.delete.subscriber'])) {
+            if(!empty(request()->subscriber_msisdn)) {
 
                 $this->subscriber = $this->project->subscribers()->where('msisdn', request()->subscriber_msisdn)->firstOrFail();
 

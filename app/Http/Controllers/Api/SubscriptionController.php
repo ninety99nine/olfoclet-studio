@@ -34,7 +34,7 @@ class SubscriptionController extends Controller
 
         }else{
 
-            if(request()->routeIs(['api.update.subscription']) || request()->routeIs(['api.delete.subscription'])) {
+            if(!empty(request()->subscription)) {
 
                 $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->firstOrFail();
 
