@@ -2,7 +2,7 @@
 
     <div class="flex items-center">
 
-        <span v-if="subscriberMessage.is_successful" class="bg-green-100 text-green-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded mr-2 dark:bg-green-200 dark:text-green-900">
+        <span v-if="subscriberMessage.is_successful" class="bg-green-100 text-green-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-900">
             Successful
         </span>
 

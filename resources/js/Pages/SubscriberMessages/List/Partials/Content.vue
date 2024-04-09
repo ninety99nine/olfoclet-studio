@@ -48,33 +48,33 @@
                                 <tr v-for="subscriberMessage in subscriberMessagesPayload.data" :key="subscriberMessage.id">
 
                                     <!-- Mobile -->
-                                    <td class="px-6 py-3 whitespace-nowrap">
+                                    <td class="px-6 py-3 whitespace-nowrap align-top">
                                         <div class="text-sm text-gray-900">{{ subscriberMessage.subscriber.msisdn }}</div>
                                     </td>
 
                                     <!-- Content -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <span>{{ subscriberMessage.content }}</span>
+                                    <td class="px-6 py-3 text-sm text-gray-500 text-justify align-top bg-teal-50">
+                                        <div class="w-96">{{ subscriberMessage.content }}</div>
                                     </td>
 
                                     <!-- Type -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center align-top bg-teal-50">
                                         <span>{{ subscriberMessage.type }}</span>
                                     </td>
 
                                     <!-- Status -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center align-top bg-teal-50">
                                         <SubscriberMessageStatusBadge :subscriberMessage="subscriberMessage"></SubscriberMessageStatusBadge>
                                     </td>
 
                                     <!-- Delivery Status -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center align-top bg-teal-50">
                                         <span v-if="subscriberMessage.delivery_status == null">...</span>
                                         <SubscriberMessageDeliveryStatusBadge v-else :subscriberMessage="subscriberMessage"></SubscriberMessageDeliveryStatusBadge>
                                     </td>
 
                                     <!-- Created Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 align-top">
                                         {{ subscriberMessage.created_at == null ? '...' : moment(subscriberMessage.created_at).format('lll') }}
                                     </td>
 

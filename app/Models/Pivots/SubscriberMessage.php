@@ -2,12 +2,14 @@
 
 namespace App\Models\Pivots;
 
-use App\Enums\MessageFailureType;
 use App\Models\Message;
 use App\Models\Project;
 use App\Models\Subscriber;
 use App\Enums\MessageType;
+use Illuminate\Support\Str;
+use App\Enums\MessageFailureType;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 
 class SubscriberMessage extends Pivot
 {
@@ -80,5 +82,17 @@ class SubscriberMessage extends Pivot
     public function subscriber()
     {
         return $this->belongsTo(Subscriber::class);
+    }
+
+    /**
+     *  Format the delivery_status
+     */
+    protected function deliveryStatus(): Attribute
+    {
+        return Attribute::make(
+            get: function($value) {
+                return Str::headline(Str::snake($value, ' '));
+            }
+        );
     }
 }
