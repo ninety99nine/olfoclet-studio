@@ -67,32 +67,27 @@ class SubscriptionPlanController extends Controller
         /// Set the cache name
         $cacheName = 'projects-'.$this->project->id.'-subscription-plan-'.$this->subscriptionPlan->id.'-'.$type.'-'.$perPage.'-'.$pageNumber;
 
-        /// Retrieve the result from the cache or make a request and cache the response for one day
-        $response = Cache::remember($cacheName, $time, function () use($type, $perPage) {
+        if( $type == 'children') {
 
-            if( $type == 'children') {
+            $response = $this->subscriptionPlan->children()->withCount('children')->latest()->paginate($perPage);
 
-                return $this->subscriptionPlan->children()->withCount('children')->latest()->paginate($perPage);
+        }else if( $type == 'descendants') {
 
-            }else if( $type == 'descendants') {
+            $response = $this->subscriptionPlan->descendants()->withCount('descendants')->latest()->paginate($perPage);
 
-                return $this->subscriptionPlan->descendants()->withCount('descendants')->latest()->paginate($perPage);
+        }else if( $type == 'ancestors') {
 
-            }else if( $type == 'ancestors') {
+            $response = $this->subscriptionPlan->ancestors()->withCount('ancestors')->latest()->paginate($perPage);
 
-                return $this->subscriptionPlan->ancestors()->withCount('ancestors')->latest()->paginate($perPage);
+        }else if( $type == 'parent') {
 
-            }else if( $type == 'parent') {
+            $response = $this->subscriptionPlan->parent;
 
-                return $this->subscriptionPlan->parent;
+        }else{
 
-            }else{
+            $response = $this->subscriptionPlan;
 
-                return $this->subscriptionPlan;
-
-            }
-
-        });
+        }
 
         if(is_null($response)) {
 
