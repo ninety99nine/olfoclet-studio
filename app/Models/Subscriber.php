@@ -8,7 +8,7 @@ use App\Models\Pivots\SubscriberTopic;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Database\Eloquent\Builder;
-use App\Models\Pivots\AutoBillingSchedules;
+use App\Models\Pivots\AutoBillingSchedule;
 use App\Models\Pivots\SmsCampaignNextMessageSchedule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -177,7 +177,7 @@ class Subscriber extends Model
      */
     public function autoBillingSchedules()
     {
-        return $this->hasMany(AutoBillingSchedules::class);
+        return $this->hasMany(AutoBillingSchedule::class);
     }
 
     /**
@@ -186,7 +186,7 @@ class Subscriber extends Model
     public function autoBillingSubscriptionPlans()
     {
         return $this->belongsToMany(SubscriptionPlan::class, 'auto_billing_schedules')
-                    ->using(AutoBillingSchedules::class);
+                    ->using(AutoBillingSchedule::class);
     }
 
     /**
@@ -195,7 +195,7 @@ class Subscriber extends Model
     public function autoBillingSubscriptionPlansWithPivotSchedules()
     {
         return $this->autoBillingSubscriptionPlans()
-                    ->withPivot(AutoBillingSchedules::VISIBLE_COLUMNS)
+                    ->withPivot(AutoBillingSchedule::VISIBLE_COLUMNS)
                     ->withTimestamps();
     }
 

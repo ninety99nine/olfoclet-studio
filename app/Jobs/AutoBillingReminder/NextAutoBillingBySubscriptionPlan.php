@@ -128,7 +128,8 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                  *  is set to be exactly x hours from now or less.
                  */
                 $query->where('auto_billing_enabled', '1')
-                      ->where('next_attempt_date', '<=', now()->subHours($hours))
+                      ->where('next_attempt_date', '>', now())
+                      ->where('next_attempt_date', '<=', now()->addHours($hours))
                       ->where('subscription_plan_id', $this->subscriptionPlan->id);
 
                     //  Must not have been reminded before
@@ -210,6 +211,7 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
         } catch (\Throwable $th) {
 
             Log::error('NextAutoBillingBySubscriptionPlan Job Failed: '. $th->getMessage());
+            Log::driver('daily')->error($th->getTraceAsString());
 
             return false;
 

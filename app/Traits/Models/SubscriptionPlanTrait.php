@@ -3,13 +3,15 @@
 namespace App\Traits\Models;
 
 use App\Models\Subscription;
+use Illuminate\Support\Facades\Log;
 
 trait SubscriptionPlanTrait
 {
     public function craftInsufficientFundsMessage()
     {
         return $this->handleEmbeddedDynamicContentConversion($this->insufficient_funds_message, [
-            'subscriptionPlanName' => $this->name
+            'subscriptionPlanName' => $this->name,
+            'subscriptionPlanPrice' => $this->price->amount_with_currency,
         ]);
     }
 
@@ -29,6 +31,7 @@ trait SubscriptionPlanTrait
     {
         return $this->handleEmbeddedDynamicContentConversion($this->next_auto_billing_reminder_sms_message, [
             'subscriptionPlanName' => $this->name,
+            'subscriptionPlanPrice' => $this->price->amount_with_currency,
             'nextBillableDate' => $subscriptionWithFurthestEndAt->end_at->format('d M Y H:i'),
         ]);
     }
@@ -193,7 +196,10 @@ trait SubscriptionPlanTrait
 
         } catch (\Throwable $th) {
 
-            return '???';
+            Log::error('$phpCode: '.$phpCode);
+            Log::error($th->getMessage());
+
+            return '?1?';
 
         }
     }
@@ -211,7 +217,7 @@ trait SubscriptionPlanTrait
                 //  If failed
                 if($data == false) {
 
-                    return '???';
+                    return '?2?';
 
                 }
 

@@ -4,8 +4,10 @@ namespace App\Models\Pivots;
 
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class AutoBillingSchedules extends Pivot
+class AutoBillingSchedule extends Pivot
 {
+    protected $table = 'auto_billing_schedules';
+
     /**
      * Indicates if the IDs are auto-incrementing.
      *

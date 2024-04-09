@@ -231,6 +231,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/test-conversion', function() {
 
+    return \Carbon\Carbon::now()->addHours(72)->format('Y-m-d H:i:s');
+
     return \Carbon\Carbon::now()->addDay()->timestamp;
 
     $subscriber = Subscriber::find(1);

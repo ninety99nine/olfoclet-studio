@@ -54,8 +54,6 @@ class Kernel extends ConsoleKernel
          *  sudo supervisorctl start all
          */
 
-        //  Log::channel('slack')->info('Schedule run');
-
         //  If we can create Billing Reports
         if(config('app.CAN_CREATE_BILLING_REPORTS')) {
 
