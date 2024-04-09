@@ -146,12 +146,10 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
                     $data = ['reminded_seventy_two_hours_before' => '1'];
                 }
 
-                /*
                 DB::table('auto_billing_schedules')
                     ->where('subscriber_id', $this->subscriber->id)
                     ->where('subscription_plan_id', $this->subscriptionPlan->id)
                     ->update($data);
-                */
             }
 
             /**
