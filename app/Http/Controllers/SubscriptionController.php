@@ -12,7 +12,6 @@ use App\Repositories\SubscriptionRepository;
 use App\Repositories\SubscriptionPlanRepository;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
-use App\Http\Requests\Subscriptions\CancelSubscriptionsRequest;
 
 class SubscriptionController extends Controller
 {
