@@ -2,7 +2,11 @@
 
     <div>
 
-        <ManageSubscriptionModal v-model="isShowingModal" :action="modalAction" :subscription="subscription" :subscriptionPlans="subscriptionPlans" />
+        <ManageSubscriptionModal
+            v-model="isShowingModal" :action="modalAction" :subscription="subscription"
+            :subscriptionPlans="subscriptionPlans"
+            @onDeleted="onDeleted"
+        />
 
         <div class="bg-white shadow-xl sm:rounded-lg">
 
@@ -198,6 +202,9 @@
             }
         },
         methods: {
+            onDeleted() {
+                this.subscription = null;
+            },
             refreshContent()
             {
                 this.$inertia.reload();

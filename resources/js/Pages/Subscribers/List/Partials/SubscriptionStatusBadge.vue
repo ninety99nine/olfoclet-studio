@@ -15,10 +15,6 @@
     export default {
         props: {
             isActive: Boolean
-        },
-        data() {
-            return {
-            }
         }
     }
 </script>

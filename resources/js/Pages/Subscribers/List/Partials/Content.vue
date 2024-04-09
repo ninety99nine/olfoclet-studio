@@ -2,7 +2,11 @@
 
     <div>
 
-        <ManageSubscriberModal v-model="isShowingModal" :action="modalAction" :subscriber="subscriber" />
+        <ManageSubscriberModal
+            v-model="isShowingModal" :action="modalAction"
+            :subscriber="subscriber"
+            @onDeleted="onDeleted"
+        />
 
         <div class="bg-white shadow-xl sm:rounded-lg">
 
@@ -174,7 +178,7 @@
                                     <!-- Last Subscription Status -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
                                         <span v-if="subscriber.latest_subscription == null">...</span>
-                                        <SubscriptionStatusBadge v-else :isActive="getLatestSubscriptionStatus(subscriber) == 'Active'"></SubscriptionStatusBadge>
+                                        <SubscriptionStatusBadge v-else :isActive="getLatestSubscriptionActiveStatus(subscriber)"></SubscriptionStatusBadge>
                                     </td>
                                     <!-- Last Subscription Start At -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
@@ -334,7 +338,13 @@
 
                                 <tr v-if="subscribersPayload.data.length == 0">
                                     <!-- Content -->
-                                    <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
+                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
+                                        <div class="text-center text-gray-900 text-sm p-6">No subscribers</div>
+                                    </td>
+                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
+                                        <div class="text-center text-gray-900 text-sm p-6">No subscribers</div>
+                                    </td>
+                                    <td :colspan="15" class="px-6 py-3 whitespace-nowrap">
                                         <div class="text-center text-gray-900 text-sm p-6">No subscribers</div>
                                     </td>
                                 </tr>
@@ -380,6 +390,9 @@
             }
         },
         methods: {
+            onDeleted() {
+                this.subscriber = null;
+            },
             refreshContent()
             {
                 this.$inertia.reload();
@@ -390,8 +403,8 @@
             getLatestSubscription(subscriber){
                 return subscriber.latest_subscription ?? {};
             },
-            getLatestSubscriptionStatus(subscriber){
-                return (subscriber.latest_subscription ?? {}).status;
+            getLatestSubscriptionActiveStatus(subscriber){
+                return this.getLatestSubscription(subscriber).is_active;
             },
             getLatestUserBillingTransaction(subscriber){
                 return subscriber.latest_user_billing_transaction ?? {};

@@ -2,7 +2,12 @@
 
     <div>
 
-        <manage-topic-modal v-model="isShowingModal" :action="modalAction" :topic="topic" :parentTopic="parentTopic" :breadcrumbs="breadcrumbs" />
+        <manage-topic-modal
+            v-model="isShowingModal" :action="modalAction"
+            :topic="topic" :parentTopic="parentTopic"
+            :breadcrumbs="breadcrumbs"
+            @onDeleted="onDeleted"
+        />
 
         <div class="bg-white shadow-xl sm:rounded-lg">
 
@@ -84,6 +89,9 @@
             }
         },
         methods: {
+            onDeleted() {
+                this.topic = null;
+            },
             showModal(topic, action){
                 this.topic = topic;
                 this.modalAction = action;

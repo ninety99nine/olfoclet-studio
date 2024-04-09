@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Models\Project;
-use App\Models\Subscription;
 use App\Services\BillingService;
 use App\Models\SubscriptionPlan;
 use Illuminate\Http\JsonResponse;
@@ -13,24 +12,47 @@ use App\Enums\CreatedUsingAutoBilling;
 use App\Repositories\SubscriberRepository;
 use App\Repositories\SubscriptionRepository;
 use App\Http\Resources\SubscriptionResource;
+use App\Http\Resources\BillingTransactionResource;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\CancelSubscriptionsRequest;
-use App\Http\Resources\BillingTransactionResource;
 
 class SubscriptionController extends Controller
 {
     protected $project;
+    protected $subscription;
     protected $subscriberRepository;
     protected $subscriptionRepository;
 
     public function __construct()
     {
         $this->project = Project::findOrFail(request()->route('project'));
-        $subscription = request()->route('subscription') ? Subscription::findOrFail(request()->route('subscription')) : null;
+
+        if(request()->routeIs('api.show.subscription')) {
+
+            $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->with(['subscriptionPlan'])->first();
+
+        }else{
+
+            if(request()->routeIs(['api.update.subscription']) || request()->routeIs(['api.delete.subscription'])) {
+
+                $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->firstOrFail();
+
+            }
+
+        }
 
         $this->subscriberRepository = new SubscriberRepository($this->project, null);
-        $this->subscriptionRepository = new SubscriptionRepository($this->project, $subscription);
+        $this->subscriptionRepository = new SubscriptionRepository($this->project, $this->subscription);
+    }
+
+    public function showSubscription()
+    {
+        // Return JSON response
+        return response()->json([
+            'exists' =>  !is_null($this->subscription),
+            'subscription' => !is_null($this->subscription) ? new SubscriptionResource($this->subscription) : null
+        ]);
     }
 
     public function showSubscriptions(): JsonResponse

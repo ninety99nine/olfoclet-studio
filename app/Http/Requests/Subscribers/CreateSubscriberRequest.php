@@ -19,7 +19,7 @@ class CreateSubscriberRequest extends FormRequest
 
                 })
             ],
-            'metadata' => ['array']
+            'metadata' => ['nullable', 'array']
         ];
     }
 

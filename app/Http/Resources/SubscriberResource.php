@@ -14,6 +14,20 @@ class SubscriberResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'msisdn' => $this->msisdn,
+            'metadata' => $this->metadata,
+            'createdAt' => $this->created_at,
+            'updatedAt' => $this->updated_at,
+            'activeSubscriptions' => SubscriptionResource::collection(
+                $this->activeSubscriptions
+            ),
+            'links' => [
+                'self' => route('api.show.subscriber', ['project' => $this->project_id, 'subscriber_msisdn' => $this->msisdn]),
+                'update' => route('api.update.subscriber', ['project' => $this->project_id, 'subscriber_msisdn' => $this->msisdn]),
+                'delete' => route('api.delete.subscriber', ['project' => $this->project_id, 'subscriber_msisdn' => $this->msisdn])
+            ]
+        ];
     }
 }

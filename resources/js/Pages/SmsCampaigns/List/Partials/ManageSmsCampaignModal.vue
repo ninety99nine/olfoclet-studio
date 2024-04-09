@@ -637,7 +637,7 @@ import { isArray, isInteger } from "lodash";
 
                     onSuccess: (response) => {
 
-                        this.handleOnSuccess();
+                        this.handleOnSuccess(true);
 
                     },
 
@@ -650,10 +650,11 @@ import { isArray, isInteger } from "lodash";
 
                 this.form.delete(route('delete.sms.campaign', { project: route().params.project, sms_campaign: this.smsCampaign.id }), options);
             },
-            handleOnSuccess(){
+            handleOnSuccess(hasDeleted = false){
 
                 this.reset();
                 this.closeModal();
+                if(hasDeleted) this.$emit('onDeleted');
 
                 this.showSuccessMessage = true;
 

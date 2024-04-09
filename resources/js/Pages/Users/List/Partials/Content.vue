@@ -2,7 +2,11 @@
 
     <div>
 
-        <create-user-modal v-model="isShowingModal" :action="modalAction" :user="user" :availablePermissions="availablePermissions" />
+        <create-user-modal
+            v-model="isShowingModal" :action="modalAction"
+            :user="user" :availablePermissions="availablePermissions"
+            @onDeleted="onDeleted"
+        />
 
         <div class="bg-white shadow-xl sm:rounded-lg">
 
@@ -124,6 +128,9 @@
             }
         },
         methods: {
+            onDeleted() {
+                this.user = null;
+            },
             refreshContent()
             {
                 this.$inertia.reload();

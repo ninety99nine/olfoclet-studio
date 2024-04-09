@@ -14,6 +14,16 @@ class SubscriptionPlanResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        return parent::toArray($request);
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'tags' => $this->tags,
+            'price' => $this->price,
+            'active' => $this->active,
+            'duration' => $this->duration,
+            'frequency' => $this->frequency,
+            'description' => $this->description,
+            'canAutoBill' => $this->can_auto_bill,
+        ];
     }
 }

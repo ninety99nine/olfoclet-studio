@@ -2,7 +2,11 @@
 
     <div>
 
-        <manage-message-modal v-model="isShowingModal" :action="modalAction" :message="message" :parentMessage="parentMessage" :breadcrumbs="breadcrumbs" />
+        <manage-message-modal
+            v-model="isShowingModal" :action="modalAction" :message="message"
+            :parentMessage="parentMessage" :breadcrumbs="breadcrumbs"
+            @onDeleted="onDeleted"
+        />
 
         <div class="bg-white shadow-xl sm:rounded-lg">
 
@@ -77,6 +81,9 @@
             }
         },
         methods: {
+            onDeleted() {
+                this.message = null;
+            },
             showModal(message, action){
                 this.message = message;
                 this.modalAction = action;

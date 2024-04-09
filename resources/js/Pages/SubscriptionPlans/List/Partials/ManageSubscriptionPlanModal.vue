@@ -681,7 +681,7 @@
 
                     onSuccess: (response) => {
 
-                        this.handleOnSuccess();
+                        this.handleOnSuccess(true);
 
                     },
 
@@ -694,10 +694,11 @@
 
                 this.form.delete(route('delete.subscription.plan', { project: route().params.project, subscription_plan: this.subscriptionPlan.id }), options);
             },
-            handleOnSuccess(){
+            handleOnSuccess(hasDeleted = false){
 
                 this.reset();
                 this.closeModal();
+                if(hasDeleted) this.$emit('onDeleted');
 
                 this.showSuccessMessage = true;
 

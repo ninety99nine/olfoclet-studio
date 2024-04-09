@@ -19,6 +19,7 @@ use App\Http\Requests\Subscriptions\CancelSubscriptionsRequest;
 class SubscriptionController extends Controller
 {
     protected $project;
+    protected $subscription;
     protected $subscriberRepository;
     protected $subscriptionRepository;
     protected $subscriptionPlanRepository;
@@ -26,11 +27,24 @@ class SubscriptionController extends Controller
     public function __construct()
     {
         $project = Project::findOrFail(request()->route('project'));
-        $subscription = request()->route('subscription') ? Subscription::findOrFail(request()->route('subscription')) : null;
+
+        if(request()->routeIs('show.subscription')) {
+
+            $this->subscription = $this->project->subscription()->where('id', request()->subscription)->with(['subscriptionPlan'])->first();
+
+        }else{
+
+            if(request()->routeIs(['update.subscription']) || request()->routeIs(['delete.subscription'])) {
+
+                $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->firstOrFail();
+
+            }
+
+        }
 
         $this->subscriberRepository = new SubscriberRepository($project, null);
         $this->subscriptionPlanRepository = new SubscriptionPlanRepository($project, null);
-        $this->subscriptionRepository = new SubscriptionRepository($project, $subscription);
+        $this->subscriptionRepository = new SubscriptionRepository($project, $this->subscription);
     }
 
     public function showSubscriptions()

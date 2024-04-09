@@ -122,7 +122,7 @@
                                     <!-- Costs -->
                                     <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-left bg-teal-50">
 
-                                        <div class="flex space-x-2">
+                                        <div class="flex space-x-2 items-center">
                                             <span>{{ billingReport.costs.amount_with_currency }}</span>
 
                                             <el-popover :width="400">

@@ -330,7 +330,7 @@
 
                     onSuccess: (response) => {
 
-                        this.handleOnSuccess();
+                        this.handleOnSuccess(true);
 
                     },
 
@@ -343,10 +343,11 @@
 
                 this.form.delete(route('delete.topic', { project: route().params.project, topic: this.topic.id }), options);
             },
-            handleOnSuccess(){
+            handleOnSuccess(hasDeleted = false){
 
                 this.reset();
                 this.closeModal();
+                if(hasDeleted) this.$emit('onDeleted');
 
                 this.showSuccessMessage = true;
 

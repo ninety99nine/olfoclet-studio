@@ -21,22 +21,30 @@ class SubscriberController extends Controller
     public function __construct()
     {
         $this->project = Project::findOrFail(request()->route('project'));
-        $this->subscriber = request()->msisdn ? Subscriber::where('msisdn', request()->msisdn)->firstOrFail() : null;
+
+        if(request()->routeIs('api.show.subscriber')) {
+
+            $this->subscriber = $this->project->subscribers()->where('msisdn', request()->subscriber_msisdn)->with(['activeSubscriptions.subscriptionPlan'])->first();
+
+        }else{
+
+            if(request()->routeIs(['api.update.subscriber']) || request()->routeIs(['api.delete.subscriber'])) {
+
+                $this->subscriber = $this->project->subscribers()->where('msisdn', request()->subscriber_msisdn)->firstOrFail();
+
+            }
+
+        }
+
         $this->subscriberRepository = new SubscriberRepository($this->project, $this->subscriber);
     }
 
     public function showSubscriber()
     {
-        //  Get the MSISDN
-        $msisdn = request()->msisdn;
-
-        //  Get the subscriber (if any)
-        $subscriber = $this->project->subscribers()->where('msisdn', $msisdn)->with(['activeSubscriptions.subscriptionPlan'])->first();
-
         // Return JSON response
         return response()->json([
-            'exists' =>  !is_null($subscriber),
-            'subscriber' => !is_null($subscriber) ? new SubscriberResource($subscriber) : null
+            'exists' =>  !is_null($this->subscriber),
+            'subscriber' => !is_null($this->subscriber) ? new SubscriberResource($this->subscriber) : null
         ]);
     }
 

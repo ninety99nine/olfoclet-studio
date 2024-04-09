@@ -2,7 +2,14 @@
 
     <div>
 
-        <manage-subscription-plan-modal v-model="isShowingModal" :action="modalAction" :subscriptionPlan="subscriptionPlan" :parentSubscriptionPlan="parentSubscriptionPlan" :autoBillingReminders="autoBillingReminders" :breadcrumbs="breadcrumbs" />
+        <manage-subscription-plan-modal
+            v-model="isShowingModal"
+            :action="modalAction" :subscriptionPlan="subscriptionPlan"
+            :parentSubscriptionPlan="parentSubscriptionPlan"
+            :autoBillingReminders="autoBillingReminders"
+            :breadcrumbs="breadcrumbs"
+            @onDeleted="onDeleted"
+        />
 
         <div class="bg-white shadow-xl sm:rounded-lg">
 
@@ -151,6 +158,9 @@
             }
         },
         methods: {
+            onDeleted() {
+                this.subscriptionPlan = null;
+            },
             getPercentageOfCoverage(subscriptionsCount) {
                 if( this.totalSubscriptions > 0 ){
                     return Math.round((subscriptionsCount / this.totalSubscriptions) * 100)

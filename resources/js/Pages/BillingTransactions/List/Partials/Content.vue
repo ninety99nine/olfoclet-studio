@@ -41,7 +41,7 @@
                                     <th scope="col" colspan="5" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50 border-r border-dotted border-r-violet-300">
                                         <div class="font-bold text-fuchsia-500">SUBSCRIPTION</div>
                                     </th>
-                                    <th scope="col" colspan="6" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
+                                    <th scope="col" colspan="7" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
                                         <div class="font-bold text-violet-500">SUBSCRIPTION PLAN</div>
                                     </th>
                                 </tr>
@@ -100,6 +100,9 @@
                                     </th>
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
                                         <span>Active</span>
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
+                                        <span>Tags</span>
                                     </th>
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
                                         <span>Duration</span>
@@ -207,6 +210,16 @@
                                         <SubscriptionPlanActiveStatusBadge :subscriptionPlan="billingTransaction.subscription_plan"></SubscriptionPlanActiveStatusBadge>
                                     </td>
 
+                                    <!-- Subscription Plan Tags -->
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
+                                        <div v-if="billingTransaction.subscription_plan.tags.length == 0">...</div>
+                                        <div class="flex space-x-2">
+                                            <div v-for="(tag, index) in billingTransaction.subscription_plan.tags" :key="index" class="bg-blue-50 text-blue-500 border border-blue-300 py-1 px-2 text-xs rounded">
+                                                {{ tag }}
+                                            </div>
+                                        </div>
+                                    </td>
+
                                     <!-- Subscription Plan Duration -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
                                         {{ billingTransaction.subscription_plan.duration_in_words == null ? '...' : billingTransaction.subscription_plan.duration_in_words }}
@@ -226,7 +239,10 @@
                                 <tr v-if="billingTransactionsPayload.data.length == 0">
 
                                     <!-- Content -->
-                                    <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
+                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
+                                        <div class="text-center text-gray-900 text-sm p-6">No billing transactions</div>
+                                    </td>
+                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
                                         <div class="text-center text-gray-900 text-sm p-6">No billing transactions</div>
                                     </td>
 

@@ -81,16 +81,15 @@ class Subscription extends Model
      *  ATTRIBUTES
      */
     protected $appends = [
-        'status'
+        'is_active'
     ];
 
     /**
      *  Status
      */
-    public function getStatusAttribute()
+    public function getIsActiveAttribute()
     {
         return (Carbon::parse($this->start_at)->isCurrentDay() || Carbon::parse($this->start_at)->isPast()) &&
-                Carbon::parse($this->end_at)->isFuture() && is_null($this->cancelled_at)
-                ? 'Active' : 'Inactive';
+                Carbon::parse($this->end_at)->isFuture() && is_null($this->cancelled_at);
     }
 }

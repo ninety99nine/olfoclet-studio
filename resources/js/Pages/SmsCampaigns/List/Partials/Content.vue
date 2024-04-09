@@ -2,7 +2,12 @@
 
     <div>
 
-        <manage-sms-campaign-modal v-model="isShowingModal" :action="modalAction" :smsCampaign="smsCampaign" :subscriptionPlans="subscriptionPlans" :contentToSendOptions="contentToSendOptions" :scheduleTypeOptions="scheduleTypeOptions" />
+        <manage-sms-campaign-modal
+            v-model="isShowingModal"
+            :action="modalAction" :smsCampaign="smsCampaign" :subscriptionPlans="subscriptionPlans"
+            :contentToSendOptions="contentToSendOptions" :scheduleTypeOptions="scheduleTypeOptions"
+            @onDeleted="onDeleted"
+        />
 
         <div class="bg-gray-50 border-b px-6 py-4 rounded-t text-gray-500 text-sm mb-4">
 
@@ -172,6 +177,9 @@
             }
         },
         methods: {
+            onDeleted() {
+                this.smsCampaign = null;
+            },
             refreshContent()
             {
                 this.$inertia.reload();

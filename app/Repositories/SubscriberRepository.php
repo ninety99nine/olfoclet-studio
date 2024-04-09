@@ -90,7 +90,7 @@ class SubscriberRepository
      *  @param string $msisdn The MSISDN (Mobile Subscriber Integrated Services Digital Network Number).
      *  @return Subscriber|null The found subscriber instance or null.
      */
-    public function findProjectSubscriber(string $msisdn): Subscriber
+    public function findProjectSubscriber(string $msisdn): Subscriber|null
     {
         //  Get the subscriber if they exist
         return $this->project->subscribers()->where('msisdn', $msisdn)->first();

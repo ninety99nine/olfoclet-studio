@@ -50,9 +50,12 @@ Route::/*middleware('verify.api.bearer.token')->*/prefix('/projects')->name('api
         Route::prefix('subscribers')->group(function () {
             Route::post('/', [SubscriberController::class, 'createSubscriber'])->name('create.subscriber');
 
-            Route::prefix('{msisdn}')->group(function () {
+            //  To avoid conflict between the route "msisdn" and the request input "msisdn" we will
+            //  name the route "msisdn" to "subscriber_msisdn"
+            Route::prefix('{subscriber_msisdn}')->group(function () {
                 Route::get('/', [SubscriberController::class, 'showSubscriber'])->name('show.subscriber');
-                Route::put('/', [SubscriberController::class, 'updateSubscriber'])->name('show.subscriber');
+                Route::put('/', [SubscriberController::class, 'updateSubscriber'])->name('update.subscriber');
+                Route::delete('/', [SubscriberController::class, 'deleteSubscriber'])->name('delete.subscriber');
             });
         });
 
@@ -63,7 +66,7 @@ Route::/*middleware('verify.api.bearer.token')->*/prefix('/projects')->name('api
             Route::post('/cancel', [SubscriptionController::class, 'cancelSubscriptions'])->name('cancel.subscriptions');
 
             Route::prefix('{subscription}')->group(function () {
-                Route::get('/{type?}', [SubscriptionController::class, 'showSubscription'])->name('show.subscription');
+                Route::get('/', [SubscriptionController::class, 'showSubscription'])->name('show.subscription');
                 Route::post('/cancel', [SubscriptionController::class, 'cancelSubscription'])->name('cancel.subscription');
                 Route::post('/uncancel', [SubscriptionController::class, 'uncancelSubscription'])->name('uncancel.subscription');
             });
