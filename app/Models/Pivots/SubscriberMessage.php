@@ -29,6 +29,7 @@ class SubscriberMessage extends Pivot
         MessageType::Content->value,
         MessageType::PaymentConfirmation->value,
         MessageType::AutoBillingReminder->value,
+        MessageType::AutoBillingDisabled->value,
     ];
 
     const FAILURE_TYPES = [

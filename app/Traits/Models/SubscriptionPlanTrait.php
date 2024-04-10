@@ -27,12 +27,32 @@ trait SubscriptionPlanTrait
         ]);
     }
 
+    public function craftSuccessfulAutoBillingPaymentSmsMessage(Subscription $subscription, Subscription $subscriptionWithFurthestEndAt)
+    {
+        return $this->handleEmbeddedDynamicContentConversion($this->successful_auto_billing_payment_sms_message, [
+            'subscriptionId' => $subscription->id,
+            'subscriptionPlanName' => $this->name,
+            'subscriptionPlanPrice' => $this->price->amount_with_currency,
+            'subscriptionEndDate' => $subscription->end_at->format('d M Y H:i'),
+            'subscriptionStartDate' => $subscription->start_at->format('d M Y H:i'),
+            'nextBillableDate' => $subscriptionWithFurthestEndAt->end_at->format('d M Y H:i'),
+        ]);
+    }
+
     public function craftNextAutoBillingReminderSmsMessage(Subscription $subscriptionWithFurthestEndAt)
     {
         return $this->handleEmbeddedDynamicContentConversion($this->next_auto_billing_reminder_sms_message, [
             'subscriptionPlanName' => $this->name,
             'subscriptionPlanPrice' => $this->price->amount_with_currency,
             'nextBillableDate' => $subscriptionWithFurthestEndAt->end_at->format('d M Y H:i'),
+        ]);
+    }
+
+    public function craftAutoBillingDisabledSmsMessage()
+    {
+        return $this->handleEmbeddedDynamicContentConversion($this->auto_billing_disabled_sms_message, [
+            'subscriptionPlanName' => $this->name,
+            'subscriptionPlanPrice' => $this->price->amount_with_currency
         ]);
     }
 

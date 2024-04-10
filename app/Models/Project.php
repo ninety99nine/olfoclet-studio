@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Casts\JsonToArray;
 use App\Casts\LinkToUploads;
+use App\Models\Pivots\AutoBillingSchedule;
 use App\Traits\Models\ProjectTrait;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Pivots\SubscriberMessage;
@@ -25,8 +26,9 @@ class Project extends Model
         'View subscriptions', 'Manage subscriptions',
         'View sms campaigns', 'Manage sms campaigns',
         'View subscription plans', 'Manage subscription plans',
-        'View subscriber messages', 'Manage subscriber messages',
+        'View subscriber messages',
         'View billing transactions', 'Manage billing transactions',
+        'View auto billing schedules',
         'View auto billing subscription plans', 'Manage auto billing subscription plans',
         'View auto billing reminder subscription plans', 'Manage auto billing reminder subscription plans',
     ];
@@ -192,6 +194,14 @@ class Project extends Model
     public function billingReports()
     {
         return $this->hasMany(BillingReport::class);
+    }
+
+    /**
+     * Get the auto billing schedules associated with the project.
+     */
+    public function autoBillingSchedules()
+    {
+        return $this->hasMany(AutoBillingSchedule::class);
     }
 
 }

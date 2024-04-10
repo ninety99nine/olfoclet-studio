@@ -2,6 +2,7 @@
 
 use App\Enums\CreatedUsingAutoBilling;
 use App\Http\Controllers\AutoBillingReminderSubscriptionPlanController;
+use App\Http\Controllers\AutoBillingScheduleController;
 use App\Http\Controllers\AutoBillingSubscriptionPlanController;
 use App\Http\Controllers\BillingReportController;
 use App\Http\Controllers\BillingTransactionController;
@@ -135,6 +136,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
+            //  Auto Billing Schedules
+            Route::prefix('auto-billing-schedules')
+                ->middleware(['project.permission:View auto billing schedules'])->group(function () {
+                Route::get('/', [AutoBillingScheduleController::class, 'showAutoBillingSchedules'])->name('show.auto.billing.schedules');
+
+                Route::prefix('{auto_billing_schedule}')->group(function () {
+                    Route::get('/', [AutoBillingScheduleController::class, 'showAutoBillingSchedule']);
+                });
+            });
+
             //  Billing Transactions
             Route::prefix('billing-transactions')
                 ->middleware(['project.permission:View billing transactions'])->group(function () {
@@ -231,7 +242,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/test-conversion', function() {
 
-    return \Carbon\Carbon::now()->addHours(72)->format('Y-m-d H:i:s');
+    return \Carbon\Carbon::now()->format('Y-m-d H:i:s');
 
     return \Carbon\Carbon::now()->addDay()->timestamp;
 

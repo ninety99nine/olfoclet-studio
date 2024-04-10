@@ -33,10 +33,10 @@ class SubscriptionPlan extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'description', 'active', 'is_folder', 'price', 'frequency', 'duration', 'tags',
-        'can_auto_bill', 'max_auto_billing_attempts', 'insufficient_funds_message',
-        'successful_payment_sms_message', 'next_auto_billing_reminder_sms_message',
-        'project_id'
+        'name', 'description', 'active', 'is_folder', 'price', 'frequency', 'duration', 'tags', 'can_auto_bill',
+        'max_auto_billing_attempts', 'insufficient_funds_message', 'successful_payment_sms_message',
+        'successful_auto_billing_payment_sms_message', 'next_auto_billing_reminder_sms_message',
+        'auto_billing_disabled_sms_message', 'project_id'
     ];
 
     /**

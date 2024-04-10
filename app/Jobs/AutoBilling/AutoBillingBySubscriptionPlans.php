@@ -24,6 +24,8 @@ class AutoBillingBySubscriptionPlans implements ShouldQueue
     {
         try{
 
+            Log::info('AutoBillingBySubscriptionPlans');
+
             //  Get projects that can auto bill with their subscription plans that can also auto bill
             $projects = Project::canAutoBill()->with(['subscriptionPlans' => function($query) {
 
@@ -38,8 +40,12 @@ class AutoBillingBySubscriptionPlans implements ShouldQueue
             // Foreach project
             foreach ($projects as $project) {
 
+                Log::info('project: '.$project->name);
+
                 // Foreach subscription plan
                 foreach($project->subscriptionPlans as $subscriptionPlan) {
+
+                    Log::info('subscriptionPlan: '.$project->subscriptionPlan);
 
                     /**
                      *  @var int $autoBillingJobBatchesCount

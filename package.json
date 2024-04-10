@@ -18,9 +18,10 @@
         "unplugin-auto-import": "^0.15.1",
         "unplugin-vue-components": "^0.24.1",
         "vite": "^4.0.0",
-        "vue": "^3.2.31"
+        "vue": "^3.4.21"
     },
     "dependencies": {
+        "@chenfengyuan/vue-countdown": "^2.1.2",
         "@heroicons/vue": "^2.0.16",
         "element-plus": "^2.2.36",
         "moment": "^2.29.4",

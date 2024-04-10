@@ -66,7 +66,7 @@ class Kernel extends ConsoleKernel
         if(config('app.CAN_RUN_AUTO_BILLING')) {
 
             //  Add this job to the queue for processing
-            $schedule->job(new AutoBillingBySubscriptionPlans)->name('AutoBillingBySubscriptionPlansJob')->everyTwoHours()->withoutOverlapping();
+            $schedule->job(new AutoBillingBySubscriptionPlans)->name('AutoBillingBySubscriptionPlansJob')->everyMinute()->withoutOverlapping();
 
             //  Add this job to the queue for processing
             $schedule->job(new NextAutoBillingBySubscriptionPlans)->name('NextAutoBillingBySubscriptionPlansJob')->everyMinute()->withoutOverlapping();

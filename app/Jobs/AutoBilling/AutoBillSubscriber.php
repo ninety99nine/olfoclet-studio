@@ -163,12 +163,22 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         $nextAttemptDate = $autoBillingEnabled ? now()->addDay() : null;
 
         //  Update the existing auto billing schedule
-        $existingAutoBillingSchedule->update([
+        DB::table('auto_billing_schedules')->where([
+            'subscriber_id' => $this->subscriber->id,
+            'subscription_plan_id' => $this->subscriptionPlan->id
+        ])->update([
             'attempts' => $attempts,
             'updated_at' => $this->billingAttemptAt,
             'next_attempt_date' => $nextAttemptDate,
             'auto_billing_enabled' => $autoBillingEnabled,
             'total_failed_attempts' => $totalFailedAttempts,
         ]);
+
+        //  If auto billing has been disabled
+        if(!$autoBillingEnabled) {
+
+            SendAutoBillingDisabledSms::dispatch($this->project, $this->subscriber, $this->subscriptionPlan);
+
+        }
     }
 }

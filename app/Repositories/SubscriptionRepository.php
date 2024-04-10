@@ -108,12 +108,25 @@ class SubscriptionRepository
                 //  Set the message type
                 $messageType = MessageType::PaymentConfirmation;
 
-                /**
-                 *  Set the successful payment sms message
-                 *
-                 *  @var string $messageContent
-                 */
-                $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription, $subscriptionWithFurthestEndAt);
+                if($createdUsingAutoBilling) {
+
+                    /**
+                     *  Set the successful auto billing payment sms message
+                     *
+                     *  @var string $messageContent
+                     */
+                    $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription, $subscriptionWithFurthestEndAt);
+
+                }else{
+
+                    /**
+                     *  Set the successful payment sms message
+                     *
+                     *  @var string $messageContent
+                     */
+                    $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription, $subscriptionWithFurthestEndAt);
+
+                }
 
                 //  Send the successful payment SMS message
                 SmsService::sendSms($this->project, $subscriber, $messageContent, $messageType);

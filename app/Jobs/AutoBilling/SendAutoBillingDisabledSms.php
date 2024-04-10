@@ -1,33 +1,30 @@
 <?php
 
-namespace App\Jobs\SmsCampaign;
+namespace App\Jobs\AutoBilling;
 
-use App\Models\Message;
 use App\Models\Project;
 use App\Enums\MessageType;
 use App\Models\Subscriber;
-use App\Models\SmsCampaign;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
-use Illuminate\Support\Facades\DB;
+use App\Models\SubscriptionPlan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
-use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Queue\InteractsWithQueue;
+use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Queue\Middleware\SkipIfBatchCancelled;
 
-class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
+class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     public $project;
-    public $message;
     public $subscriber;
-    public $smsCampaign;
+    public $subscriptionPlan;
 
     /**
      * The number of times the job may be attempted.
@@ -48,12 +45,11 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function __construct(Project $project, Subscriber $subscriber, Message $message, SmsCampaign $smsCampaign)
+    public function __construct(Project $project, Subscriber $subscriber, SubscriptionPlan $subscriptionPlan)
     {
         $this->project = $project;
-        $this->message = $message;
-        $this->smsCampaign = $smsCampaign;
-        $this->subscriber = $subscriber->withoutRelations();
+        $this->subscriber = $subscriber;
+        $this->subscriptionPlan = $subscriptionPlan;
     }
 
     /**
@@ -70,7 +66,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->smsCampaign->id.'-'.$this->subscriber->id;
+        return $this->subscriptionPlan->id.'-'.$this->subscriber->id;
     }
 
     /**
@@ -90,33 +86,33 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     * Execute the job.
+     *  Execute the job.
      *
-     * @return void
+     *  @return void
      */
     public function handle()
     {
         try {
 
             //  Set the message type
-            $messageType = MessageType::Content;
+            $messageType = MessageType::AutoBillingDisabled;
+
+            /**
+             *  Set the auto billing disabled sms message
+             *
+             *  @var string $messageContent
+             */
+            $messageContent = $this->subscriptionPlan->craftAutoBillingDisabledSmsMessage();
 
             /**
              *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
              */
-            $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $this->message, $messageType);
+            $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
 
             /**
              *  @var bool $isSuccessful Whether the sms was sent successfully
              */
             $isSuccessful = $subscriberMessage->is_successful;
-
-            if($isSuccessful) {
-
-                // Update the sms campaign subscriber
-                $this->updateSmsCampaignSubscriber($subscriberMessage);
-
-            }
 
             /**
              *  Return True or False as an indication for whether the SMS sent successfully or not.
@@ -128,59 +124,9 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::error('SendSmsCampaignMessage Job Failed: '. $th->getMessage());
+            Log::error('SendAutoBillingDisabledSms Job Failed: '. $th->getMessage());
 
             return false;
-
-        }
-    }
-
-    /**
-     * Update the sms campaign subscriber record.
-     *
-     *  @var SubscriberMessage $subscriberMessage
-     *
-     * @return void
-     */
-    private function updateSmsCampaignSubscriber($subscriberMessage)
-    {
-        //  Set the smsSentAt datetime
-        $smsSentAt = $subscriberMessage->created_at;
-
-        //  Find a matching sms campaign subscriber
-        $matchingSmsCampaignSubscriber = DB::table('sms_campaign_subscriber')->where([
-            'subscriber_id' => $this->subscriber->id,
-            'sms_campaign_id' => $this->smsCampaign->id
-        ]);
-
-        //  Calculate the next sms campaign message date
-        $nextSmsCampaignMessageDate = $this->smsCampaign->nextSmsCampaignMessageDate();
-
-        //  If the matching sms campaign subscriber exists
-        if( $instance = $matchingSmsCampaignSubscriber->first() ) {
-
-            $sendSmsCount = ((int) $instance->sent_sms_count) + 1;
-
-            //  Update the matching sms campaign subscriber
-            $matchingSmsCampaignSubscriber->update([
-                'next_message_date' => $nextSmsCampaignMessageDate,
-                'sent_sms_count' => $sendSmsCount,
-                'updated_at' => $smsSentAt
-            ]);
-
-        //  If the matching sms campaign subscriber does not exist
-        }else{
-
-            //  Create the sms campaign subscriber record
-            DB::table('sms_campaign_subscriber')->insert([
-                'next_message_date' => $nextSmsCampaignMessageDate,
-                'sms_campaign_id' => $this->smsCampaign->id,
-                'project_id' => $this->message->project_id,
-                'subscriber_id' => $this->subscriber->id,
-                'created_at' => $smsSentAt,
-                'updated_at' => $smsSentAt,
-                'sent_sms_count' => 1
-            ]);
 
         }
     }

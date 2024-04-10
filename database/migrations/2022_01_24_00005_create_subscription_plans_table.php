@@ -27,7 +27,9 @@ class CreateSubscriptionPlansTable extends Migration
             $table->unsignedTinyInteger('max_auto_billing_attempts')->default(1);
             $table->string('insufficient_funds_message')->nullable();
             $table->string('successful_payment_sms_message')->nullable();
+            $table->string('successful_auto_billing_payment_sms_message')->nullable();
             $table->string('next_auto_billing_reminder_sms_message')->nullable();
+            $table->string('auto_billing_disabled_sms_message')->nullable();
             $table->foreignId('project_id');
 
             /**

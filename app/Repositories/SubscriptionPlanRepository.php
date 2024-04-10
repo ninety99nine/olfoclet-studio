@@ -98,6 +98,7 @@ class SubscriptionPlanRepository
      *  @param string|null $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
      *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
      *  @param array|null $autoBillingReminderIds - The auto billing reminder ids of the subscription plan.
+     *  @param string|null $autoBillingDisabledSmsMessage - The auto billing disabled SMS message.
      *  @param int|null $parentId - The id of the parent subscription plan.
      *
      *  @return SubscriptionPlan The newly created subscription plan instance.
@@ -106,13 +107,17 @@ class SubscriptionPlanRepository
         string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
         string|null $frequency, array|null $tags, bool|null $canAutoBill, int|null $maxAutoBillingAttempts,
         string|null $insufficientFundsMessage, string|null $successfulPaymentSmsMessage,
+        string|null $successfulAutoBillingPaymentSmsMessage,
         string|null $nextAutoBillingReminderSmsMessage,
+        string|null $autoBillingDisabledSmsMessage,
         array|null $autoBillingReminderIds,
         int|null $parentId
     ): SubscriptionPlan
     {
         $this->subscriptionPlan = SubscriptionPlan::create([
+            'successful_auto_billing_payment_sms_message' => $successfulAutoBillingPaymentSmsMessage,
             'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
+            'auto_billing_disabled_sms_message' => $autoBillingDisabledSmsMessage,
             'successful_payment_sms_message' => $successfulPaymentSmsMessage,
             'max_auto_billing_attempts' => $maxAutoBillingAttempts ?? 3,
             'insufficient_funds_message' => $insufficientFundsMessage,
@@ -163,6 +168,7 @@ class SubscriptionPlanRepository
      *  @param string|null $insufficientFundsMessage - The insufficient funds message of the subscription plan.
      *  @param string|null $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
      *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
+     *  @param string|null $autoBillingDisabledSmsMessage - The auto billing disabled SMS message.
      *  @param array|null $autoBillingReminderIds - The auto billing reminder ids of the subscription plan.
      *
      *  @return bool True if the update is successful, false otherwise.
@@ -174,7 +180,9 @@ class SubscriptionPlanRepository
         string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
         string|null $frequency, array|null $tags, bool|null $canAutoBill, int|null $maxAutoBillingAttempts,
         string|null $insufficientFundsMessage, string|null $successfulPaymentSmsMessage,
+        string|null $successfulAutoBillingPaymentSmsMessage,
         string|null $nextAutoBillingReminderSmsMessage,
+        string|null $autoBillingDisabledSmsMessage,
         array|null $autoBillingReminderIds
     ): bool
     {
@@ -186,9 +194,11 @@ class SubscriptionPlanRepository
         $status = $this->subscriptionPlan->update([
             'max_auto_billing_attempts' => !is_null($maxAutoBillingAttempts) ? $maxAutoBillingAttempts : $this->subscriptionPlan->max_auto_billing_attempts,
             'can_auto_bill' => !is_null($canAutoBill) ? $canAutoBill : $this->subscriptionPlan->can_auto_bill,
+            'successful_auto_billing_payment_sms_message' => $successfulAutoBillingPaymentSmsMessage,
             'is_folder' => !is_null($isFolder) ? $isFolder : $this->subscriptionPlan->is_folder,
             'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
             'active' => !is_null($active) ? $active : $this->subscriptionPlan->active,
+            'auto_billing_disabled_sms_message' => $autoBillingDisabledSmsMessage,
             'successful_payment_sms_message' => $successfulPaymentSmsMessage,
             'insufficient_funds_message' => $insufficientFundsMessage,
             'project_id' => $this->project->id,

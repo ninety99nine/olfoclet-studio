@@ -211,7 +211,7 @@
                             <!-- Insufficient Funds Message -->
                             <div class="mb-4">
                                 <div class="flex mb-1">
-                                    <jet-label for="sub-pl-insufficient-funds-message" value="Insufficient Funds Message" />
+                                    <jet-label for="sub-pl-c-message" value="Insufficient Funds Message" />
 
                                     <el-popover :width="400">
                                         <template #reference>
@@ -221,7 +221,10 @@
                                         </template>
                                         <template #default>
                                             <span class="break-normal">
-                                                While billing, this message will be shown to the subscriber if they have insufficient funds to complete the transaction
+                                                While billing, this message will be used as the billing transaction description to know why the billing transaction failed.
+                                                This message can be shown to the user via USSD if required. This is possible since making a subscription via the API endpoint
+                                                returns the billing transaction resource which can be used to determine the billing transaction success status as well as this
+                                                message to show the subscriber in the case that the transaction has failed due to insufficient funds.
                                             </span>
                                             <div class="mt-4">
                                                 <table class="w-full divide-y divide-gray-200">
@@ -267,7 +270,7 @@
                                         </template>
                                         <template #default>
                                             <span class="break-normal">
-                                                While billing, this SMS message will be sent to the subscriber if they have sufficient funds to complete the transaction
+                                                While billing, this message will be sent as an SMS to the subscriber if they have sufficient funds to complete the transaction
                                             </span>
                                             <div class="mt-4">
                                                 <table class="w-full divide-y divide-gray-200">
@@ -325,6 +328,68 @@
 
                             <template v-if="form.can_auto_bill">
 
+                                <!-- Successful Auto Billing Payment SMS Message -->
+                                <div class="mb-4">
+                                    <div class="flex mb-1">
+                                        <jet-label for="sub-pl-successful-payment-sms-message" value="Successful Auto Billing Payment SMS Message" />
+
+                                        <el-popover :width="400">
+                                            <template #reference>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                                </svg>
+                                            </template>
+                                            <template #default>
+                                                <span class="break-normal">
+                                                    While auto billing, this message will be sent as an SMS to the subscriber if they have sufficient funds to complete the transaction
+                                                </span>
+                                                <div class="mt-4">
+                                                    <table class="w-full divide-y divide-gray-200">
+                                                        <thead>
+                                                            <tr class="font-bold">
+                                                                <td>Variable</td>
+                                                                <td>Meaning</td>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-gray-200">
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionId }}'"></td>
+                                                                <td >The Subscription ID</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ nextBillableDate }}'"></td>
+                                                                <td>The next billable date</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionEndDate }}'"></td>
+                                                                <td>The Subscription end date</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionStartDate }}'"></td>
+                                                                <td>The Subscription start date</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanName }}'"></td>
+                                                                <td>The Subscription Plan name</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanPrice }}'"></td>
+                                                                <td>The Subscription Plan price</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <p class="mt-4"><strong>Example:</strong> <span v-html="'Your payment for {{ subscriptionPlanName }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }}. Dial *xxx# to unsubscribe.'"></span></p>
+
+                                            </template>
+                                        </el-popover>
+
+                                    </div>
+                                    <jet-textarea id="sub-pl-successful-payment-sms-message" class="w-full mt-1 block" v-model="form.successful_auto_billing_payment_sms_message" />
+                                    <jet-input-error :message="form.errors.successful_auto_billing_payment_sms_message" class="mt-2" />
+                                </div>
+
                                 <!-- Maximum Auto Billing Attempts -->
                                 <div class="mb-4">
                                     <jet-label for="max_auto_billing_attempts" value="Maximum Auto Billing Attempts" />
@@ -356,7 +421,7 @@
                                             </template>
                                             <template #default>
                                                 <span class="break-normal">
-                                                    Before billing, this SMS message will be sent to the subscriber to notify them 24 hours before auto billing
+                                                    Before billing, this message will be sent as an SMS to the subscriber to notify them several hours before auto billing is attempted. This grants the subscriber the opportunity to unsubscribe if necessary
                                                 </span>
                                                 <div class="mt-4">
                                                     <table class="w-full divide-y divide-gray-200">
@@ -390,6 +455,51 @@
                                     </div>
                                     <jet-textarea id="sub-pl-next-auto-billing-reminder-sms-message" class="w-full mt-1 block" v-model="form.next_auto_billing_reminder_sms_message" />
                                     <jet-input-error :message="form.errors.next_auto_billing_reminder_sms_message" class="mt-2" />
+                                </div>
+
+                                <!-- Auto Billing Disabled SMS Message -->
+                                <div class="mb-4">
+                                    <div class="flex mb-1">
+                                        <jet-label for="sub-pl-next-auto-billing-reminder-sms-message" value="Auto Billing Disabled SMS Message" />
+
+                                        <el-popover :width="400">
+                                            <template #reference>
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                                </svg>
+                                            </template>
+                                            <template #default>
+                                                <span class="break-normal">
+                                                    After attempting auto billing for the last time with no avail, this message will be sent to the subscriber to notify them that auto billing has been disabled for this subscription plan. This means that auto billing on this subscription plan will no longer be attempted moving forward, therefore the subscriber must internally subscribe for this subscription plan
+                                                </span>
+                                                <div class="mt-4">
+                                                    <table class="w-full divide-y divide-gray-200">
+                                                        <thead>
+                                                            <tr class="font-bold">
+                                                                <td>Variable</td>
+                                                                <td>Meaning</td>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody class="divide-y divide-gray-200">
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanName }}'"></td>
+                                                                <td>The Subscription Plan name</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="font-semibold text-green-500" v-html="'{{ subscriptionPlanPrice }}'"></td>
+                                                                <td>The Subscription Plan price</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You have been successfully unsubscribed from {{ subscriptionPlanName }}. Dial *xxx# to subscribe.'"></span></p>
+                                                </div>
+
+                                            </template>
+                                        </el-popover>
+                                    </div>
+                                    <jet-textarea id="sub-pl-next-auto-billing-reminder-sms-message" class="w-full mt-1 block" v-model="form.auto_billing_disabled_sms_message" />
+                                    <jet-input-error :message="form.errors.auto_billing_disabled_sms_message" class="mt-2" />
                                 </div>
 
                             </template>
@@ -731,8 +841,10 @@
                     duration: this.hasSubscriptionPlan ? (this.subscriptionPlan.is_folder ? null : this.subscriptionPlan.duration.toString()) : '3',
                     auto_billing_reminder_ids: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_reminders.map((autoBillingReminder) => autoBillingReminder.id) : [],
                     insufficient_funds_message: this.hasSubscriptionPlan ? this.subscriptionPlan.insufficient_funds_message : 'You do not have enough funds to complete this transaction',
+                    auto_billing_disabled_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_disabled_sms_message : 'You have been successfully unsubscribed from {{ subscriptionPlanName }}. Dial *xxx# to subscribe.',
                     next_auto_billing_reminder_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.next_auto_billing_reminder_sms_message : 'You will be automatically billed {{ subscriptionPlanPrice }} on {{ nextBillableDate }} for {{ subscriptionPlanName }}. Dial *xxx# to unsubscribe.',
                     successful_payment_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.successful_payment_sms_message : 'Your payment for {{ subscriptionPlanName }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }}. Dial *xxx# to unsubscribe.',
+                    successful_auto_billing_payment_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.successful_auto_billing_payment_sms_message : 'Your payment for {{ subscriptionPlanName }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }}. Dial *xxx# to unsubscribe.',
                 });
             },
         },

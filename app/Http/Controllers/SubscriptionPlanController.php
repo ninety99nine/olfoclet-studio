@@ -110,11 +110,17 @@ class SubscriptionPlanController extends Controller
         //  Get the subscription plan successful payment sms message
         $successfulPaymentSmsMessage = $request->input('successful_payment_sms_message');
 
+        //  Get the subscription plan successful auto billing payment sms message
+        $successfulAutoBillingPaymentSmsMessage = $request->input('successful_auto_billing_payment_sms_message');
+
         //  Get the subscription plan next auto bill reminder sms message
         $nextAutoBillingReminderSmsMessage = $request->input('next_auto_billing_reminder_sms_message');
 
+        //  Get the subscription plan auto billing disabled sms message
+        $autoBillingDisabledSmsMessage = $request->input('auto_billing_disabled_sms_message');
+
         // Create a new subscription plan using the repository
-        $this->subscriptionPlanRepository->createProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingReminderIds, $parentId);
+        $this->subscriptionPlanRepository->createProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $successfulAutoBillingPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingDisabledSmsMessage, $autoBillingReminderIds, $parentId);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
@@ -160,11 +166,17 @@ class SubscriptionPlanController extends Controller
         //  Get the subscription plan successful payment sms message
         $successfulPaymentSmsMessage = $request->input('successful_payment_sms_message');
 
+        //  Get the subscription plan successful auto billing payment sms message
+        $successfulAutoBillingPaymentSmsMessage = $request->input('successful_auto_billing_payment_sms_message');
+
         //  Get the subscription plan next auto bill reminder sms message
         $nextAutoBillingReminderSmsMessage = $request->input('next_auto_billing_reminder_sms_message');
 
+        //  Get the subscription plan auto billing disabled sms message
+        $autoBillingDisabledSmsMessage = $request->input('auto_billing_disabled_sms_message');
+
         // Update existing subscription plan using the repository
-        $this->subscriptionPlanRepository->updateProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingReminderIds);
+        $this->subscriptionPlanRepository->updateProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $successfulAutoBillingPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingDisabledSmsMessage, $autoBillingReminderIds);
 
         return redirect()->back()->with('message', 'Updated Successfully');
     }

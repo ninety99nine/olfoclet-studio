@@ -124,6 +124,14 @@ const links = ref([
         ],
         permission: 'View auto billing reminder subscription plans'
     },
+    {
+        label: 'Auto Billing Schedules',
+        routeName: 'show.auto.billing.schedules',
+        activeRouteNames: [
+            'show.auto.billing.schedules',
+        ],
+        permission: 'View auto billing schedules'
+    },
 ]);
 
 const filteredLinks = computed(() => {

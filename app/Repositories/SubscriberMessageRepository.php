@@ -16,7 +16,7 @@ class SubscriberMessageRepository
     protected Project $project;
 
     /**
-     *  @var SubscriberMessage|null The SubscriberMessage message instance associated with the repository.
+     *  @var SubscriberMessage|null The SubscriberMessage instance associated with the repository.
      */
     protected ?SubscriberMessage $subscriberMessage;
 
