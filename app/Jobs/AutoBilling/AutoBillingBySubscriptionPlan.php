@@ -72,7 +72,6 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, SubscriptionPlan $subscriptionPlan, int $autoBillingJobBatchesCount)
     {
-        Log::info('AutoBillingBySubscriptionPlan: __construct()');
         $this->subscriptionPlan = $subscriptionPlan;
         $this->project = $project->withoutRelations();
 
@@ -92,8 +91,6 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
     public function handle()
     {
         try{
-
-            Log::info('AutoBillingBySubscriptionPlan: handle()');
 
             /**
              *  Query the subscribers that are ready for billing.
@@ -204,8 +201,6 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                       ->where('subscription_plan_id', $this->subscriptionPlan->id);
 
              })->select('subscribers.id', 'subscribers.msisdn');
-
-             Log::info('$subscribers->count(): '.$subscribers->count());
 
             //  If we have subscribers to auto bill
             if( $subscribers->count() > 0 ) {
