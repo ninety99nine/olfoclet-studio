@@ -217,11 +217,15 @@
 
                                     <!-- Status -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        <BillingTransactionStatusBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></BillingTransactionStatusBadge>
+                                        <template v-if="getLatestAutoBillingTransaction(autoBillingSchedule).is_successful">
+                                            <BillingTransactionStatusBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></BillingTransactionStatusBadge>
+                                        </template>
+                                        <span v-else>...</span>
                                     </td>
                                     <!-- Amount -->
                                     <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-center font-bold bg-fuchsia-50">
-                                        <span>{{ getLatestAutoBillingTransaction(autoBillingSchedule).amount.amount_with_currency }}</span>
+                                        <span v-if="getLatestAutoBillingTransaction(autoBillingSchedule).amount">{{ getLatestAutoBillingTransaction(autoBillingSchedule).amount.amount_with_currency }}</span>
+                                        <span v-else>...</span>
                                     </td>
                                     <!-- Funds Before Deduction -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
@@ -233,16 +237,21 @@
                                     </td>
                                     <!-- Rating Type -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <span v-if="getLatestAutoBillingTransaction(autoBillingSchedule).rating_type == null">...</span>
-                                        <RatingTypeBadge v-else :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></RatingTypeBadge>
+                                        <template v-if="getLatestAutoBillingTransaction(autoBillingSchedule).rating_type">
+                                            <RatingTypeBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></RatingTypeBadge>
+                                        </template>
+                                        <span v-else>...</span>
                                     </td>
                                     <!-- Created Using Auto Billing -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <CreatedUsingAutoBillingBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></CreatedUsingAutoBillingBadge>
+                                        <template v-if="getLatestAutoBillingTransaction(autoBillingSchedule).created_using_auto_billing">
+                                            <CreatedUsingAutoBillingBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></CreatedUsingAutoBillingBadge>
+                                        </template>
+                                        <span v-else>...</span>
                                     </td>
                                     <!-- Description -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <span>{{ getLatestAutoBillingTransaction(autoBillingSchedule).description }}</span>
+                                        <span>{{ getLatestAutoBillingTransaction(autoBillingSchedule).description ?? '...' }}</span>
                                     </td>
                                     <!-- Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 bg-fuchsia-50 border-r border-dotted border-r-violet-300">
