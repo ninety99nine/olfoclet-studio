@@ -243,7 +243,10 @@ class SubscriptionRepository
                     ? ($existingAutoBillingSchedule->total_successful_attempts + 1) : $existingAutoBillingSchedule->total_successful_attempts;
 
             //  Update existing auto billing schedule
-            $existingAutoBillingSchedule->update($autoBillingSchedule);
+            DB::table('auto_billing_schedules')->where([
+                'subscriber_id' => $subscriber->id,
+                'subscription_plan_id' => $subscriptionPlan->id
+            ])->update($autoBillingSchedule);
 
         }else {
 
