@@ -197,17 +197,15 @@ class BillingService
 
                             if($status = $response['status']) {
 
+                                Log::info(json_encode($response['body']));
+
                                 //  Get the bucket with the id of "OCS-0" as it holds information about the "Main Balance"
                                 $accountMainBalanceBucket = collect($response['body']['bucket'])->firstWhere('id', 'OCS-0');
-
-                                Log::info($accountMainBalanceBucket);
 
                                 //  If the bucket with the id of "OCS-0" was extracted successfully
                                 if( $status = !empty($accountMainBalanceBucket) ) {
 
-                                    Log::info($accountMainBalanceBucket['bucketBalance']);
-                                    Log::info($accountMainBalanceBucket['bucketBalance'][0]);
-                                    Log::info($accountMainBalanceBucket['bucketBalance'][0]['remainingValue']);
+                                    Log::info($accountMainBalanceBucket);
 
                                     //  Get the remaining value (The Airtime left that we can bill from the bucket balance)
                                     $remainingValue = $accountMainBalanceBucket['bucketBalance'][0]['remainingValue'];
