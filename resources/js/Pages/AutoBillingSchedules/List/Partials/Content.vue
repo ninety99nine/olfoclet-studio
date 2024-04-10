@@ -197,6 +197,8 @@
                                     <!-- Attempts -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
                                         {{ autoBillingSchedule.attempts == null ? '...' : autoBillingSchedule.attempts }}
+                                            /
+                                        {{ autoBillingSchedule.subscription_plan == null ? '...' : autoBillingSchedule.subscription_plan.max_auto_billing_attempts }}
                                     </td>
                                     <!-- Total Successful Attempts -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
