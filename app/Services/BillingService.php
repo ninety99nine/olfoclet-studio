@@ -14,6 +14,7 @@ use App\Enums\MessageType;
 use App\Helpers\CacheManager;
 use App\Models\Message;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class BillingService
 {
@@ -199,8 +200,14 @@ class BillingService
                                 //  Get the bucket with the id of "OCS-0" as it holds information about the "Main Balance"
                                 $accountMainBalanceBucket = collect($response['body']['bucket'])->firstWhere('id', 'OCS-0');
 
+                                Log::info($accountMainBalanceBucket);
+
                                 //  If the bucket with the id of "OCS-0" was extracted successfully
                                 if( $status = !empty($accountMainBalanceBucket) ) {
+
+                                    Log::info($accountMainBalanceBucket['bucketBalance']);
+                                    Log::info($accountMainBalanceBucket['bucketBalance'][0]);
+                                    Log::info($accountMainBalanceBucket['bucketBalance'][0]['remainingValue']);
 
                                     //  Get the remaining value (The Airtime left that we can bill from the bucket balance)
                                     $remainingValue = $accountMainBalanceBucket['bucketBalance'][0]['remainingValue'];
@@ -415,90 +422,114 @@ class BillingService
      */
     public static function requestNewAirtimeBillingAccessToken($clientId, $clientSecret): array
     {
-        try {
+        $cacheManager = (new CacheManager(CacheName::AIRTIME_BILLING_ACCESS_TOKEN_RESPONSE));
 
-            //  Set the request endpoint
-            $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/token';
+        if( $cacheManager->has() ) {
 
-            //  Set the request options
-            $options = [
-                'headers' => [
-                    'Content-type' => 'application/x-www-form-urlencoded',
-                    'Accept' => 'application/json'
-                ],
-                'form_params' => [
-                    "client_id" => trim($clientId),
-                    "grant_type" => "client_credentials",
-                    "client_secret" => trim($clientSecret),
-                ],
-                'verify' => false,  // Disable SSL certificate verification
+            return $cacheManager->get();
+
+        }else{
+
+            try {
+
+                //  Set the request endpoint
+                $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/token';
+
+                //  Set the request options
+                $options = [
+                    'headers' => [
+                        'Content-type' => 'application/x-www-form-urlencoded',
+                        'Accept' => 'application/json'
+                    ],
+                    'form_params' => [
+                        "client_id" => trim($clientId),
+                        "grant_type" => "client_credentials",
+                        "client_secret" => trim($clientSecret),
+                    ],
+                    'verify' => false,  // Disable SSL certificate verification
+                ];
+
+                //  Create a new Http Guzzle Client
+                $httpClient = new Client();
+
+                //  Perform and return the Http request
+                $response = $httpClient->request('POST', $endpoint, $options);
+
+            } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+
+                $response = $e->getResponse();
+
+            } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+                return [
+                    'status' => false,
+                    'body' => [
+                        'error_description' => $e->getMessage()
+                    ]
+                ];
+
+            }
+
+            /**
+             *  Get the response body as a String.
+             *
+             *  On Success, the response payload is as follows:
+             *
+             *  {
+             *      "access_token":"c0352550-14c4-3a74-b82e-31bd8d09a556",
+             *      "scope":"am_application_scope default",
+             *      "token_type":"Bearer",
+             *      "expires_in":3600
+             *  }
+             *
+             *  On Fail, the response payload is as follows:
+             *
+             *  {
+             *      "error_description": "Oauth application is not in active state.",
+             *      "error": "invalid_client"
+             *  }
+             */
+            $jsonString = $response->getBody();
+
+            /**
+             *  Get the response body as an Associative Array:
+             *
+             *  [
+             *      "access_token" => "c0352550-14c4-3a74-b82e-31bd8d09a556",
+             *      "scope" => "am_application_scope default",
+             *      "token_type" => "Bearer",
+             *      "expires_in" => 3600
+             *  ]
+             */
+            $bodyAsArray = json_decode($jsonString, true);
+
+            //  Get the response status code e.g "200"
+            $statusCode = $response->getStatusCode();
+
+            //  Return the status and the body
+            $data = [
+                'status' => ($statusCode == 200),
+                'body' => $bodyAsArray
             ];
 
-            //  Create a new Http Guzzle Client
-            $httpClient = new Client();
+            if($data['status']) {
 
-            //  Perform and return the Http request
-            $response = $httpClient->request('POST', $endpoint, $options);
+                /**
+                 *  Cache the successful response data for 58 minutes. The token itself is valid for 1 hour (3600 seconds),
+                 *  however we must take into consideration any latecy in the network that may delay the response.
+                 *  Therefore we are accomodating 2 minutes (120 seconds) for latency costs. This then means we
+                 *  can only cache this successful response data for 58 minutes.
+                 *
+                 *  Return the status and the body (cached)
+                 */
+                $cacheManager->put($data, now()->addMinutes(58));
 
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            }
 
-            $response = $e->getResponse();
-
-        } catch (\GuzzleHttp\Exception\ConnectException $e) {
-
-            return [
-                'status' => false,
-                'body' => [
-                    'error_description' => $e->getMessage()
-                ]
-            ];
+            //  Return the status and the body (uncached)
+            return $data;
 
         }
-
-        /**
-         *  Get the response body as a String.
-         *
-         *  On Success, the response payload is as follows:
-         *
-         *  {
-         *      "access_token":"c0352550-14c4-3a74-b82e-31bd8d09a556",
-         *      "scope":"am_application_scope default",
-         *      "token_type":"Bearer",
-         *      "expires_in":3600
-         *  }
-         *
-         *  On Fail, the response payload is as follows:
-         *
-         *  {
-         *      "error_description": "Oauth application is not in active state.",
-         *      "error": "invalid_client"
-         *  }
-         */
-        $jsonString = $response->getBody();
-
-        /**
-         *  Get the response body as an Associative Array:
-         *
-         *  [
-         *      "access_token" => "c0352550-14c4-3a74-b82e-31bd8d09a556",
-         *      "scope" => "am_application_scope default",
-         *      "token_type" => "Bearer",
-         *      "expires_in" => 3600
-         *  ]
-         */
-        $bodyAsArray = json_decode($jsonString, true);
-
-        //  Get the response status code e.g "200"
-        $statusCode = $response->getStatusCode();
-
-        //  Return the status and the body
-        $data = [
-            'status' => ($statusCode == 200),
-            'body' => $bodyAsArray
-        ];
-
-        //  Return the status and the body (uncached)
-        return $data;
     }
 
     /**

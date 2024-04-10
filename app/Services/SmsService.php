@@ -228,97 +228,121 @@ class SmsService
      */
     public static function requestSmsAccessToken($clientCredentials): array
     {
-        try {
+        $cacheManager = (new CacheManager(CacheName::SMS_ACCESS_TOKEN_RESPONSE));
 
-            //  Set the request endpoint
-            $endpoint = config('app.ORANGE_SMS_ENDPOINT').'/token';
+        if( $cacheManager->has() ) {
 
-            //  Set the request options
-            $options = [
-                'headers' => [
-                    'Authorization' => 'Basic '.$clientCredentials,
-                    'Content-Type' => 'application/x-www-form-urlencoded'
-                ],
-                'form_params' => [
-                    'grant_type' => 'client_credentials'
-                ],
-                'verify' => false,  // Disable SSL certificate verification
+            return $cacheManager->get();
+
+        }else{
+
+            try {
+
+                //  Set the request endpoint
+                $endpoint = config('app.ORANGE_SMS_ENDPOINT').'/token';
+
+                //  Set the request options
+                $options = [
+                    'headers' => [
+                        'Authorization' => 'Basic '.$clientCredentials,
+                        'Content-Type' => 'application/x-www-form-urlencoded'
+                    ],
+                    'form_params' => [
+                        'grant_type' => 'client_credentials'
+                    ],
+                    'verify' => false,  // Disable SSL certificate verification
+                ];
+
+                //  Create a new Http Guzzle Client
+                $httpClient = new Client();
+
+                //  Perform and return the Http request
+                $response = $httpClient->request('POST', $endpoint, $options);
+
+            } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+
+                $response = $e->getResponse();
+
+            } catch (\GuzzleHttp\Exception\ConnectException $e) {
+
+                return [
+                    'status' => false,
+                    'body' => [
+                        'error_description' => $e->getMessage()
+                    ]
+                ];
+
+            } catch (\Throwable $th) {
+
+                return [
+                    'status' => false,
+                    'body' => [
+                        'error_description' => $th->getMessage()
+                    ]
+                ];
+
+            }
+
+            /**
+             *  Get the response body as a String.
+             *
+             *  On Success, the response payload is as follows:
+             *
+             *  {
+             *      "access_token": "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
+             *      "scope": "am_application_scope default",
+             *      "token_type": "Bearer",
+             *      "expires_in": 3600
+             *  }
+             *
+             *  On Fail, the response payload is as follows:
+             *
+             *  {
+             *      "error_description": "Client Authentication failed.",
+             *      "error": "invalid_client"
+             *  }
+             */
+            $jsonString = $response->getBody();
+
+            /**
+             *  Get the response body as an Associative Array:
+             *
+             *  [
+             *      "access_token" => "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
+             *      "scope" => "am_application_scope default",
+             *      "token_type" => "Bearer",
+             *      "expires_in" => 3600
+             *  ]
+             */
+            $bodyAsArray = json_decode($jsonString, true);
+
+            //  Get the response status code e.g "200"
+            $statusCode = $response->getStatusCode();
+
+            //  Return the status and the body
+            $data = [
+                'status' => ($statusCode == 200),
+                'body' => $bodyAsArray
             ];
 
-            //  Create a new Http Guzzle Client
-            $httpClient = new Client();
+            if($data['status']) {
 
-            //  Perform and return the Http request
-            $response = $httpClient->request('POST', $endpoint, $options);
+                /**
+                 *  Cache the successful response data for 58 minutes. The token itself is valid for 1 hour (3600 seconds),
+                 *  however we must take into consideration any latecy in the network that may delay the response.
+                 *  Therefore we are accomodating 2 minutes (120 seconds) for latency costs. This then means we
+                 *  can only cache this successful response data for 58 minutes.
+                 *
+                 *  Return the status and the body (cached)
+                 */
+                $cacheManager->put($data, now()->addMinutes(58));
 
-        } catch (\GuzzleHttp\Exception\BadResponseException $e) {
+            }
 
-            $response = $e->getResponse();
-
-        } catch (\GuzzleHttp\Exception\ConnectException $e) {
-
-            return [
-                'status' => false,
-                'body' => [
-                    'error_description' => $e->getMessage()
-                ]
-            ];
-
-        } catch (\Throwable $th) {
-
-            return [
-                'status' => false,
-                'body' => [
-                    'error_description' => $th->getMessage()
-                ]
-            ];
+            //  Return the status and the body (uncached)
+            return $data;
 
         }
-
-        /**
-         *  Get the response body as a String.
-         *
-         *  On Success, the response payload is as follows:
-         *
-         *  {
-         *      "access_token": "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
-         *      "scope": "am_application_scope default",
-         *      "token_type": "Bearer",
-         *      "expires_in": 3600
-         *  }
-         *
-         *  On Fail, the response payload is as follows:
-         *
-         *  {
-         *      "error_description": "Client Authentication failed.",
-         *      "error": "invalid_client"
-         *  }
-         */
-        $jsonString = $response->getBody();
-
-        /**
-         *  Get the response body as an Associative Array:
-         *
-         *  [
-         *      "access_token" => "eyJ4NXQiOiJOalUzWWpJeE5qRTVObU0wWVRkbE1XRmhNVFEyWWpkaU1tUXdNemMwTmpreFkyTmlaRE0xTlRrMk9EaGxaVFkwT0RFNU9EZzBNREkwWlRreU9HRmxOZyIsImtpZCI6Ik5qVTNZakl4TmpFNU5tTTBZVGRsTVdGaE1UUTJZamRpTW1Rd016YzBOamt4WTJOaVpETTFOVGsyT0RobFpUWTBPREU1T0RnME1ESTBaVGt5T0dGbE5nX1JTMjU2IiwiYWxnIjoiUlMyNTYifQ.eyJzdWIiOiJPQldfSU5URUdSQVRJT05AY2FyYm9uLnN1cGVyIiwiYXV0IjoiQVBQTElDQVRJT04iLCJhdWQiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwibmJmIjoxNzEwNzA0OTk0LCJhenAiOiJST2VHNFUxMXBhOUI4ZWludGVPUk5Mcjh1RWdhIiwic2NvcGUiOiJhbV9hcHBsaWNhdGlvbl9zY29wZSBkZWZhdWx0IiwiaXNzIjoiaHR0cHM6XC9cL2Fhcy1idy1ndy5jb20uaW50cmFvcmFuZ2U6NDQzXC9vYXV0aDJcL3Rva2VuIiwiZXhwIjoxNzEwNzA4NTk0LCJpYXQiOjE3MTA3MDQ5OTQsImp0aSI6IjkzYzQ0OGRjLWQ5MzQtNDBhYi1iMDFjLWJhNWUxNDFjN2FjNyJ9.FRgZ1g5hLvj1hFra3DO4W_dnkdLHBy08Whc_Rh0vmouG27MmNoPWSwQrhkSr9n3ekyy7kyLXasi04-egx7xoQq_Dbxuml-PsOevPk0Jrt6INeZiNQoXkKcaZisHWKLFeuue_2m-8urXxEVYCs2GbKH0bEXx9FmrOgOjCbFv0z1hmIuWRaqdSdXFah8Ud4_u-McXI7y9RTL5pd-SUKJ9V9Ml0-7-P7XTGaJ-NJKEbbcX0X-AoMlxWkM-CAJ1aDlxLJGfdhteDr0WsRDSRqoqbaBcRKrnou4vXC7l13iRYpHtfn0cFTff2ZFx1DUiFA25bEpo9HrR21dt6Vxq4GH18wQ",
-         *      "scope" => "am_application_scope default",
-         *      "token_type" => "Bearer",
-         *      "expires_in" => 3600
-         *  ]
-         */
-        $bodyAsArray = json_decode($jsonString, true);
-
-        //  Get the response status code e.g "200"
-        $statusCode = $response->getStatusCode();
-
-        //  Return the status and the body
-        $data = [
-            'status' => ($statusCode == 200),
-            'body' => $bodyAsArray
-        ];
-
-        //  Return the status and the body (uncached)
-        return $data;
     }
 
     /**
