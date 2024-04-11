@@ -19,15 +19,8 @@ class TopicController extends Controller
         $pageNumber = ($number = (int) request()->input('page')) > 0 ? $number : 1;
         $perPage = ($number = (int) request()->input('per_page')) > 0 ? $number : 15;
 
-        /// Set the cache name
-        $cacheName = "projects-$project->id-$searchWord-$perPage-$pageNumber";
-
         /// Retrieve the result from the cache or make a request and cache the response for one day
-        $response = Cache::remember($cacheName, $time, function () use($project, $searchWord) {
-
-            return $project->topics()->whereIsRoot()->withCount('children')->search($searchWord)->latest()->paginate();
-
-        });
+        $response = $project->topics()->whereIsRoot()->withCount('children')->search($searchWord)->latest()->paginate();
 
         return new TopicResources($response);
     }

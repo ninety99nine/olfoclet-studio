@@ -44,15 +44,8 @@ class SubscriptionPlanController extends Controller
         $pageNumber = ($number = (int) request()->input('page')) > 0 ? $number : 1;
         $perPage = ($number = (int) request()->input('per_page')) > 0 ? $number : 15;
 
-        /// Set the cache name
-        $cacheName = 'projects-'.$this->project->id.'-subscription-plans-'.$perPage.'-'.$pageNumber;
-
         /// Retrieve the result from the cache or make a request and cache the response for one day
-        $response = Cache::remember($cacheName, $time, function () {
-
-            return $this->project->subscriptionPlans()->whereIsRoot()->withCount('children')->latest()->paginate();
-
-        });
+        $response = $this->project->subscriptionPlans()->whereIsRoot()->withCount('children')->latest()->paginate();
 
         return SubscriptionPlanResource::collection($response)->response();
     }
