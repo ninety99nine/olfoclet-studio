@@ -377,7 +377,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                 if( $message ) {
 
                                     //  Create a job to send this message
-                                    //  $jobs[] = new SendSmsCampaignMessage($this->project, $subscriber, $message, $this->smsCampaign);
+                                    $jobs[] = new SendSmsCampaignMessage($this->project, $subscriber, $message, $this->smsCampaign);
 
                                 }else{
 
