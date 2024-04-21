@@ -21,7 +21,7 @@ class CreateSubscriberMessagesTable extends Migration
             $table->foreignId('message_id')->nullable();
             $table->foreignId('subscriber_id');
             $table->string('content', 500);
-            $table->enum('type', SubscriberMessage::TYPES)->default(MessageType::Content);
+            $table->enum('type', SubscriberMessage::TYPES)->default(MessageType::Content->value);
             $table->boolean('is_successful')->nullable();
             $table->string('delivery_status')->nullable();
             $table->string('delivery_status_endpoint')->nullable();

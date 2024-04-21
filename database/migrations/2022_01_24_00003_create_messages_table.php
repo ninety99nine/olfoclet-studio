@@ -1,7 +1,5 @@
 <?php
 
-use App\Enums\MessageType;
-use App\Models\Message;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -32,10 +30,7 @@ class CreateMessagesTable extends Migration
 
             /**
              *  Foreign Key Constraints
-             *
-             *  Note: The parent_id is set by the $table->nestedSet() method.
              */
-            $table->foreign('parent_id')->references('id')->on('topics')->cascadeOnDelete();
             $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });
     }
