@@ -9,6 +9,7 @@ use App\Traits\Models\ProjectTrait;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Pivots\SubscriberMessage;
 use App\Models\Pivots\ProjectUserAsTeamMember;
+use App\Models\Pivots\SmsCampaignSchedule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
 
@@ -25,6 +26,7 @@ class Project extends Model
         'View subscribers', 'Manage subscribers',
         'View subscriptions', 'Manage subscriptions',
         'View sms campaigns', 'Manage sms campaigns',
+        'View sms campaign schedules',
         'View subscription plans', 'Manage subscription plans',
         'View subscriber messages',
         'View billing transactions', 'Manage billing transactions',
@@ -137,6 +139,14 @@ class Project extends Model
     public function smsCampaigns()
     {
         return $this->hasMany(SmsCampaign::class);
+    }
+
+    /**
+     * Get the sms campaign schedules associated with the project.
+     */
+    public function smsCampaignSchedules()
+    {
+        return $this->hasMany(SmsCampaignSchedule::class);
     }
 
     /**

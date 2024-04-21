@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Database\Eloquent\Builder;
 use App\Models\Pivots\AutoBillingSchedule;
-use App\Models\Pivots\SmsCampaignNextMessageSchedule;
+use App\Models\Pivots\SmsCampaignSchedule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Subscriber extends Model
@@ -34,30 +34,30 @@ class Subscriber extends Model
         return $query->whereNotIn('id', $subscriberIds);
     }
 
-    public function scopeHasActiveNonCancelledSubscription($query, array|int $subcriptionPlanId = null, int $endsInNumberOfHours = null)
+    public function scopeHasActiveNonCancelledSubscription($query, array|int|null $subscriptionPlanId = null, int|null $endsInNumberOfHours = null)
     {
-        return $query->whereHas('subscriptions', function (Builder $query) use ($subcriptionPlanId, $endsInNumberOfHours) {
+        return $query->whereHas('subscriptions', function (Builder $query) use ($subscriptionPlanId, $endsInNumberOfHours) {
 
             /**
              *  Must be any non cancelled but active subscription
              */
             $query->notCancelled()->active();
 
-            if( !is_null($subcriptionPlanId) ) {
+            if( !is_null($subscriptionPlanId) ) {
 
-                if( is_array($subcriptionPlanIds = $subcriptionPlanId) ) {
+                if( is_array($subscriptionPlanIds = $subscriptionPlanId) ) {
 
                     /**
                      *  Must be any subscription that matches the specified plan ids
                      */
-                    $query->whereIn('subscriptions.subscription_plan_id', $subcriptionPlanIds);
+                    $query->whereIn('subscriptions.subscription_plan_id', $subscriptionPlanIds);
 
                 }else{
 
                     /**
                      *  Must be any subscription that matches the specified plan id
                      */
-                    $query->where('subscriptions.subscription_plan_id', $subcriptionPlanId);
+                    $query->where('subscriptions.subscription_plan_id', $subscriptionPlanId);
 
                 }
 
@@ -122,6 +122,15 @@ class Subscriber extends Model
     }
 
     /**
+     *  Get the content messages that this subscriber received
+     */
+    public function contentMessages()
+    {
+        return $this->belongsToMany(Message::class, 'subscriber_messages')
+                    ->withTimestamps();
+    }
+
+    /**
      *  Get the latest message that this subscriber received.
      *
      *  We need to retrieve only the first message of each subscriber when eager loading
@@ -167,9 +176,9 @@ class Subscriber extends Model
      */
     public function smsCampaigns()
     {
-        return $this->belongsToMany(SmsCampaign::class, 'sms_campaign_subscriber')
-                    ->withPivot(SmsCampaignNextMessageSchedule::VISIBLE_COLUMNS)
-                    ->using(SmsCampaignNextMessageSchedule::class);
+        return $this->belongsToMany(SmsCampaign::class)
+                    ->withPivot(SmsCampaignSchedule::VISIBLE_COLUMNS)
+                    ->using(SmsCampaignSchedule::class);
     }
 
     /**

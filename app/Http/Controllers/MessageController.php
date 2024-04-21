@@ -56,9 +56,9 @@ class MessageController extends Controller
             'project_id' => $project->id
         ]);
 
-        if( $parentTopic = Message::find($parent_id) ) {
+        if( $parentMessage = Message::find($parent_id) ) {
 
-            $parentTopic->prependNode($message);
+            $parentMessage->prependNode($message);
 
         }
 

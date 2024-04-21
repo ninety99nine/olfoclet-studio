@@ -309,7 +309,7 @@
                                                 </table>
                                             </div>
 
-                                            <p class="mt-4"><strong>Example:</strong> <span v-html="'Your payment for {{ subscriptionPlanName }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }}. Dial *xxx# to unsubscribe.'"></span></p>
+                                            <p class="mt-4"><strong>Example:</strong> <span v-html="'Your payment for {{ subscriptionPlanName }} priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *xxx# to unsubscribe.'"></span></p>
 
                                         </template>
                                     </el-popover>
@@ -380,7 +380,7 @@
                                                     </table>
                                                 </div>
 
-                                                <p class="mt-4"><strong>Example:</strong> <span v-html="'Your payment for {{ subscriptionPlanName }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }}. Dial *xxx# to unsubscribe.'"></span></p>
+                                                <p class="mt-4"><strong>Example:</strong> <span v-html="'Your auto payment for {{ subscriptionPlanName }} priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *xxx# to unsubscribe.'"></span></p>
 
                                             </template>
                                         </el-popover>
@@ -447,7 +447,7 @@
                                                         </tbody>
                                                     </table>
 
-                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You will be automatically billed {{ subscriptionPlanPrice }} on {{ nextBillableDate }} for {{ subscriptionPlanName }}. Dial *xxx# to unsubscribe.'"></span></p>
+                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You will be automatically billed for {{ subscriptionPlanName }} priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *xxx# to unsubscribe.'"></span></p>
                                                 </div>
 
                                             </template>
@@ -492,7 +492,7 @@
                                                         </tbody>
                                                     </table>
 
-                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You have been successfully unsubscribed from {{ subscriptionPlanName }}. Dial *xxx# to subscribe.'"></span></p>
+                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You have been successfully unsubscribed from {{ subscriptionPlanName }} priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.'"></span></p>
                                                 </div>
 
                                             </template>

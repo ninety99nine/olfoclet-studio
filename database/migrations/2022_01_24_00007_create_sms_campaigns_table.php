@@ -20,6 +20,7 @@ class CreateSmsCampaignsTable extends Migration
             $table->string('name');
             $table->string('description', 500)->nullable();
             $table->boolean('can_send_messages')->default(false);
+            $table->boolean('can_repeat_messages')->default(true);
 
             $table->enum('schedule_type', SmsCampaign::SCHEDULE_TYPE)->default(Arr::first(SmsCampaign::SCHEDULE_TYPE));
             $table->unsignedInteger('recurring_duration')->nullable();
@@ -37,6 +38,7 @@ class CreateSmsCampaignsTable extends Migration
             $table->char('end_time', 5)->nullable();
 
             $table->json('days_of_the_week')->nullable();
+            $table->json('subscription_plan_ids');
 
             $table->foreignId('project_id');
             $table->timestamps();

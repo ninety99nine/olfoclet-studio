@@ -132,6 +132,14 @@ const links = ref([
         ],
         permission: 'View auto billing schedules'
     },
+    {
+        label: 'Sms Campaign Schedules',
+        routeName: 'show.sms.campaign.schedules',
+        activeRouteNames: [
+            'show.sms.campaign.schedules',
+        ],
+        permission: 'View sms campaign schedules'
+    },
 ]);
 
 const filteredLinks = computed(() => {

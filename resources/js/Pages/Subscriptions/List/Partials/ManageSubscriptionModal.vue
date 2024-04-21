@@ -87,9 +87,9 @@
                         <div>
 
                             <!-- Subscription Plan -->
-                            <div class="fmb-4">
+                            <div class="mb-4">
                                 <jet-label for="subscription-plan" value="Subscription Plan" class="mb-1" />
-                                <el-cascader id="subscription-plan" v-model="form.subscription_plan_id" :props="getPropsForMessages()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
+                                <el-cascader id="subscription-plan" v-model="form.subscription_plan_id" :props="getPropsForSubscriptionPlans()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
                                 <jet-input-error :message="form.errors.subscription_plan_id" class="mt-2" />
                             </div>
 
@@ -242,7 +242,7 @@
         },
         methods: {
 
-            getPropsForMessages() {
+            getPropsForSubscriptionPlans() {
 
                 return {
                     lazy: true,

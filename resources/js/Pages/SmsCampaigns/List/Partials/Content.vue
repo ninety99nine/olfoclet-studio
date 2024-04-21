@@ -4,8 +4,9 @@
 
         <manage-sms-campaign-modal
             v-model="isShowingModal"
-            :action="modalAction" :smsCampaign="smsCampaign" :subscriptionPlans="subscriptionPlans"
-            :contentToSendOptions="contentToSendOptions" :scheduleTypeOptions="scheduleTypeOptions"
+            :action="modalAction" :smsCampaign="smsCampaign"
+            :contentToSendOptions="contentToSendOptions"
+            :scheduleTypeOptions="scheduleTypeOptions"
             @onDeleted="onDeleted"
         />
 
@@ -149,11 +150,11 @@
 
 </template>
 <script>
-    import SmsCampaignCanSendSmsBadge from '../JobBatches/List/Partials/SmsCampaignCanSendSmsBadge.vue'
-    import SmsCampaignStatusBadge from '../JobBatches/List/Partials/SmsCampaignStatusBadge.vue'
-    import ManageSmsCampaignModal from './ManageSmsCampaignModal.vue'
-    import Pagination from '../../../../Partials/Pagination.vue'
-    import { defineComponent } from 'vue'
+    import SmsCampaignCanSendSmsBadge from '../JobBatches/List/Partials/SmsCampaignCanSendSmsBadge.vue';
+    import SmsCampaignStatusBadge from '../JobBatches/List/Partials/SmsCampaignStatusBadge.vue';
+    import ManageSmsCampaignModal from './ManageSmsCampaignModal.vue';
+    import Pagination from '../../../../Partials/Pagination.vue';
+    import { defineComponent } from 'vue';
     import moment from "moment";
 
     export default defineComponent({
@@ -161,10 +162,9 @@
             ManageSmsCampaignModal, Pagination, SmsCampaignCanSendSmsBadge, SmsCampaignStatusBadge
         },
         props: {
+            smsCampaignsPayload: Object,
             contentToSendOptions: Array,
             scheduleTypeOptions: Array,
-            subscriptionPlans: Array,
-            smsCampaignsPayload: Object,
             projectPayload: Object
         },
         data() {

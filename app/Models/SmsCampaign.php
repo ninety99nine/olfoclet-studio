@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use App\Traits\Models\SmsCampaignTrait;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Staudenmeir\EloquentEagerLimit\HasEagerLimit;
-use App\Models\Pivots\SmsCampaignNextMessageSchedule;
+use App\Models\Pivots\SmsCampaignSchedule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SmsCampaign extends Model
@@ -36,8 +36,10 @@ class SmsCampaign extends Model
         'has_end_date' => 'boolean',
         'has_start_date' => 'boolean',
         'can_send_messages' => 'boolean',
+        'can_repeat_messages' => 'boolean',
         'message_ids' => JsonToArray::class,
         'days_of_the_week' => JsonToArray::class,
+        'subscription_plan_ids' => JsonToArray::class,
     ];
 
     /**
@@ -49,7 +51,8 @@ class SmsCampaign extends Model
         'name', 'description', 'schedule_type', 'recurring_duration', 'recurring_frequency',
         'message_to_send', 'message_ids', 'has_start_date', 'start_date', 'start_time',
         'has_end_date', 'end_date', 'end_time', 'can_send_messages',
-        'days_of_the_week', 'project_id'
+        'can_repeat_messages', 'days_of_the_week',
+        'subscription_plan_ids', 'project_id'
     ];
 
     /**
@@ -76,9 +79,9 @@ class SmsCampaign extends Model
      */
     public function subscribers()
     {
-        return $this->belongsToMany(Subscriber::class, 'sms_campaign_subscriber')
-                    ->withPivot(SmsCampaignNextMessageSchedule::VISIBLE_COLUMNS)
-                    ->using(SmsCampaignNextMessageSchedule::class);
+        return $this->belongsToMany(Subscriber::class)
+                    ->withPivot(SmsCampaignSchedule::VISIBLE_COLUMNS)
+                    ->using(SmsCampaignSchedule::class);
     }
 
     /**
@@ -95,14 +98,6 @@ class SmsCampaign extends Model
     public function latestSmsCampaignBatchJob()
     {
         return $this->smsCampaignBatchJobs()->latest()->limit(1);
-    }
-
-    /**
-     * Get the subscription plans associated with the sms campaign
-     */
-    public function subscriptionPlans()
-    {
-        return $this->belongsToMany(SubscriptionPlan::class, 'sms_campaign_subscription_plans');
     }
 
     /**

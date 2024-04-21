@@ -2,13 +2,22 @@
 
     <div class="flex items-center">
 
-        <span v-if="subscriberMessage.is_successful" class="bg-green-100 text-green-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-900">
+        <div v-if="subscriberMessage.is_successful == null" class="w-full block text-center">
+            ...
+        </div>
+
+        <span v-else-if="subscriberMessage.is_successful" class="bg-green-100 text-green-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-green-200 dark:text-green-900">
             Successful
         </span>
 
         <template v-else>
-            <span class="bg-yellow-100 text-yellow-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-yellow-200 dark:text-yellow-900">
-                Unsuccessful
+
+            <span v-if="subscriberMessage.failure_type == 'Message Sending Failed'" class="bg-yellow-100 text-yellow-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-yellow-200 dark:text-yellow-900">
+                {{  subscriberMessage.failure_type }}
+            </span>
+
+            <span v-else class="bg-red-100 text-red-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-red-200 dark:text-red-900">
+                {{  subscriberMessage.failure_type ?? 'Unsuccessful' }}
             </span>
 
             <el-popover placement="bottom" title="Reason" width="300" trigger="hover"

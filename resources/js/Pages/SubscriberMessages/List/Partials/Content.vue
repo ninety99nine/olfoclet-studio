@@ -28,7 +28,10 @@
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-100">
                                         <span>Content</span>
                                     </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-100">
+                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-100">
+                                        <span>Characters</span>
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-100">
                                         <span>Type</span>
                                     </th>
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-100">
@@ -57,18 +60,23 @@
                                         <div class="w-96">{{ subscriberMessage.content }}</div>
                                     </td>
 
+                                    <!-- Character Count -->
+                                    <td class="px-6 py-3 text-sm text-gray-500 text-center align-top bg-teal-50">
+                                        <div :class="[{'font-bold text-red-500' : subscriberMessage.character_count > 160}]">{{ subscriberMessage.character_count }}</div>
+                                    </td>
+
                                     <!-- Type -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center align-top bg-teal-50">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left align-top bg-teal-50">
                                         <span>{{ subscriberMessage.type }}</span>
                                     </td>
 
                                     <!-- Status -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center align-top bg-teal-50">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left align-top bg-teal-50">
                                         <SubscriberMessageStatusBadge :subscriberMessage="subscriberMessage"></SubscriberMessageStatusBadge>
                                     </td>
 
                                     <!-- Delivery Status -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center align-top bg-teal-50">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left align-top bg-teal-50">
                                         <span v-if="subscriberMessage.delivery_status == null">...</span>
                                         <SubscriberMessageDeliveryStatusBadge v-else :subscriberMessage="subscriberMessage"></SubscriberMessageDeliveryStatusBadge>
                                     </td>

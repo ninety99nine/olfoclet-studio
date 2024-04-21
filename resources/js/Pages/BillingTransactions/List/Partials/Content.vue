@@ -197,23 +197,27 @@
 
                                     <!-- Subscription Plan Name -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
-                                        <div class="text-sm text-gray-900">{{ billingTransaction.subscription_plan.name }}</div>
+                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
+                                        <div v-else class="text-sm text-gray-900">{{ billingTransaction.subscription_plan.name }}</div>
                                     </td>
 
                                     <!-- Subscription Plan Description -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
-                                        {{ billingTransaction.subscription_plan.description == null ? '...' : billingTransaction.subscription_plan.description }}
+                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.subscription_plan.description == null ? '...' : billingTransaction.subscription_plan.description }}</div>
                                     </td>
 
                                     <!-- Subscription Plan Active -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        <SubscriptionPlanActiveStatusBadge :subscriptionPlan="billingTransaction.subscription_plan"></SubscriptionPlanActiveStatusBadge>
+                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
+                                        <SubscriptionPlanActiveStatusBadge v-else :subscriptionPlan="billingTransaction.subscription_plan"></SubscriptionPlanActiveStatusBadge>
                                     </td>
 
                                     <!-- Subscription Plan Tags -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan.tags.length == 0">...</div>
-                                        <div class="flex space-x-2">
+                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
+                                        <div v-else-if="billingTransaction.subscription_plan.tags.length == 0">...</div>
+                                        <div v-else class="flex space-x-2">
                                             <div v-for="(tag, index) in billingTransaction.subscription_plan.tags" :key="index" class="bg-blue-50 text-blue-500 border border-blue-300 py-1 px-2 text-xs rounded">
                                                 {{ tag }}
                                             </div>
@@ -222,16 +226,19 @@
 
                                     <!-- Subscription Plan Duration -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        {{ billingTransaction.subscription_plan.duration_in_words == null ? '...' : billingTransaction.subscription_plan.duration_in_words }}
+                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.subscription_plan.duration_in_words == null ? '...' : billingTransaction.subscription_plan.duration_in_words }}</div>
                                     </td>
 
                                     <!-- Subscription Plan Price -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        {{ billingTransaction.subscription_plan.price == null ? '...' : billingTransaction.subscription_plan.price.amount_with_currency }}
+                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.subscription_plan.price == null ? '...' : billingTransaction.subscription_plan.price.amount_with_currency }}</div>
                                     </td>
                                     <!-- Subscription Plan Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
-                                        {{ billingTransaction.subscription_plan.created_at == null ? '...' : moment(billingTransaction.subscription_plan.created_at).format('lll') }}
+                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.subscription_plan.created_at == null ? '...' : moment(billingTransaction.subscription_plan.created_at).format('lll') }}</div>
                                     </td>
 
                                 </tr>

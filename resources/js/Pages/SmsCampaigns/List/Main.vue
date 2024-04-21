@@ -3,9 +3,9 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                <manage-sms-campaign-modal :showAddbutton="true" :subscriptionPlans="subscriptionPlans" :contentToSendOptions="contentToSendOptions" :scheduleTypeOptions="scheduleTypeOptions" />
+                <manage-sms-campaign-modal :showAddbutton="true" :contentToSendOptions="contentToSendOptions" :scheduleTypeOptions="scheduleTypeOptions" />
 
-                <sms-campaigns-content :projectPayload="projectPayload" :smsCampaignsPayload="smsCampaignsPayload" :subscriptionPlans="subscriptionPlans" :contentToSendOptions="contentToSendOptions" :scheduleTypeOptions="scheduleTypeOptions" />
+                <sms-campaigns-content :projectPayload="projectPayload" :smsCampaignsPayload="smsCampaignsPayload" :contentToSendOptions="contentToSendOptions" :scheduleTypeOptions="scheduleTypeOptions" />
 
             </div>
         </div>
@@ -27,7 +27,6 @@
         props: {
             contentToSendOptions: Array,
             scheduleTypeOptions: Array,
-            subscriptionPlans: Array,
             smsCampaignsPayload: Object,
             projectPayload: Object
         }

@@ -2,7 +2,11 @@
 
 namespace App\Traits\Models;
 
+use App\Models\Message;
 use App\Traits\Base\BaseTrait;
+use App\Models\SubscriptionPlan;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 trait SmsCampaignTrait
 {
@@ -253,7 +257,7 @@ trait SmsCampaignTrait
      *  children (Must be leaf messages i.e at the tips of the tree)
      *
      *  @param Project $project - The project
-     *  @param array<int> $ids - The message ids
+     *  @param array<int> $messageIds - The message ids
      *  @param array<Message> $selectedMessages - The selected messages
      *
      *  @return array<Message>
@@ -291,6 +295,69 @@ trait SmsCampaignTrait
              *  Reference: https://stackoverflow.com/questions/43287573/difference-between-all-and-toarray-in-laravel-5
              */
             return $result->all();
+
+        }
+
+        //  Return nothing
+        return [];
+
+    }
+
+    /**
+     *  This function helps us to capture project subscription plan descendants or self
+     *  matching the specified subscription plan ids and that do not have nested
+     *  children (Must be leaf subscription plans i.e at the tips of the tree)
+     *
+     *  @param Project $project - The project
+     *  @param array<int> $subscriptionPlanIds - The subscription plan ids
+     *  @param array<SubscriptionPlan> $selectedSubscriptionPlans - The selected subscription plans
+     *
+     *  @return array<SubscriptionPlan>
+     */
+    public function getSubscriptionPlanDescendantOrSelf($project, $subscriptionPlanIds, $selectedSubscriptionPlans = []) {
+
+        //  Get the last id in the cascade of subscription plan ids
+        $subscriptionPlanId = collect($subscriptionPlanIds)->last();
+
+        /**
+         *  Check if the item already exists in the list of previously selected subscription plans.
+         *
+         *  On the Frontend, we know that its possible to select a subscription plan that has descendant subscription plans.
+         *  After selecting this subscription plan we could also select one of the descendant subscription plans. This would
+         *  mean we could query a subscription plan that has already been captured as a descendant of another subscription
+         *  plan. We need to make sure this does not happen otherwise we are performing unnecessary database queries.
+         */
+        $exists = collect($selectedSubscriptionPlans)->contains(function($selectedSubscriptionPlan) use ($subscriptionPlanId) {
+            return $selectedSubscriptionPlan->id == $subscriptionPlanId;
+        });
+
+        //  If the subscription plan does not yet exist
+        if( $exists == false ) {
+
+            try {
+
+                //  Get the project subscription plan descendants or self that do not have nested children (Must be leaf subscription plans i.e at the tips of the tree)
+                $result = $project->subscriptionPlans()->active()->nonFolder()->whereDescendantOrSelf($subscriptionPlanId)->doesntHave('children')->get();
+
+                /**
+                 *  Laravel all() vs toArray()
+                 *
+                 *  Using all() - It will return an array of Eloquent models without converting them to arrays.
+                 *  Using toArray() - If it's a collection of Eloquent models, the models will also be converted to arrays with toArray()
+                 *
+                 *  Reference: https://stackoverflow.com/questions/43287573/difference-between-all-and-toarray-in-laravel-5
+                 */
+                return $result->all();
+
+            } catch (ModelNotFoundException $e) {
+
+                /**
+                 *  Whenever the $subscriptionPlanId provided does not match any Subscription Plan,
+                 *  the whereDescendantOrSelf($subscriptionPlanId) will throw an error.
+                 */
+                return [];
+
+            }
 
         }
 

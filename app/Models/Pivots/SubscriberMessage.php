@@ -7,7 +7,8 @@ use App\Models\Project;
 use App\Models\Subscriber;
 use App\Enums\MessageType;
 use Illuminate\Support\Str;
-use App\Enums\MessageFailureType;
+use App\Enums\SendMessageFailureType;
+use App\Enums\UpdateDeliveryStatusFailureType;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
@@ -33,9 +34,15 @@ class SubscriberMessage extends Pivot
     ];
 
     const FAILURE_TYPES = [
-        MessageFailureType::InternalFailure->value,
-        MessageFailureType::MessageSendingFailed->value,
-        MessageFailureType::TokenGenerationFailed->value
+        SendMessageFailureType::InternalFailure->value,
+        SendMessageFailureType::MessageSendingFailed->value,
+        SendMessageFailureType::TokenGenerationFailed->value
+    ];
+
+    const UPDATE_DELIVERY_STATUS_FAILURE_TYPES = [
+        UpdateDeliveryStatusFailureType::InternalFailure->value,
+        UpdateDeliveryStatusFailureType::TokenGenerationFailed->value,
+        UpdateDeliveryStatusFailureType::DeliveryStatusRequestFailed->value
     ];
 
     /**
@@ -49,8 +56,8 @@ class SubscriberMessage extends Pivot
     ];
 
     const VISIBLE_COLUMNS = [
-        'content', 'is_successful', 'failure_reason', 'delivery_status', 'delivery_status_endpoint',
-        'delivery_status_update_is_successful', 'delivery_status_update_failure_reason'
+        'content', 'type', 'is_successful', 'failure_type', 'failure_reason', 'delivery_status', 'delivery_status_endpoint',
+        'delivery_status_update_is_successful', 'delivery_status_update_failure_type', 'delivery_status_update_failure_reason'
     ];
 
     /**
@@ -86,6 +93,13 @@ class SubscriberMessage extends Pivot
     }
 
     /**
+     *  ATTRIBUTES
+     */
+    protected $appends = [
+        'character_count'
+    ];
+
+    /**
      *  Format the delivery_status
      */
     protected function deliveryStatus(): Attribute
@@ -94,6 +108,16 @@ class SubscriberMessage extends Pivot
             get: function($value) {
                 return Str::headline(Str::snake($value, ' '));
             }
+        );
+    }
+
+    /**
+     *  Format the character_count
+     */
+    protected function characterCount(): Attribute
+    {
+        return Attribute::make(
+            get: fn() => strlen($this->content)
         );
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\CreatedUsingAutoBilling;
+use App\Enums\MessageType;
 use App\Http\Controllers\AutoBillingReminderSubscriptionPlanController;
 use App\Http\Controllers\AutoBillingScheduleController;
 use App\Http\Controllers\AutoBillingSubscriptionPlanController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\SmsCampaignController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\SmsCampaignScheduleController;
 use App\Http\Controllers\SubscriberMessageController;
 use App\Http\Controllers\TopicController;
 use Illuminate\Database\Eloquent\Builder;
@@ -210,6 +212,16 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
+            //  Sms Campaign Schedules
+            Route::prefix('sms-campaign-schedules')
+                ->middleware(['project.permission:View sms campaign schedules'])->group(function () {
+                Route::get('/', [SmsCampaignScheduleController::class, 'showSmsCampaignSchedules'])->name('show.sms.campaign.schedules');
+
+                Route::prefix('{sms_campaign_schedules}')->group(function () {
+                    Route::get('/', [SmsCampaignScheduleController::class, 'showSmsCampaignSchedule']);
+                });
+            });
+
             //  Auto Billing Subscription Plans
             Route::prefix('auto-billing/subscription-plans')->group(function () {
 
@@ -242,7 +254,373 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/test-conversion', function() {
 
-    return \Carbon\Carbon::now()->format('Y-m-d H:i:s');
+    $subscriptionPlans = [
+        [
+            "id" => 22,
+            "name" => "App Access - English Plans",
+            "description" => null,
+            "active" => 1,
+            "is_folder" => 1,
+            "frequency" => null,
+            "duration" => null,
+            "price" => null,
+            "tags" => null,
+            "can_auto_bill" => 0,
+            "max_auto_billing_attempts" => 3,
+            "insufficient_funds_message" => null,
+            "successful_payment_sms_message" => null,
+            "successful_auto_billing_payment_sms_message" => null,
+            "next_auto_billing_reminder_sms_message" => null,
+            "auto_billing_disabled_sms_message" => null,
+            "project_id" => 1,
+            "parent_id" => null,
+            "created_at" => "2024-04-09 08:40:51",
+            "updated_at" => "2024-04-09 08:40:51",
+            "__children" => [
+                [
+                    "name" => "1 Day P3",
+                    "description" => "Subscription for app access (1 day)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 1,
+                    "price" => 3,
+                    "tags" => "[\"english\", \"app_access\"]",
+                    "can_auto_bill" => 0,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction.",
+                    "successful_payment_sms_message" => "Your payment for 1 day of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 1 day of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 1 day of App Access priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 1 day of App Access priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 06:00:00",
+                    "updated_at" => "2024-03-05 06:00:00"
+                ],
+                [
+                    "name" => "7 Days P15",
+                    "description" => "Subscription for app access (7 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 7,
+                    "price" => 15,
+                    "tags" => "[\"english\", \"app_access\"]",
+                    "can_auto_bill" => 0,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction.",
+                    "successful_payment_sms_message" => "Your payment for 7 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 7 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 7 days of App Access priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 7 days of App Access priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 05:00:00",
+                    "updated_at" => "2024-03-05 05:00:00"
+                ],
+                [
+                    "name" => "30 Days P50",
+                    "description" => "Subscription for app access (30 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 30,
+                    "price" => 50,
+                    "tags" => "[\"english\", \"app_access\"]",
+                    "can_auto_bill" => 0,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction.",
+                    "successful_payment_sms_message" => "Your payment for 30 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 30 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 30 days of App Access priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 30 days of App Access priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 04:00:00",
+                    "updated_at" => "2024-03-05 04:00:00"
+                ],
+            ]
+        ],
+        [
+            "id" => 23,
+            "name" => "App Access - Setswana Plans",
+            "description" => null,
+            "active" => 1,
+            "is_folder" => 1,
+            "frequency" => null,
+            "duration" => null,
+            "price" => null,
+            "tags" => null,
+            "can_auto_bill" => 0,
+            "max_auto_billing_attempts" => 3,
+            "insufficient_funds_message" => null,
+            "successful_payment_sms_message" => null,
+            "successful_auto_billing_payment_sms_message" => null,
+            "next_auto_billing_reminder_sms_message" => null,
+            "auto_billing_disabled_sms_message" => null,
+            "project_id" => 1,
+            "parent_id" => null,
+            "created_at" => "2024-04-09 08:41:04",
+            "updated_at" => "2024-04-09 08:41:04",
+            "__children" => [
+                [
+                    "name" => "1 Day P3",
+                    "description" => "Subscription for app access (1 day)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 1,
+                    "price" => 3,
+                    "tags" => "[\"setswana\", \"app_access\"]",
+                    "can_auto_bill" => 0,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction",
+                    "successful_payment_sms_message" => "Your payment for 1 day of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 1 day of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 1 day of App Access priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 1 day of App Access priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 06:00:00",
+                    "updated_at" => "2024-03-05 06:00:00"
+                ],
+                [
+                    "name" => "7 Days P15",
+                    "description" => "Subscription for app access (7 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 7,
+                    "price" => 15,
+                    "tags" => "[\"setswana\", \"app_access\"]",
+                    "can_auto_bill" => 0,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction.",
+                    "successful_payment_sms_message" => "Your payment for 7 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 7 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 7 days of App Access priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 7 days of App Access priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 05:00:00",
+                    "updated_at" => "2024-03-05 05:00:00"
+                ],
+                [
+                    "name" => "30 Days P50",
+                    "description" => "Subscription for app access (30 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 30,
+                    "price" => 50,
+                    "tags" => "[\"setswana\", \"app_access\"]",
+                    "can_auto_bill" => 0,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction.",
+                    "successful_payment_sms_message" => "Your payment for 30 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 30 days of App Access priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 30 days of App Access priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 30 days of App Access priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 04:00:00",
+                    "updated_at" => "2024-03-05 04:00:00"
+                ],
+            ]
+        ],
+        [
+            "id" => 4,
+            "name" => "Daily Quotes - English Plans",
+            "description" => null,
+            "active" => 1,
+            "is_folder" => 1,
+            "frequency" => null,
+            "duration" => null,
+            "price" => null,
+            "tags" => null,
+            "can_auto_bill" => 0,
+            "max_auto_billing_attempts" => 3,
+            "insufficient_funds_message" => null,
+            "successful_payment_sms_message" => null,
+            "successful_auto_billing_payment_sms_message" => null,
+            "next_auto_billing_reminder_sms_message" => null,
+            "auto_billing_disabled_sms_message" => null,
+            "project_id" => 1,
+            "parent_id" => null,
+            "created_at" => "2024-03-05 07:40:27",
+            "updated_at" => "2024-04-08 07:24:18",
+            "__children" => [
+                [
+                    "name" => "Daily @ P1",
+                    "description" => "Subscription for daily quotes (1 day)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 1,
+                    "price" => 1,
+                    "tags" => "[\"english\", \"daily_quotes\"]",
+                    "can_auto_bill" => 1,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction.",
+                    "successful_payment_sms_message" => "Your payment for 1 day of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 1 day of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 1 day of Daily Quotes priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 1 day of Daily Quotes priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 06:00:00",
+                    "updated_at" => "2024-03-05 06:00:00"
+                ],
+                [
+                    "name" => "Weekly @ P5",
+                    "description" => "Subscription for daily quotes (7 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 7,
+                    "price" => 5,
+                    "tags" => "[\"english\", \"daily_quotes\"]",
+                    "can_auto_bill" => 1,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction",
+                    "successful_payment_sms_message" => "Your payment for 7 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 7 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 7 days of Daily Quotes priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 7 days of Daily Quotes priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 05:00:00",
+                    "updated_at" => "2024-03-05 05:00:00"
+                ],
+                [
+                    "name" => "Monthly @ P15",
+                    "description" => "Subscription for daily quotes (30 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 30,
+                    "price" => 15,
+                    "tags" => "[\"english\", \"daily_quotes\"]",
+                    "can_auto_bill" => 1,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction",
+                    "successful_payment_sms_message" => "Your payment for 30 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 30 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 30 days of Daily Quotes priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 30 days of Daily Quotes priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 04:00:00",
+                    "updated_at" => "2024-03-05 04:00:00"
+                ],
+            ]
+        ],
+        [
+            "id" => 10,
+            "name" => "Daily Quotes - Setswana Plans",
+            "description" => null,
+            "active" => 1,
+            "is_folder" => 1,
+            "frequency" => null,
+            "duration" => null,
+            "price" => null,
+            "tags" => null,
+            "can_auto_bill" => 0,
+            "max_auto_billing_attempts" => 3,
+            "insufficient_funds_message" => null,
+            "successful_payment_sms_message" => null,
+            "successful_auto_billing_payment_sms_message" => null,
+            "next_auto_billing_reminder_sms_message" => null,
+            "auto_billing_disabled_sms_message" => null,
+            "project_id" => 1,
+            "parent_id" => null,
+            "created_at" => "2024-03-05 08:45:10",
+            "updated_at" => "2024-03-05 08:45:10",
+            "__children" => [
+                [
+                    "name" => "Daily @ P1",
+                    "description" => "Subscription for daily quotes (1 day)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 1,
+                    "price" => 1,
+                    "tags" => "[\"setswana\", \"daily_quotes\"]",
+                    "can_auto_bill" => 1,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction.",
+                    "successful_payment_sms_message" => "Your payment for 1 day of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 1 day of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 1 day of Daily Quotes priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 1 day of Daily Quotes priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 06:00:00",
+                    "updated_at" => "2024-03-05 06:00:00"
+                ],
+                [
+                    "name" => "Weekly @ P5",
+                    "description" => "Subscription for daily quotes (7 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 7,
+                    "price" => 5,
+                    "tags" => "[\"setswana\", \"daily_quotes\"]",
+                    "can_auto_bill" => 1,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction",
+                    "successful_payment_sms_message" => "Your payment for 7 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 7 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 7 days of Daily Quotes priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 7 days of Daily Quotes priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 05:00:00",
+                    "updated_at" => "2024-03-05 05:00:00"
+                ],
+                [
+                    "name" => "Monthly @ P15",
+                    "description" => "Subscription for daily quotes (30 days)",
+                    "active" => 1,
+                    "is_folder" => 0,
+                    "frequency" => "Days",
+                    "duration" => 30,
+                    "price" => 15,
+                    "tags" => "[\"setswana\", \"daily_quotes\"]",
+                    "can_auto_bill" => 1,
+                    "max_auto_billing_attempts" => 2,
+                    "insufficient_funds_message" => "You do not have enough funds to complete this transaction",
+                    "successful_payment_sms_message" => "Your payment for 30 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "successful_auto_billing_payment_sms_message" => "Your auto payment for 30 days of Daily Quotes priced {{ subscriptionPlanPrice }} was completed successfully. Valid till {{ subscriptionEndDate }}. You will be automatically billed on {{ nextBillableDate }}. Ref: #{{ subscriptionId }} . Dial *217# to unsubscribe.",
+                    "next_auto_billing_reminder_sms_message" => "You will be automatically billed for 30 days of Daily Quotes priced {{ subscriptionPlanPrice }} on {{ nextBillableDate }}. Dial *217# to unsubscribe.",
+                    "auto_billing_disabled_sms_message" => "You have been successfully unsubscribed from 30 days of Daily Quotes priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.",
+                    "project_id" => 1,
+                    "created_at" => "2024-03-05 04:00:00",
+                    "updated_at" => "2024-03-05 04:00:00"
+                ]
+            ]
+        ],
+    ];
+
+    foreach($subscriptionPlans as $a => $subscriptionPlan) {
+
+        $parentSubscriptionPlan = SubscriptionPlan::create($subscriptionPlan);
+
+        foreach($subscriptionPlan['__children'] as $b => $childSubscriptionPlan) {
+
+            $childSubscriptionPlan['created_at'] = now()->subHours($b);
+            $childSubscriptionPlan['updated_at'] = now()->subHours($b);
+
+            $childSubscriptionPlan = SubscriptionPlan::create($childSubscriptionPlan);
+
+            $parentSubscriptionPlan->prependNode($childSubscriptionPlan);
+
+        }
+
+        $parentSubscriptionPlan->update([
+            'created_at' => now()->subHours($a+$b),
+            'updated_at' => now()->subHours($a+$b)
+        ]);
+    }
+
+    return 'Done!';
+
+
+    $response = Project::find(1)->subscriptionPlans()->whereAncestorOf(6)->pluck('id')->all();
+
+    dd($response, count($response));
+    return '';
 
     return \Carbon\Carbon::now()->addDay()->timestamp;
 
@@ -352,92 +730,48 @@ Route::get('/test-billing', function() {
 Route::get('/testing2', function() {
 
     $project = Project::find(1);
-    $message = Message::find(3);
-    $subscriber = Subscriber::find(1);
-    $subscriberMessage = SubscriberMessage::find(2);
 
-    //  Get projects that can send messages
-    $subscriberMessages = SubscriberMessage::messageWaiting()->with(['project' => function($query) {
+    /**
+     *  Query the subscribers that are ready to receive the next sms message
+     */
+    $subscribers = $project->subscribers()->whereDoesntHave('smsCampaigns', function (Builder $query) {
 
-        //  Get sms campaigns that can send messages with their total batch jobs
-        return $query->select('id', 'settings');
-
-    }])->select('id', 'project_id')->oldest();
-
-    //  Only query 1000 subscriber messages at a time (This helps us save memory)
-    return $subscriberMessages->chunk(1000, function ($chunkedSubscriberMessages) {
-
-        //  Foreach chunked subscriber messages
-        foreach($chunkedSubscriberMessages as $subscriberMessage) {
-
-            //  Create a job to update the sms delivery status
-            return dd($subscriberMessage->toArray());
-
-        }
-
-    });
-
-    return 'done';
-
-    //
-    //return SmsService::sendSms($project, $subscriber, $message);
-    return SmsService::updateSmsDeliveryStatus($project, $subscriberMessage);
-
-
-    return Project::find(1)->subscribers()
-        ->hasActiveNonCancelledSubscription(9, 1)
-        ->select('subscribers.id', 'subscribers.msisdn')->get();
-
-    /***************************************************
-     *  GET THE SUBSCRIBERS READY FOR THE NEXT MESSAGE *
-     **************************************************/
-
-    $project = Project::find(1);
-    $smsCampaign = SmsCampaign::find(3);
-    $subscriber = Subscriber::find(1);
-    $subscriptionPlanIds = [1, 2, 3];
-    $subscribers = $project->subscribers()->whereDoesntHave('smsCampaigns', function (Builder $query) use ($smsCampaign) {
+        $smsCampaign = Subscriber::find(1);
 
         $query->where('sms_campaigns.id', $smsCampaign->id)
-              ->where('next_message_date', '>', \Carbon\Carbon::now());
+                ->where('next_message_date', '>', \Carbon\Carbon::now());
 
     })->with(['messages' => function($query) {
 
         /**
-         *  1) Limit the loaded message to the message id and sent sms count to consume less memory.
+         *  1) Limit the loaded message to the message id, subscriber id, sent sms count and the
+         *     last sent at datetime to consume less memory.
          *  2) Order by the sent sms count "ASC" so that the messages that have the lowest sent sms
-         *     count appear at the top of this relationsip stack. If the
+         *     count appear at the top of this relationsip stack.
          *  3) For messages that have the same sent sms count, we can then order by the messages
-         *     created_at "ASC" so that the messages that were created earlier appear first
-         *     before messages that were created later after them.
+         *     last sent at "ASC" so that the messages that were sent a longer time ago appear
+         *     first before messages that were sent must more recently.
          *
          *  The eager loaded "messages" will look something like this for every subscriber:
          *
-         *  {
+         *  "messages": [
+         *      {
+         *          "message_id": 2,
+         *          "subscriber_id": 1
+         *      },
          *      ...
-         *      "messages":[
-         *          {
-         *              "id":1,"pivot":{
-         *                  "message_id": 2,
-         *                  "subscriber_id": 1,
-         *                  "sent_sms_count": 199
-         *              }
-         *          }
-         *          {
-         *              "id":2,"pivot":{
-         *                  "message_id": 1,
-         *                  "subscriber_id": 1,
-         *                  "sent_sms_count": 200
-         *              }
-         *          }
-         *          ...
-         *      ]
-         *  }
-         *
-         *  Notice that the "pivot" will always include the "message_id" and "subscriber_id"
-         *  by default even if the withPivot() only specifies the "sent_sms_count".
+         *  ]
          */
-        return $query->select('messages.id')->withPivot('sent_sms_count')->orderBy('sent_sms_count')->orderBy('messages.created_at');
+        return $query->where('is_successful', '1')
+                    ->where('type', MessageType::Content->value)
+                     ->select(
+                        'subscriber_messages.message_id',
+                        'subscriber_messages.subscriber_id',
+                        DB::raw('COUNT(*) as sent_sms_count'),
+                        DB::raw('MAX(created_at) as last_sent_at')
+                    )->groupBy('subscriber_messages.message_id')
+                     ->orderBy('sent_sms_count', 'ASC')
+                     ->orderBy('last_sent_at', 'ASC');
 
     /**
      *  1) Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
@@ -448,41 +782,30 @@ Route::get('/testing2', function() {
      *      {
      *          "id": 1,
      *          "msisdn": "26772000001",
-     *          "messages":[
+     *          "messages": [
      *              {
-     *                  "id":3,
-     *                  "pivot":{
+     *                  "id": 3,
+     *                  "pivot": {
      *                      "message_id": 2,
      *                      "subscriber_id": 1,
      *                      "sent_sms_count": 199
      *                  }
      *              },
      *              {
-     *                  "id":3,
-     *                  "pivot":{
-     *                  "message_id": 1,
-     *                  "subscriber_id": 1,
-     *                  "sent_sms_count": 200
-     *              }
-     *          }
-     *          ...
-     *      ]
-     *
-     *
+     *                  "id": 3,
+     *                  "pivot": {
+     *                      "message_id": 1,
+     *                      "subscriber_id": 1,
+     *                      "sent_sms_count": 200
+     *                  }
+     *              },
+     *              ...
+     *          ]
+     *      },
+     *      ...
+     *  ]
      */
     }])->select('subscribers.id', 'subscribers.msisdn');
-
-    return $subscriber->subscriptions()->active()->get();
-
-    //  If this sms campaign requires the subscribers to have an active subscription
-    if( count($subscriptionPlanIds = $smsCampaign->subscriptionPlans()->pluck('subscription_plan_id')) ) {
-        /**
-         *  Limit the subscribers based on the active subscriptions
-         *  matching the specified subscription plans.
-         */
-        $subscribers = $subscribers->hasActiveNonCancelledSubscription($subscriptionPlanIds);
-
-    }
 
     return $subscribers->get();
 

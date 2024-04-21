@@ -19,11 +19,8 @@ class SmsCampaignController extends Controller
         $scheduleTypeOptions = SmsCampaign::SCHEDULE_TYPE;
         $contentToSendOptions = SmsCampaign::MESSAGE_TO_SEND;
 
-        //  Get the subscription plans
-        $subscriptionPlans = $project->subscriptionPlans()->get();
-
         //  Get the SMS campaigns
-        $smsCampaignsPayload = $project->smsCampaigns()->with(['subscriptionPlans:id', 'latestSmsCampaignBatchJob' => function($query) {
+        $smsCampaignsPayload = $project->smsCampaigns()->with(['latestSmsCampaignBatchJob' => function($query) {
 
             //  Seleted columns
             $selectedColumns = collect(Schema::getColumnListing('job_batches'))
@@ -41,7 +38,6 @@ class SmsCampaignController extends Controller
             'contentToSendOptions' => $contentToSendOptions,
             'scheduleTypeOptions' => $scheduleTypeOptions,
             'smsCampaignsPayload' => $smsCampaignsPayload,
-            'subscriptionPlans' => $subscriptionPlans,
             'projectPayload' => $project
         ]);
     }
@@ -172,6 +168,7 @@ class SmsCampaignController extends Controller
         $data = Validator::make($request->all(), [
             'name' => ['required', 'string', 'min:3', 'max:50', Rule::unique('sms_campaigns')->where('project_id', $project->id)],
             'description' => ['nullable', 'string', 'min:10', 'max:500'],
+            'can_repeat_messages' => ['required', 'boolean'],
             'can_send_messages' => ['required', 'boolean'],
             'schedule_type' => ['required', 'string', Rule::in(SmsCampaign::SCHEDULE_TYPE)],
             'recurring_duration' => $isSendingNow || $isSendingLater ? [] : [
@@ -193,7 +190,7 @@ class SmsCampaignController extends Controller
                 'bail', 'required', 'string'
             ],
             'days_of_the_week' => $isSendingNow || $isSendingLater ? ['exclude'] : ['required'],
-            'subcription_plan_ids' => ['sometimes', 'array'],
+            'subscription_plan_ids' => ['sometimes', 'array'],
             'message_to_send' => ['required', 'string'],
             'message_ids' => ['required', 'array'],
         ],
@@ -207,6 +204,7 @@ class SmsCampaignController extends Controller
             'message_ids' => 'messages',
             'start_date' => 'start date',
             'start_time' => 'start time',
+            'subscription_plan_ids' => 'subscription plans',
         ])->validate();
 
         $data = array_merge($data, [
@@ -214,21 +212,7 @@ class SmsCampaignController extends Controller
         ]);
 
         //  Create new sms campaign
-        $smsCampaign = SmsCampaign::create($data);
-
-        if( count( $request->input('subcription_plan_ids') ?? [] ) ) {
-
-            //  Set subcription plan ids
-            $subcription_plan_ids = $request->input('subcription_plan_ids');
-
-            //  Sync the subscription plans
-            $smsCampaign->subscriptionPlans()->syncWithPivotValues($subcription_plan_ids, [
-                'project_id' => $request->project->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-        }
+        SmsCampaign::create($data);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
@@ -359,6 +343,7 @@ class SmsCampaignController extends Controller
         $data = Validator::make($request->all(), [
             'name' => ['required', 'string', 'min:3', 'max:50', Rule::unique('sms_campaigns')->where('project_id', $project->id)->ignore($smsCampaign->id)],
             'description' => ['nullable', 'string', 'min:10', 'max:500'],
+            'can_repeat_messages' => ['required', 'boolean'],
             'can_send_messages' => ['required', 'boolean'],
             'schedule_type' => ['required', 'string', Rule::in(SmsCampaign::SCHEDULE_TYPE)],
             'recurring_duration' => $isSendingNow || $isSendingLater ? [] : [
@@ -380,7 +365,7 @@ class SmsCampaignController extends Controller
                 'bail', 'required', 'string'
             ],
             'days_of_the_week' => $isSendingNow || $isSendingLater ? ['exclude'] : ['required'],
-            'subcription_plan_ids' => ['sometimes', 'array'],
+            'subscription_plan_ids' => ['sometimes', 'array'],
             'message_to_send' => ['required', 'string'],
             'message_ids' => ['required', 'array'],
         ],
@@ -407,30 +392,16 @@ class SmsCampaignController extends Controller
         if( $smsCampaign->schedule_type == 'Send Recurring' ) {
 
             /**
-             *  Recalculate the next message date and times of the subscribers.
+             *  Recalculate the next message date and time of the subscribers.
              *  This is so that the suggested date is in sync with the current
              *  recurring schedule settings.
              */
-            DB::table('sms_campaign_subscriber')
+            DB::table('sms_campaign_schedules')
                 ->where('sms_campaign_id', $smsCampaign->id)
                 ->update([
                     'next_message_date' => $smsCampaign->nextSmsCampaignMessageDate(),
                     'updated_at' => Carbon::now(),
                 ]);
-
-        }
-
-        if( count( $request->input('subcription_plan_ids') ?? [] ) ) {
-
-            //  Set subcription plan ids
-            $subcription_plan_ids = $request->input('subcription_plan_ids');
-
-            //  Sync the subscription plans
-            $smsCampaign->subscriptionPlans()->syncWithPivotValues($subcription_plan_ids, [
-                'project_id' => $project->id,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
 
         }
 

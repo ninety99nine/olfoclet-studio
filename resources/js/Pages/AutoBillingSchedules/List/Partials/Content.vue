@@ -319,7 +319,15 @@
                                 <tr v-if="autoBillingSchedulesPayload.data.length == 0">
 
                                     <!-- Content -->
-                                    <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
+                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
+                                        <div class="text-center text-gray-900 text-sm p-6">No auto billing schedules</div>
+                                    </td>
+
+                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
+                                        <div class="text-center text-gray-900 text-sm p-6">No auto billing schedules</div>
+                                    </td>
+
+                                    <td :colspan="7" class="px-6 py-3 whitespace-nowrap">
                                         <div class="text-center text-gray-900 text-sm p-6">No auto billing schedules</div>
                                     </td>
 

@@ -67,7 +67,7 @@
                         </div>
 
                         <!-- Description -->
-                        <div class="mb-8">
+                        <div class="mb-4">
                             <jet-label for="description" value="Description" />
                             <jet-textarea id="description" class="w-full mt-1 block" v-model="form.description" />
                             <jet-input-error :message="form.errors.description" class="mt-2" />
@@ -122,7 +122,7 @@
 
                         <div v-if="isSendingLater || isSendingRecurring" class="mb-8">
 
-                            <el-divider content-position="left"><span class="font-semibold mb-4">Schedule</span></el-divider>
+                            <el-divider content-position="left"><span class="font-semibold">Schedule</span></el-divider>
 
                             <span class="block text-sm text-gray-500 mb-4">
                                 {{ isSendingLater ? 'Decide on the date and time that the message must be sent' : 'Decide on the frequency that messages must be sent' }}
@@ -217,7 +217,7 @@
 
                         </div>
 
-                        <div class="mt-10 mb-10">
+                        <div class="mt-8">
 
                             <el-divider content-position="left"><span class="font-semibold">Subscription Plans</span></el-divider>
 
@@ -228,26 +228,19 @@
 
                             <span class="block text-sm text-gray-500 mb-4">Choose subscriptions plans required to qualify for this sms campaign</span>
 
-                            <div class="flex items-center">
-
-                                <el-select id="subscription_plans" v-model="form.subcription_plan_ids" multiple class="w-full" placeholder="Select subcription plan" >
-                                    <el-option v-for="plan in subscriptionPlanOptions" :key="plan.value" :value="plan.value" :label="plan.name"></el-option>
-                                </el-select>
-
-                            </div>
-
-                            <jet-input-error :message="form.errors.subcription_plan_ids" />
+                            <el-cascader id="subscription-plans" v-model="form.subscription_plan_ids" :props="getPropsForSubscriptionPlans()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
+                            <jet-input-error :message="form.errors.subscription_plan_ids" class="mt-2" />
 
                         </div>
 
-                        <div class="mt-10 mb-10">
+                        <div class="mt-8">
 
                             <el-divider content-position="left"><span class="font-semibold">Messages</span></el-divider>
 
                         </div>
 
                         <!-- Messages -->
-                        <div>
+                        <div class="mb-4">
 
                             <span class="block text-sm text-gray-500 mb-4">Choose messages to send for this sms campaign</span>
 
@@ -262,6 +255,19 @@
                             </div>
 
                             <jet-input-error :message="form.errors.message_ids" />
+
+                        </div>
+
+                        <!-- Can Repeat Messages -->
+                        <div v-if="form.message_to_send == 'Any Message'" class="mb-4">
+
+                            <span class="block text-sm text-gray-500 mb-4">What should happen when the subscriber has seen all messages?</span>
+
+                            <span class="text-sm text-gray-500">Can Repeat Messages</span>
+                            <el-switch v-model="form.can_repeat_messages" class="mx-2"></el-switch>
+                            <span class="text-sm text-gray-400">— {{ form.can_repeat_messages ? 'Turn off to deny repeating messages' : 'Turn on to allow repeating messages' }}</span>
+
+                            <jet-input-error :message="form.errors.can_repeat_messages" />
 
                         </div>
 
@@ -304,16 +310,16 @@
     import { defineComponent } from 'vue'
 
     import axios from "axios";
-    import JetInput from '@/Components/TextInput.vue'
-    import JetLabel from '@/Components/InputLabel.vue'
-    import JetTextarea from '@/Components/Textarea.vue'
-    import JetButton from '@/Components/PrimaryButton.vue'
-    import JetInputError from '@/Components/InputError.vue'
-    import JetSelectInput from '@/Components/SelectInput.vue'
-    import JetDialogModal from '@/Components/DialogModal.vue'
-    import JetDangerButton from '@/Components/DangerButton.vue'
-    import JetSecondaryButton from '@/Components/SecondaryButton.vue'
-import { isArray, isInteger } from "lodash";
+    import { isArray, isInteger } from "lodash";
+    import JetInput from '@/Components/TextInput.vue';
+    import JetLabel from '@/Components/InputLabel.vue';
+    import JetTextarea from '@/Components/Textarea.vue';
+    import JetButton from '@/Components/PrimaryButton.vue';
+    import JetInputError from '@/Components/InputError.vue';
+    import JetSelectInput from '@/Components/SelectInput.vue';
+    import JetDialogModal from '@/Components/DialogModal.vue';
+    import JetDangerButton from '@/Components/DangerButton.vue';
+    import JetSecondaryButton from '@/Components/SecondaryButton.vue';
 
     export default defineComponent({
         components: {
@@ -339,7 +345,6 @@ import { isArray, isInteger } from "lodash";
             },
             contentToSendOptions: Array,
             scheduleTypeOptions: Array,
-            subscriptionPlans: Array,
             show: {
                 type: Boolean,
                 default: false
@@ -433,17 +438,60 @@ import { isArray, isInteger } from "lodash";
                         value: 'Years'
                     }
                 ];
-            },
-            subscriptionPlanOptions() {
-                return this.subscriptionPlans.map(function(subscriptionPlan){
-                    return {
-                        'name': subscriptionPlan.name,
-                        'value': subscriptionPlan.id,
-                    };
-                });
             }
         },
         methods: {
+
+            getPropsForSubscriptionPlans() {
+
+                return {
+                    lazy: true,
+                    multiple: true,
+                    checkStrictly: true,
+                    lazyLoad: function(node, resolve) {
+
+                        const { level } = node;
+
+                        //  If this is the first list of options
+                        if( level === 0  ){
+
+                            var url = route('api.show.subscription.plans', { project: route().params.project });
+
+                        //  If this is the nested list of options
+                        }else{
+
+                            var url = route('api.show.subscription.plan', { project: route().params.project, subscription_plan: node.data.value, type: 'children' });
+
+                        }
+
+                        axios.get(url)
+                            .then((response) => {
+
+                                var nodes = response.data.data.map((subscriptionPlan) => {
+
+                                    var isActive = subscriptionPlan.active;
+                                    var isFolder = subscriptionPlan.isFolder;
+                                    var hasChildren = subscriptionPlan.childrenCount > 0;
+
+                                    var leaf = !hasChildren;
+                                    var value = subscriptionPlan.id;
+                                    var label = subscriptionPlan.name.length < 40 ? String (subscriptionPlan.name) : String (subscriptionPlan.name).substring(0, 40);
+
+                                    return {
+                                        leaf: leaf,
+                                        value: value,
+                                        label: label,
+                                        disabled: (isFolder && !hasChildren) || !isActive
+                                    }
+
+                                });
+
+                                resolve(nodes);
+
+                            }).catch(() => resolve([]));
+                    },
+                }
+            },
             getPropsForMessages() {
 
                 var allowMultipleEntries = (this.form.message_to_send == 'Any Message');
@@ -677,6 +725,7 @@ import { isArray, isInteger } from "lodash";
                     name: this.hasSmsCampaign ? this.smsCampaign.name : null,
                     description: this.hasSmsCampaign ? this.smsCampaign.description : null,
                     can_send_messages: this.hasSmsCampaign ? this.smsCampaign.can_send_messages : false,
+                    can_repeat_messages: this.hasSmsCampaign ? this.smsCampaign.can_repeat_messages : true,
                     schedule_type: this.hasSmsCampaign ? this.smsCampaign.schedule_type : this.scheduleTypeOptions[0],
                     recurring_duration: this.hasSmsCampaign ? this.smsCampaign.recurring_duration : 1,
                     recurring_frequency: this.hasSmsCampaign ? this.smsCampaign.recurring_frequency : 'Days',
@@ -684,7 +733,7 @@ import { isArray, isInteger } from "lodash";
                     message_to_send: this.hasSmsCampaign ? this.smsCampaign.message_to_send : 'Specific Message',
                     message_ids: this.hasSmsCampaign ? this.smsCampaign.message_ids : [],
 
-                    subcription_plan_ids: this.hasSmsCampaign ? this.smsCampaign.subscription_plans.map((subscriptionPlan) => subscriptionPlan.id) : [],
+                    subscription_plan_ids: this.hasSmsCampaign ? this.smsCampaign.subscription_plan_ids : [],
 
                     //  Set start date to today
                     start_date: this.hasSmsCampaign ? moment(this.smsCampaign.start_date).format('YYYY-MM-DD HH:mm:ss') : new Date(),

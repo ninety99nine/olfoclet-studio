@@ -106,17 +106,8 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
              */
             $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $this->message, $messageType);
 
-            /**
-             *  @var bool $isSuccessful Whether the sms was sent successfully
-             */
-            $isSuccessful = $subscriberMessage->is_successful;
-
-            if($isSuccessful) {
-
-                // Update the sms campaign subscriber
-                $this->updateSmsCampaignSubscriber($subscriberMessage);
-
-            }
+            //  Update the sms campaign schedule
+            $this->updateSmsCampaignSubscriber($subscriberMessage);
 
             /**
              *  Return True or False as an indication for whether the SMS sent successfully or not.
@@ -124,7 +115,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
              *  return False then this event will be added again to the queue so that we can retry
              *  this event 3 times every 1 hour before being rejected entirely.
              */
-            return $isSuccessful;
+            return $subscriberMessage->is_successful;
 
         } catch (\Throwable $th) {
 
@@ -136,7 +127,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     * Update the sms campaign subscriber record.
+     * Update the sms campaign schedule record.
      *
      *  @var SubscriberMessage $subscriberMessage
      *
@@ -147,39 +138,61 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
         //  Set the smsSentAt datetime
         $smsSentAt = $subscriberMessage->created_at;
 
-        //  Find a matching sms campaign subscriber
-        $matchingSmsCampaignSubscriber = DB::table('sms_campaign_subscriber')->where([
+        /**
+         *  @var bool $isSuccessful Whether the sms was sent successfully
+         */
+        $isSuccessful = $subscriberMessage->is_successful;
+
+        //  Find a matching sms campaign schedule
+        $existingSmsCampaignSchedule = DB::table('sms_campaign_schedules')->where([
             'subscriber_id' => $this->subscriber->id,
             'sms_campaign_id' => $this->smsCampaign->id
-        ]);
+        ])->first();
+
+        $attempts = ((int) $existingSmsCampaignSchedule->attempts) + 1;
+
+        if($isSuccessful) {
+
+            $totalSuccessfulAttempts = $existingSmsCampaignSchedule->total_successful_attempts + 1;
+
+        }else{
+
+            $totalFailedAttempts = $existingSmsCampaignSchedule->total_failed_attempts + 1;
+
+        }
 
         //  Calculate the next sms campaign message date
         $nextSmsCampaignMessageDate = $this->smsCampaign->nextSmsCampaignMessageDate();
 
-        //  If the matching sms campaign subscriber exists
-        if( $instance = $matchingSmsCampaignSubscriber->first() ) {
+        //  If the matching sms campaign schedule exists
+        if( $existingSmsCampaignSchedule ) {
 
-            $sendSmsCount = ((int) $instance->sent_sms_count) + 1;
-
-            //  Update the matching sms campaign subscriber
-            $matchingSmsCampaignSubscriber->update([
+            //  Update the matching sms campaign schedule
+            DB::table('sms_campaign_schedules')->where([
+                'subscriber_id' => $this->subscriber->id,
+                'sms_campaign_id' => $this->smsCampaign->id
+            ])->update([
+                'total_successful_attempts' => $totalSuccessfulAttempts,
                 'next_message_date' => $nextSmsCampaignMessageDate,
-                'sent_sms_count' => $sendSmsCount,
-                'updated_at' => $smsSentAt
+                'total_failed_attempts' => $totalFailedAttempts,
+                'updated_at' => $smsSentAt,
+                'attempts' => $attempts,
             ]);
 
-        //  If the matching sms campaign subscriber does not exist
+        //  If the matching sms campaign schedule does not exist
         }else{
 
-            //  Create the sms campaign subscriber record
-            DB::table('sms_campaign_subscriber')->insert([
+            //  Create the sms campaign schedule record
+            DB::table('sms_campaign_schedules')->insert([
+                'total_successful_attempts' => $totalSuccessfulAttempts,
                 'next_message_date' => $nextSmsCampaignMessageDate,
+                'total_failed_attempts' => $totalFailedAttempts,
                 'sms_campaign_id' => $this->smsCampaign->id,
                 'project_id' => $this->message->project_id,
                 'subscriber_id' => $this->subscriber->id,
                 'created_at' => $smsSentAt,
                 'updated_at' => $smsSentAt,
-                'sent_sms_count' => 1
+                'attempts' => $attempts
             ]);
 
         }
