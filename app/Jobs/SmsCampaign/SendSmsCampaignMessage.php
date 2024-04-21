@@ -186,7 +186,9 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
 
             if($isSuccessful) {
                 $totalSuccessfulAttempts = 1;
+                $totalFailedAttempts = 0;
             }else{
+                $totalSuccessfulAttempts = 0;
                 $totalFailedAttempts = 1;
             }
 
