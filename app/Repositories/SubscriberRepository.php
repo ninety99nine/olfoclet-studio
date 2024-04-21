@@ -126,7 +126,6 @@ class SubscriberRepository
     {
         // Make sure the subscriber exists and belongs to the project
         if ($this->subscriber === null || $this->subscriber->project_id !== $this->project->id) {
-            dd($this->subscriber);
             throw new ModelNotFoundException();
         }
 
