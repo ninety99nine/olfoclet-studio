@@ -22,8 +22,10 @@ class CreateProjectsTable extends Migration
             $table->boolean('can_auto_bill')->default(false);
             $table->boolean('can_send_messages')->default(false);
             $table->boolean('can_create_billing_reports')->default(false);
-            $table->json('billing_report_email_addresses')->nullable();
             $table->json('costs')->nullable();
+            $table->unsignedTinyInteger('our_share_percentage')->nullable();
+            $table->unsignedTinyInteger('their_share_percentage')->nullable();
+            $table->json('billing_report_email_addresses')->nullable();
             $table->json('settings')->nullable();
             $table->timestamps();
 
