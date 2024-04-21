@@ -36,8 +36,10 @@ use App\Models\Subscriber;
 use App\Models\Project;
 use App\Models\Subscription;
 use App\Models\SubscriptionPlan;
+use App\Models\User;
 use App\Services\BillingService;
 use App\Services\SmsService;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 

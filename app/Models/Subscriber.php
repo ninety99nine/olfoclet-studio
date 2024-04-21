@@ -90,9 +90,9 @@ class Subscriber extends Model
      */
     public function topics()
     {
-        return $this->belongsToMany(Topic::class)
-                    ->using(SubscriberTopic::class)
+        return $this->belongsToMany(Topic::class, 'subscriber_topics')
                     ->withPivot(SubscriberTopic::VISIBLE_COLUMNS)
+                    ->using(SubscriberTopic::class)
                     ->withTimestamps();
     }
 
@@ -176,7 +176,7 @@ class Subscriber extends Model
      */
     public function smsCampaigns()
     {
-        return $this->belongsToMany(SmsCampaign::class)
+        return $this->belongsToMany(SmsCampaign::class, 'sms_campaign_schedules')
                     ->withPivot(SmsCampaignSchedule::VISIBLE_COLUMNS)
                     ->using(SmsCampaignSchedule::class);
     }

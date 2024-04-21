@@ -2,12 +2,11 @@
 
 namespace App\Jobs\SmsCampaign;
 
-use App\Enums\MessageType;
 use Throwable;
 use Carbon\Carbon;
-use App\Models\Message;
 use App\Models\Project;
 use Illuminate\Bus\Batch;
+use App\Enums\MessageType;
 use App\Models\SmsCampaign;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -288,6 +287,10 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         $subscribers = $subscribers->hasActiveNonCancelledSubscription($subscriptionPlanIds);
 
                     }
+
+                    $count = $subscribers->count();
+
+                    Log::info('Count: '.$count);
 
                     /**
                      *  If this sms campaign has subscribers to send messages.

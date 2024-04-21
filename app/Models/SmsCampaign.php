@@ -5,9 +5,9 @@ namespace App\Models;
 use App\Casts\JsonToArray;
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Models\SmsCampaignTrait;
+use App\Models\Pivots\SmsCampaignSchedule;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Staudenmeir\EloquentEagerLimit\HasEagerLimit;
-use App\Models\Pivots\SmsCampaignSchedule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class SmsCampaign extends Model
@@ -79,7 +79,7 @@ class SmsCampaign extends Model
      */
     public function subscribers()
     {
-        return $this->belongsToMany(Subscriber::class)
+        return $this->belongsToMany(Subscriber::class, 'sms_campaign_schedules')
                     ->withPivot(SmsCampaignSchedule::VISIBLE_COLUMNS)
                     ->using(SmsCampaignSchedule::class);
     }
