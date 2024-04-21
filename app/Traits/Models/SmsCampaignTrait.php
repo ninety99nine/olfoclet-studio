@@ -351,6 +351,8 @@ trait SmsCampaignTrait
 
             } catch (ModelNotFoundException $e) {
 
+                Log::error($e->getMessage());
+
                 /**
                  *  Whenever the $subscriptionPlanId provided does not match any Subscription Plan,
                  *  the whereDescendantOrSelf($subscriptionPlanId) will throw an error.

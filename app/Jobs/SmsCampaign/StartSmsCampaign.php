@@ -288,10 +288,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                     }
 
-                    $count = $subscribers->count();
-
-                    Log::info('Count: '.$count);
-
                     /**
                      *  If this sms campaign has subscribers to send messages.
                      *
@@ -314,9 +310,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                             //  Foreach subscriber we retrieved from the query
                             foreach ($chunked_subscribers as $subscriber) {
-
-                                //  Determine if we can repeat messages
-                                $canRepeatMessage = true;
 
                                 /**
                                  *  Get the ids of the messages that have already been sent.
@@ -384,7 +377,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                 if( $message ) {
 
                                     //  Create a job to send this message
-                                    $jobs[] = new SendSmsCampaignMessage($this->project, $subscriber, $message, $this->smsCampaign);
+                                    //  $jobs[] = new SendSmsCampaignMessage($this->project, $subscriber, $message, $this->smsCampaign);
 
                                 }else{
 

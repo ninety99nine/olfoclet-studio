@@ -149,23 +149,23 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
             'sms_campaign_id' => $this->smsCampaign->id
         ])->first();
 
-        $attempts = ((int) $existingSmsCampaignSchedule->attempts) + 1;
-
-        if($isSuccessful) {
-
-            $totalSuccessfulAttempts = $existingSmsCampaignSchedule->total_successful_attempts + 1;
-
-        }else{
-
-            $totalFailedAttempts = $existingSmsCampaignSchedule->total_failed_attempts + 1;
-
-        }
-
         //  Calculate the next sms campaign message date
         $nextSmsCampaignMessageDate = $this->smsCampaign->nextSmsCampaignMessageDate();
 
         //  If the matching sms campaign schedule exists
         if( $existingSmsCampaignSchedule ) {
+
+            $attempts = ((int) $existingSmsCampaignSchedule->attempts) + 1;
+
+            if($isSuccessful) {
+
+                $totalSuccessfulAttempts = $existingSmsCampaignSchedule->total_successful_attempts + 1;
+
+            }else{
+
+                $totalFailedAttempts = $existingSmsCampaignSchedule->total_failed_attempts + 1;
+
+            }
 
             //  Update the matching sms campaign schedule
             DB::table('sms_campaign_schedules')->where([
@@ -181,6 +181,14 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
 
         //  If the matching sms campaign schedule does not exist
         }else{
+
+            $attempts = 1;
+
+            if($isSuccessful) {
+                $totalSuccessfulAttempts = 1;
+            }else{
+                $totalFailedAttempts = 1;
+            }
 
             //  Create the sms campaign schedule record
             DB::table('sms_campaign_schedules')->insert([
