@@ -12,16 +12,17 @@ use App\Http\Requests\Subscribers\UpdateSubscriberRequest;
 
 class SubscriberController extends Controller
 {
+    protected $project;
     protected $messageRepository;
     protected $subscriberRepository;
 
     public function __construct()
     {
-        $project = Project::findOrFail(request()->route('project'));
+        $this->project = Project::findOrFail(request()->route('project'));
         $subscriber = request()->route('subscriber') ? Subscriber::findOrFail(request()->route('subscriber')) : null;
 
-        $this->messageRepository = new MessageRepository($project);
-        $this->subscriberRepository = new SubscriberRepository($project, $subscriber);
+        $this->messageRepository = new MessageRepository($this->project);
+        $this->subscriberRepository = new SubscriberRepository($this->project, $subscriber);
     }
 
     public function showSubscribers()

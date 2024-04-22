@@ -166,7 +166,21 @@
                                 <tr v-for="subscriber in subscribersPayload.data" :key="subscriber.id">
                                     <!-- Mobile -->
                                     <td class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ subscriber.msisdn }}</div>
+                                        <div class="flex justify-between items-center text-sm text-gray-900">
+                                            <span>{{ subscriber.msisdn }}</span>
+                                            <el-popover :width="400">
+                                                <template #reference>
+                                                    <svg xmlns="http://www.w3.org/2000/svg" :class="[subscriber.metadata == null ? 'text-gray-300' : 'text-green-500 font-bold', 'h-5 w-5 ml-2']" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                                    </svg>
+                                                </template>
+                                                <template #default>
+                                                    <span>Metadata</span>
+                                                    <hr class="my-4">
+                                                    <CodeEditor :value="subscriber.metadata == null ? '' : JSON.stringify(subscriber.metadata, null, 4)" :languages="[['json', 'JSON']]" :read-only="true" :line-nums="true" :tab-spaces="4" theme="gradient-dark" :header="false" width="100%" font-size="14px"></CodeEditor>
+                                                </template>
+                                            </el-popover>
+                                        </div>
                                     </td>
 
                                     <!-- Subscriptions Count -->
@@ -372,9 +386,15 @@
     import { defineComponent } from 'vue'
     import moment from "moment";
 
+    /**
+     *  Package Reference: https://github.com/justcaliturner/simple-code-editor
+     */
+    import hljs from 'highlight.js';
+    import CodeEditor from "simple-code-editor";
+
     export default defineComponent({
         components: {
-            ManageSubscriberModal, Pagination, SubscriptionStatusBadge, BillingStatusBadge
+            ManageSubscriberModal, Pagination, SubscriptionStatusBadge, BillingStatusBadge, CodeEditor
         },
         props: {
             totalMessages: Number,

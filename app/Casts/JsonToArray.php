@@ -49,7 +49,18 @@ class JsonToArray implements CastsAttributes
      */
     public function get($model, $key, $value, $attributes)
     {
-        if( is_null($value) ) {
+        if( is_string($value) ) {
+
+            /**
+             *  Json decode the data to convert json string to array
+             *
+             *  Reference: https://www.php.net/manual/en/function.json-decode.php
+             */
+            $value = json_decode($value, true);
+
+        }
+
+        if( empty($value) ) {
 
             if($this->returnType == 'array') {
 
@@ -61,20 +72,9 @@ class JsonToArray implements CastsAttributes
 
             }
 
-        }else if(is_array($value)) {
-
-            return $value;
-
-        }else{
-
-            /**
-             *  Json decode the data to convert json string to array
-             *
-             *  Reference: https://www.php.net/manual/en/function.json-decode.php
-             */
-            return json_decode($value, true);
-
         }
+
+        return $value;
     }
 
     /**
@@ -90,12 +90,20 @@ class JsonToArray implements CastsAttributes
     {
         if(is_array($value)) {
 
-            /**
-             *  Json encode the data to convert array to json string
-             *
-             *  Reference: https://www.php.net/manual/en/function.json-decode.php
-             */
-            return json_encode($value);
+            if(empty($value)) {
+
+                return null;
+
+            }else{
+
+                /**
+                 *  Json encode the data to convert array to json string
+                 *
+                 *  Reference: https://www.php.net/manual/en/function.json-decode.php
+                 */
+                return json_encode($value);
+
+            }
 
         }else{
 

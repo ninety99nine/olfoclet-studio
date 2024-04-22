@@ -338,12 +338,8 @@
     </div>
 
 </template>
+
 <script>
-
-
-
-
-
     import BillingTransactionStatusBadge from './../../../BillingTransactions/List/Partials/BillingTransactionStatusBadge.vue';
     import CreatedUsingAutoBillingBadge from './../../../BillingTransactions/List/Partials/CreatedUsingAutoBillingBadge.vue';
     import SubscriptionPlanActiveStatusBadge from './../../../SubscriptionPlans/List/Partials/ActiveStatusBadge.vue';
