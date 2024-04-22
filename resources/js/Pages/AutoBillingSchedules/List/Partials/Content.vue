@@ -105,29 +105,29 @@
                                     </th>
 
 
-                                    <!-- Reminded 1 Hour Before -->
+                                    <!-- Reminded 72 Hours Before -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>1 Hour Before</span>
-                                    </th>
-                                    <!-- Reminded 6 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>6 Hours Before</span>
-                                    </th>
-                                    <!-- Reminded 12 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>12 Hours Before</span>
-                                    </th>
-                                    <!-- Reminded 24 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>24 Hours Before</span>
+                                        <span>72 Hours Before</span>
                                     </th>
                                     <!-- Reminded 48 Hours Before -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
                                         <span>48 Hours Before</span>
                                     </th>
-                                    <!-- Reminded 72 Hours Before -->
+                                    <!-- Reminded 24 Hours Before -->
+                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
+                                        <span>24 Hours Before</span>
+                                    </th>
+                                    <!-- Reminded 12 Hours Before -->
+                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
+                                        <span>12 Hours Before</span>
+                                    </th>
+                                    <!-- Reminded 6 Hours Before -->
+                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
+                                        <span>6 Hours Before</span>
+                                    </th>
+                                    <!-- Reminded 1 Hour Before -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50 border-r border-dotted border-r-teal-300">
-                                        <span>72 Hours Before</span>
+                                        <span>1 Hour Before</span>
                                     </th>
 
 
@@ -183,16 +183,7 @@
                                     </td>
                                     <!-- Next Attempt Countdown -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <vue-countdown :time="autoBillingSchedule.next_attempt_date_milli_seconds_left" v-slot="{ days, hours, minutes, seconds }">
-
-                                            <span v-if="days > 0">{{ days }} {{ days == 1 ? 'day ' : 'days '}}</span>
-                                            <span v-if="hours > 0">{{ hours }} {{ hours == 1 ? 'hr ' : 'hrs '}}</span>
-                                            <span v-if="days == 0 && minutes > 0">{{ minutes }} {{ minutes == 1 ? 'min ' : 'mins '}}</span>
-                                            <span v-if="hours == 0 && seconds > 0">{{ seconds }} {{ seconds == 1 ? 'sec ' : 'secs '}}</span>
-
-                                            <span v-if="days == 0 && hours == 0 && minutes == 0 && seconds == 0">Ended</span>
-
-                                        </vue-countdown>
+                                        <Countdown :time="autoBillingSchedule.next_attempt_date_milli_seconds_left"></Countdown>
                                     </td>
                                     <!-- Attempts -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
@@ -209,7 +200,7 @@
                                         {{ autoBillingSchedule.total_failed_attempts == null ? '...' : autoBillingSchedule.total_failed_attempts }}
                                     </td>
                                     <!-- Created Date -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 text-left bg-teal-50 border-r border-dotted border-r-fuchsia-300">
+                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50 border-r border-dotted border-r-fuchsia-300">
                                         {{ autoBillingSchedule.created_at == null ? '...' : moment(autoBillingSchedule.created_at).format('lll') }}
                                     </td>
 
@@ -263,29 +254,29 @@
 
 
 
-                                    <!-- Reminded 1 Hour Before -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="1" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 6 Hours Before -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="6" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 12 Hours Before -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="12" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 24 Hours Before -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="24" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
+                                    <!-- Reminded 72 Hours Before -->
+                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
+                                        <AutoBillingReminderStatusBadge :hours="72" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
                                     </td>
                                     <!-- Reminded 48 Hours Before -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 bg-violet-50">
+                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
                                         <AutoBillingReminderStatusBadge :hours="48" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
                                     </td>
-                                    <!-- Reminded 72 Hours Before -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 bg-violet-50 border-r border-dotted border-r-teal-300">
-                                        <AutoBillingReminderStatusBadge :hours="72" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
+                                    <!-- Reminded 24 Hours Before -->
+                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
+                                        <AutoBillingReminderStatusBadge :hours="24" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
+                                    </td>
+                                    <!-- Reminded 12 Hours Before -->
+                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
+                                        <AutoBillingReminderStatusBadge :hours="12" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
+                                    </td>
+                                    <!-- Reminded 6 Hours Before -->
+                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
+                                        <AutoBillingReminderStatusBadge :hours="6" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
+                                    </td>
+                                    <!-- Reminded 1 Hour Before -->
+                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50 border-r border-dotted border-r-teal-300">
+                                        <AutoBillingReminderStatusBadge :hours="1" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
                                     </td>
 
 
@@ -360,13 +351,13 @@
     import AutoBillingReminderStatusBadge from './AutoBillingReminderStatusBadge.vue';
     import AutoBillingEnabledStatusBadge from './AutoBillingEnabledStatusBadge.vue';
     import Pagination from '../../../../Partials/Pagination.vue';
-    import VueCountdown from '@chenfengyuan/vue-countdown';
+    import Countdown from './../../../../Partials/Countdown.vue';
     import { defineComponent } from 'vue';
     import moment from "moment";
 
     export default defineComponent({
         components: {
-            VueCountdown, SubscriptionPlanActiveStatusBadge, AutoBillingReminderStatusBadge, AutoBillingEnabledStatusBadge, Pagination,
+            Countdown, SubscriptionPlanActiveStatusBadge, AutoBillingReminderStatusBadge, AutoBillingEnabledStatusBadge, Pagination,
             BillingTransactionStatusBadge, RatingTypeBadge, CreatedUsingAutoBillingBadge
         },
         props: {

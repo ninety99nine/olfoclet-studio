@@ -82,13 +82,70 @@ class AutoBillingSchedule extends Pivot
      *  ATTRIBUTES
      */
     protected $appends = [
-        'next_attempt_date_milli_seconds_left'
+        'next_attempt_date_milli_seconds_left',
+        'reminded_one_hour_before_milli_seconds_left', 'reminded_six_hours_before_milli_seconds_left',
+        'reminded_twelve_hours_before_milli_seconds_left', 'reminded_twenty_four_hours_before_milli_seconds_left',
+        'reminded_forty_eight_hours_milli_seconds_left', 'reminded_seventy_two_hours_before_milli_seconds_left',
     ];
 
     protected function nextAttemptDateMilliSecondsLeft(): Attribute
     {
         return Attribute::make(
             get: fn() => ($milliseconds = ($this->next_attempt_date->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0
+        );
+    }
+
+    protected function remindedOneHourBeforeMilliSecondsLeft(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return ($milliseconds = ($this->next_attempt_date->subHours(1)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
+            }
+        );
+    }
+
+    protected function remindedSixHoursBeforeMilliSecondsLeft(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return ($milliseconds = ($this->next_attempt_date->subHours(6)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
+            }
+        );
+    }
+
+    protected function remindedTwelveHoursBeforeMilliSecondsLeft(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return ($milliseconds = ($this->next_attempt_date->subHours(12)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
+            }
+        );
+    }
+
+    protected function remindedTwentyFourHoursBeforeMilliSecondsLeft(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return ($milliseconds = ($this->next_attempt_date->subHours(24)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
+            }
+        );
+    }
+
+    protected function remindedFortyEightHoursMilliSecondsLeft(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return ($milliseconds = ($this->next_attempt_date->subHours(48)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
+            }
+        );
+    }
+
+    protected function remindedSeventyTwoHoursBeforeMilliSecondsLeft(): Attribute
+    {
+        return Attribute::make(
+            get: function() {
+                return ($milliseconds = ($this->next_attempt_date->subHours(72)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
+            }
         );
     }
 }
