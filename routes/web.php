@@ -256,6 +256,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
 Route::get('/test-conversion', function() {
 
+    return now()->addHours(72)->format('Y-m-d H:i:s');
+
     $subscriptionPlans = [
         [
             "id" => 22,

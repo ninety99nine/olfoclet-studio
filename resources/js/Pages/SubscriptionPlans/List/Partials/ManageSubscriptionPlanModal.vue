@@ -331,7 +331,7 @@
                                 <!-- Successful Auto Billing Payment SMS Message -->
                                 <div class="mb-4">
                                     <div class="flex mb-1">
-                                        <jet-label for="sub-pl-successful-payment-sms-message" value="Successful Auto Billing Payment SMS Message" />
+                                        <jet-label for="sub-pl-successful-auto-payment-sms-message" value="Successful Auto Billing Payment SMS Message" />
 
                                         <el-popover :width="400">
                                             <template #reference>
@@ -386,7 +386,7 @@
                                         </el-popover>
 
                                     </div>
-                                    <jet-textarea id="sub-pl-successful-payment-sms-message" class="w-full mt-1 block" v-model="form.successful_auto_billing_payment_sms_message" />
+                                    <jet-textarea id="sub-pl-successful-auto-payment-sms-message" class="w-full mt-1 block" v-model="form.successful_auto_billing_payment_sms_message" />
                                     <jet-input-error :message="form.errors.successful_auto_billing_payment_sms_message" class="mt-2" />
                                 </div>
 
