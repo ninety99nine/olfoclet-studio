@@ -40,8 +40,6 @@ class StartCreatingBillingReports implements ShouldQueue
                       ->whereMonth('created_at', $date->month);
             }])->get();
 
-            Log::info("projects:".count($projects));
-
             /**
              *  @var Project $project
              */

@@ -9,7 +9,6 @@ use App\Jobs\AutoBilling\AutoBillingBySubscriptionPlans;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Jobs\SmsDeliveryStatus\StartSmsDeliveryStatusUpdate;
 use App\Jobs\AutoBillingReminder\NextAutoBillingBySubscriptionPlans;
-use Illuminate\Support\Facades\Log;
 
 class Kernel extends ConsoleKernel
 {
@@ -58,11 +57,8 @@ class Kernel extends ConsoleKernel
         //  If we can create Billing Reports
         if(config('app.CAN_CREATE_BILLING_REPORTS')) {
 
-            Log::info("CAN_CREATE_BILLING_REPORTS");
-
-
             //  Add this job to the queue for processing
-            $schedule->job(new StartCreatingBillingReports)->name('StartCreatingBillingReports')->everyMinute()/*->hourly()->between('00:00', '06:00')*/->withoutOverlapping();
+            $schedule->job(new StartCreatingBillingReports)->name('StartCreatingBillingReports')->hourly()->between('00:00', '06:00')->withoutOverlapping();
 
         }
 
