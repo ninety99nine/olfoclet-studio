@@ -89,6 +89,8 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     {
         try{
 
+            Log::info("CreateBillingReport() handle:");
+
             $gross_revenue = $this->project->billingTransactions()->where('is_successful', '1')
                                      ->whereMonth('created_at', $this->date->month)
                                      ->whereYear('created_at', $this->date->year)
@@ -124,7 +126,6 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
 
             $their_share = $sharable_revenue * $this->project->their_share_percentage / 100;
 
-
             $billingReport = BillingReport::create([
                 'name' => $name,
                 'costs' => $costs,
@@ -139,6 +140,8 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
                 'total_transactions' => $this->billingTransactionsCount
             ]);
 
+            Log::info("Created database record");
+
             $overviewPdfPath = $this->project->id.'/pdf_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Overview.pdf';
 
             //  Create the monthly billing report pdf file
@@ -148,10 +151,14 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
             ])->disk('public_uploads')
               ->save($overviewPdfPath);
 
+            Log::info("Created pdf");
+
             $successfulTransactionsCsvPath = $this->project->id.'/csv_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Transactions.csv';
 
             //  Create the monthly billing report transactions xml file
             (new BillingReportTransactionsExport($this->project, $this->date))->store($successfulTransactionsCsvPath, 'public_uploads');
+
+            Log::info("Created csv");
 
             $billingReport->update([
                 'overview_pdf_path' => $overviewPdfPath,
@@ -162,6 +169,8 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
 
                 //  Send Monthly Billing Report Email
                 Mail::to($emailAddress)->queue(new MonthlyBillingReport($this->project, $billingReport));
+
+                Log::info("send email:".$emailAddress);
 
             }
 

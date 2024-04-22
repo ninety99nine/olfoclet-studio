@@ -226,7 +226,7 @@ class SubscriptionRepository
             'reminded_forty_eight_hours_before_at' => null,
             'reminded_seventy_two_hours_before_at' => null,
             'subscription_plan_id' => $subscriptionPlan->id,
-            'next_attempt_date' => $autoBillingEnabled ? $nextAttemptDate : null,
+            'next_attempt_date' => $autoBillingEnabled ? $nextAttemptDate : null
         ];
 
         //  Query the existing auto billing schedule (if any)
