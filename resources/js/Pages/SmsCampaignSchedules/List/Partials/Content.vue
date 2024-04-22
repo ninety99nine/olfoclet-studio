@@ -131,16 +131,7 @@
                                     </td>
                                     <!-- Next Attempt Countdown -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <vue-countdown :time="smsCampaignSchedule.next_message_date_milli_seconds_left" v-slot="{ days, hours, minutes, seconds }">
-
-                                            <span v-if="days > 0">{{ days }} {{ days == 1 ? 'day ' : 'days '}}</span>
-                                            <span v-if="hours > 0">{{ hours }} {{ hours == 1 ? 'hr ' : 'hrs '}}</span>
-                                            <span v-if="days == 0 && minutes > 0">{{ minutes }} {{ minutes == 1 ? 'min ' : 'mins '}}</span>
-                                            <span v-if="hours == 0 && seconds > 0">{{ seconds }} {{ seconds == 1 ? 'sec ' : 'secs '}}</span>
-
-                                            <span v-if="days == 0 && hours == 0 && minutes == 0 && seconds == 0">Ended</span>
-
-                                        </vue-countdown>
+                                        <Countdown :time="smsCampaignSchedule.next_message_date_milli_seconds_left"></Countdown>
                                     </td>
                                     <!-- Attempts -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
@@ -236,13 +227,13 @@
     import SmsCampaignCanSendSmsBadge from './../../../SmsCampaigns/List/JobBatches/List/Partials/SmsCampaignCanSendSmsBadge.vue';
     import SmsCampaignStatusBadge from './../../../SmsCampaigns/List/JobBatches/List/Partials/SmsCampaignStatusBadge.vue';
     import Pagination from '../../../../Partials/Pagination.vue';
-    import VueCountdown from '@chenfengyuan/vue-countdown';
+    import Countdown from './../../../../Partials/Countdown.vue';
     import { defineComponent } from 'vue';
     import moment from "moment";
 
     export default defineComponent({
         components: {
-            SmsCampaignCanSendSmsBadge, SmsCampaignStatusBadge, Pagination, VueCountdown,
+            SmsCampaignCanSendSmsBadge, SmsCampaignStatusBadge, Pagination, Countdown,
         },
         props: {
             smsCampaignSchedulesPayload: Object
