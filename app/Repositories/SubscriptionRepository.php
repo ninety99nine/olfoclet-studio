@@ -108,7 +108,7 @@ class SubscriptionRepository
                 //  Set the message type
                 $messageType = MessageType::PaymentConfirmation;
 
-                if($createdUsingAutoBilling) {
+                if($createdUsingAutoBilling == CreatedUsingAutoBilling::YES) {
 
                     /**
                      *  Set the successful auto billing payment sms message
