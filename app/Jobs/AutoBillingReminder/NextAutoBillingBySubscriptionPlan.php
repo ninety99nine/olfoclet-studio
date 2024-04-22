@@ -134,17 +134,17 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
 
                     //  Must not have been reminded before
                     if($hours == 1) {
-                        $query->where('reminded_one_hour_before', '0');
+                        $query->whereNull('reminded_one_hour_before_at');
                     }else if($hours == 6) {
-                        $query->where('reminded_six_hours_before', '0');
+                        $query->whereNull('reminded_six_hours_before_at');
                     }else if($hours == 12) {
-                        $query->where('reminded_twelve_hours_before', '0');
+                        $query->whereNull('reminded_twelve_hours_before_at');
                     }else if($hours == 24) {
-                        $query->where('reminded_twenty_four_hours_before', '0');
+                        $query->whereNull('reminded_twenty_four_hours_before_at');
                     }else if($hours == 48) {
-                        $query->where('reminded_forty_eight_hours_before', '0');
+                        $query->whereNull('reminded_forty_eight_hours_before_at');
                     }else if($hours == 72) {
-                        $query->where('reminded_seventy_two_hours_before', '0');
+                        $query->whereNull('reminded_seventy_two_hours_before_at');
                     }
 
             })->select('subscribers.id', 'subscribers.msisdn');

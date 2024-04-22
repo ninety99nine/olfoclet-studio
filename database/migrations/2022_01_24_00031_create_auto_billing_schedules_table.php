@@ -22,12 +22,12 @@ class CreateAutoBillingSchedulesTable extends Migration
             $table->unsignedTinyInteger('attempts')->default(0);
             $table->unsignedSmallInteger('total_successful_attempts')->default(0);
             $table->unsignedSmallInteger('total_failed_attempts')->default(0);
-            $table->boolean('reminded_one_hour_before')->default(0);
-            $table->boolean('reminded_six_hours_before')->default(0);
-            $table->boolean('reminded_twelve_hours_before')->default(0);
-            $table->boolean('reminded_twenty_four_hours_before')->default(0);
-            $table->boolean('reminded_forty_eight_hours_before')->default(0);
-            $table->boolean('reminded_seventy_two_hours_before')->default(0);
+            $table->datetime('reminded_one_hour_before_at');
+            $table->datetime('reminded_six_hours_before_at');
+            $table->datetime('reminded_twelve_hours_before_at');
+            $table->datetime('reminded_twenty_four_hours_before_at');
+            $table->datetime('reminded_forty_eight_hours_before_at');
+            $table->datetime('reminded_seventy_two_hours_before_at');
             $table->foreignId('project_id');
             $table->timestamps();
 

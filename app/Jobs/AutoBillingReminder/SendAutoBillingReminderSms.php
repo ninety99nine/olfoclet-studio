@@ -133,17 +133,17 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
                 $hours = $this->autoBillingReminder->hours;
 
                 if($hours == 1) {
-                    $data = ['reminded_one_hour_before' => '1'];
+                    $data = ['reminded_one_hour_before_at' => $subscriberMessage->created_at];
                 }else if($hours == 6) {
-                    $data = ['reminded_six_hours_before' => '1'];
+                    $data = ['reminded_six_hours_before_at' => $subscriberMessage->created_at];
                 }else if($hours == 12) {
-                    $data = ['reminded_twelve_hours_before' => '1'];
+                    $data = ['reminded_twelve_hours_before_at' => $subscriberMessage->created_at];
                 }else if($hours == 24) {
-                    $data = ['reminded_twenty_four_hours_before' => '1'];
+                    $data = ['reminded_twenty_four_hours_before_at' => $subscriberMessage->created_at];
                 }else if($hours == 48) {
-                    $data = ['reminded_forty_eight_hours_before' => '1'];
+                    $data = ['reminded_forty_eight_hours_before_at' => $subscriberMessage->created_at];
                 }else if($hours == 72) {
-                    $data = ['reminded_seventy_two_hours_before' => '1'];
+                    $data = ['reminded_seventy_two_hours_before_at' => $subscriberMessage->created_at];
                 }
 
                 DB::table('auto_billing_schedules')

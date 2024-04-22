@@ -35,21 +35,21 @@ class AutoBillingSchedule extends Pivot
 
     protected $casts = [
         'next_attempt_date' => 'datetime',
-        'reminded_one_hour_before' => 'boolean',
-        'reminded_six_hours_before' => 'boolean',
-        'reminded_twelve_hours_before' => 'boolean',
-        'reminded_twenty_four_hours_before' => 'boolean',
-        'reminded_forty_eight_hours_before' => 'boolean',
-        'reminded_seventy_two_hours_before' => 'boolean',
+        'reminded_one_hour_before_at' => 'datetime',
+        'reminded_six_hours_before_at' => 'datetime',
+        'reminded_twelve_hours_before_at' => 'datetime',
+        'reminded_twenty_four_hours_before_at' => 'datetime',
+        'reminded_forty_eight_hours_before_at' => 'datetime',
+        'reminded_seventy_two_hours_before_at' => 'datetime',
     ];
 
     const VISIBLE_COLUMNS = [
         'id', 'subscriber_id', 'subscription_plan_id', 'auto_billing_enabled', 'next_attempt_date', 'attempts',
         'total_successful_attempts', 'total_failed_attempts',
 
-        'reminded_one_hour_before', 'reminded_six_hours_before', 'reminded_twelve_hours_before',
-        'reminded_twenty_four_hours_before', 'reminded_forty_eight_hours_before',
-        'reminded_seventy_two_hours_before',
+        'reminded_one_hour_before_at', 'reminded_six_hours_before_at', 'reminded_twelve_hours_before_at',
+        'reminded_twenty_four_hours_before_at', 'reminded_forty_eight_hours_before_at',
+        'reminded_seventy_two_hours_before_at',
 
         'project_id'
     ];
