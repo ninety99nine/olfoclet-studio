@@ -60,6 +60,7 @@ class Kernel extends ConsoleKernel
 
             Log::info("CAN_CREATE_BILLING_REPORTS");
 
+
             //  Add this job to the queue for processing
             $schedule->job(new StartCreatingBillingReports)->name('StartCreatingBillingReports')->everyMinute()/*->hourly()->between('00:00', '06:00')*/->withoutOverlapping();
 
