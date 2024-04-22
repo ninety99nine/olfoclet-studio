@@ -61,7 +61,7 @@
                                     </th>
                                     <!-- Attempts -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Attempts</span>
+                                        <span>Total Attempts Before Disabling</span>
                                     </th>
                                     <!-- Total Successful Attempts -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
