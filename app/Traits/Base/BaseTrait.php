@@ -19,7 +19,7 @@ trait BaseTrait
 
         /**
          *  The copy method essentially creates a new Carbon object which you can
-         *  apply then the changes to without affecting the original $date variable
+         *  apply the changes to without affecting the original $date variable
          *
          *  Reference: https://stackoverflow.com/questions/34413877/php-carbon-class-changing-my-original-variable-value
          */

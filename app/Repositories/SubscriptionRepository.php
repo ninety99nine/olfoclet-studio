@@ -74,8 +74,26 @@ class SubscriptionRepository
      */
     public function createProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO, BillingTransaction|null $billingTransaction = null): Subscription
     {
-        $startAt = Carbon::now();
-        $endAt = $this->calculateEndDate($subscriptionPlan);
+        /**
+         *  @var Subscription $subscriptionWithFurthestEndAt
+         */
+        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
+                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+
+        //  If we have an existing subscription of the same subscription plan
+        if($subscriptionWithFurthestEndAt) {
+
+            //  Set the start at datetime to the end datetime of the existing subscription
+            $startAt = $subscriptionWithFurthestEndAt->end_at;
+
+        }else{
+
+            //  Set the current datetime
+            $startAt = Carbon::now();
+
+        }
+
+        $endAt = $this->calculateEndDate($startAt, $subscriptionPlan);
 
         //  Create a new subscription
         $subscription = Subscription::create([
@@ -87,12 +105,6 @@ class SubscriptionRepository
             'end_at' => $endAt,
         ]);
 
-        /**
-         *  @var Subscription $subscriptionWithFurthestEndAt
-         */
-        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
-                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
-
         if($billingTransaction) {
 
             $billingTransaction->update([
@@ -100,7 +112,7 @@ class SubscriptionRepository
             ]);
 
             //  Update the auto billing schedule
-            $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt, $createdUsingAutoBilling);
+            $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscription, $createdUsingAutoBilling);
 
             //  If the project has the SMS credentials
             if( $this->project->hasSmsCredentials() ) {
@@ -115,7 +127,7 @@ class SubscriptionRepository
                      *
                      *  @var string $messageContent
                      */
-                    $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription, $subscriptionWithFurthestEndAt);
+                    $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription);
 
                 }else{
 
@@ -124,7 +136,7 @@ class SubscriptionRepository
                      *
                      *  @var string $messageContent
                      */
-                    $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription, $subscriptionWithFurthestEndAt);
+                    $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription);
 
                 }
 
@@ -153,8 +165,26 @@ class SubscriptionRepository
             throw new ModelNotFoundException();
         }
 
-        $startAt = Carbon::now();
-        $endAt = $this->calculateEndDate($subscriptionPlan);
+        /**
+         *  @var Subscription $subscriptionWithFurthestEndAt
+         */
+        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
+                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+
+        //  If we have an existing subscription of the same subscription plan
+        if($subscriptionWithFurthestEndAt) {
+
+            //  Set the start at datetime to the end datetime of the existing subscription
+            $startAt = $subscriptionWithFurthestEndAt->end_at;
+
+        }else{
+
+            //  Set the current datetime
+            $startAt = Carbon::now();
+
+        }
+
+        $endAt = $this->calculateEndDate($startAt, $subscriptionPlan);
 
         //  Update existing subscription
         $status = $this->subscription->update([
@@ -168,11 +198,10 @@ class SubscriptionRepository
         /**
          *  @var Subscription $subscriptionWithFurthestEndAt
          */
-        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
-                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+        $subscription = $this->subscription->fresh();
 
         //  Update the auto billing schedule
-        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscriptionWithFurthestEndAt);
+        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscription);
 
         return $status;
     }
@@ -325,26 +354,35 @@ class SubscriptionRepository
     /**
      *  Calculate the end date based on the subscription plan frequency and duration.
      *
+     *  @param Carbon $startAt The start at datetime
      *  @param SubscriptionPlan $subscriptionPlan The subscription plan to calculate the end date for.
      *  @return Carbon The calculated end date.
      */
-    protected function calculateEndDate(SubscriptionPlan $subscriptionPlan): Carbon
+    protected function calculateEndDate($startAt, SubscriptionPlan $subscriptionPlan): Carbon
     {
+        /**
+         *  The copy method essentially creates a new Carbon object which you can
+         *  apply the changes to without affecting the original $date variable.
+         *
+         *  Reference: https://stackoverflow.com/questions/34413877/php-carbon-class-changing-my-original-variable-value
+         */
+        $date = $startAt->copy();
+
         switch ($subscriptionPlan->frequency) {
             case 'Years':
-                return Carbon::now()->addYears($subscriptionPlan->duration);
+                return $date->addYears($subscriptionPlan->duration);
             case 'Months':
-                return Carbon::now()->addMonths($subscriptionPlan->duration);
+                return $date->addMonths($subscriptionPlan->duration);
             case 'Weeks':
-                return Carbon::now()->addWeeks($subscriptionPlan->duration);
+                return $date->addWeeks($subscriptionPlan->duration);
             case 'Days':
-                return Carbon::now()->addDays($subscriptionPlan->duration);
+                return $date->addDays($subscriptionPlan->duration);
             case 'Hours':
-                return Carbon::now()->addHours($subscriptionPlan->duration);
+                return $date->addHours($subscriptionPlan->duration);
             case 'Minutes':
-                return Carbon::now()->addMinutes($subscriptionPlan->duration);
+                return $date->addMinutes($subscriptionPlan->duration);
             default:
-                return Carbon::now()->addDay();
+                return $date->addDay();
         }
     }
 }
