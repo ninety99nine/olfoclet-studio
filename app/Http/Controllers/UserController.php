@@ -88,7 +88,25 @@ class UserController extends Controller
             'permissions' => ['required', 'array'],
             'name' => ['required', 'string', 'min:3', 'max:50'],
             'permissions.*' => ['string', Rule::in(Project::PERMISSIONS)],
+        ],
+        [
+            //  Custom Messages
+        ],
+        [
+            //  Custom attributes
+            'permissions.*' => 'permission'
         ])->validate();
+
+        //  Update user
+        $user->update($data);
+
+        $projectAssociation = DB::table('user_projects')->where('user_id', $user->id)->where('project_id', $project->id);
+
+        //  Update the user association with this project
+        $projectAssociation->update([
+            'permissions' => json_encode($data['permissions']),
+            'updated_at' => now(),
+        ]);
 
         return redirect()->back()->with('message', 'Updated Successfully');
     }

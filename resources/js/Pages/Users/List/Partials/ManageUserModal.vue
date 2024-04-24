@@ -86,11 +86,16 @@
                         </div>
 
                         <div class="grid grid-cols-2 gap-6">
-                            <div v-for="(availablePermission, index) in availablePermissions" :key="index" class="flex items-center">
-                                <input v-model="form.permissions" :value="availablePermission" :name="availablePermission" type="checkbox" :checked="form.permissions.includes(availablePermission)" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
-                                <label :for="availablePermission" class="ml-3 block text-sm font-medium text-gray-700">{{ availablePermission }}</label>
+                            <div v-for="(availablePermission, index) in availablePermissions" :key="index">
+                                <div class="flex items-center">
+                                    <input v-model="form.permissions" :value="availablePermission" :name="availablePermission" type="checkbox" :checked="form.permissions.includes(availablePermission)" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                                    <label :for="availablePermission" class="ml-3 block text-sm font-medium text-gray-700">{{ availablePermission }}</label>
+                                </div>
+                                <jet-input-error :message="form.errors['permissions.'+index]" class="mt-2" />
                             </div>
                         </div>
+
+                        {{ form.errors }}
 
                         <!-- Note -->
                         <el-divider content-position="left" class="mt-10 mb-10"></el-divider>
