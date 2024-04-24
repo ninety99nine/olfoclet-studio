@@ -13,6 +13,7 @@ use App\Http\Controllers\SubscriberController;
 use App\Http\Controllers\SmsCampaignController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\MessageController;
+use App\Http\Controllers\ServerController;
 use App\Http\Controllers\SmsCampaignScheduleController;
 use App\Http\Controllers\SubscriberMessageController;
 use App\Http\Controllers\TopicController;
@@ -57,6 +58,13 @@ use Inertia\Inertia;
 Route::redirect('/', '/login', 301);
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
+
+    Route::prefix('/server')->group(function () {
+
+        //  Server Commands
+        Route::get('/fix', [ServerController::class, 'fixServer'])->name('fix.server');
+
+    });
 
     Route::prefix('/projects')->group(function () {
 

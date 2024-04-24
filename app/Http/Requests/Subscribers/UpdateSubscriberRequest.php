@@ -19,7 +19,7 @@ class UpdateSubscriberRequest extends FormRequest
 
                 })->ignore(request()->route('subscriber'))
             ],
-            'metadata' => ['sometimes', 'nullable', 'array']
+            'metadata' => ['sometimes', 'nullable', 'json']
         ];
     }
 

@@ -12,6 +12,10 @@ use App\Jobs\AutoBillingReminder\NextAutoBillingBySubscriptionPlans;
 
 class Kernel extends ConsoleKernel
 {
+    protected $commands = [
+        Commands\HandleServerErrors::class
+    ];
+
     /**
      * Define the application's command schedule.
      *

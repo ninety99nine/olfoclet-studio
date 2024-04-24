@@ -33,35 +33,27 @@ class TopicController extends Controller
         $pageNumber = ($number = (int) request()->input('page')) > 0 ? $number : 1;
         $perPage = ($number = (int) request()->input('per_page')) > 0 ? $number : 15;
 
-        /// Set the cache name
-        $cacheName = "projects-$project->id-topics-$topic->id-$type-$searchWord-$perPage-$pageNumber";
+        if( $type == 'children') {
 
-        /// Retrieve the result from the cache or make a request and cache the response for one day
-        $response = Cache::remember($cacheName, $time, function () use($topic, $type, $searchWord, $perPage) {
+            $response = $topic->children()->withCount('children')->search($searchWord)->latest()->paginate($perPage);
 
-            if( $type == 'children') {
+        }else if( $type == 'descendants') {
 
-                return $topic->children()->withCount('children')->search($searchWord)->latest()->paginate($perPage);
+            $response = $topic->descendants()->withCount('descendants')->search($searchWord)->latest()->paginate($perPage);
 
-            }else if( $type == 'descendants') {
+        }else if( $type == 'ancestors') {
 
-                return $topic->descendants()->withCount('descendants')->search($searchWord)->latest()->paginate($perPage);
+            $response = $topic->ancestors()->withCount('ancestors')->search($searchWord)->latest()->paginate($perPage);
 
-            }else if( $type == 'ancestors') {
+        }else if( $type == 'parent') {
 
-                return $topic->ancestors()->withCount('ancestors')->search($searchWord)->latest()->paginate($perPage);
+            $response = $topic->parent;
 
-            }else if( $type == 'parent') {
+        }else{
 
-                return $topic->parent;
+            $response = $topic;
 
-            }else{
-
-                return $topic;
-
-            }
-
-        });
+        }
 
         if($response instanceOf Topic) {
 
