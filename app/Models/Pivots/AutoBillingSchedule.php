@@ -91,7 +91,10 @@ class AutoBillingSchedule extends Pivot
     protected function nextAttemptDateMilliSecondsLeft(): Attribute
     {
         return Attribute::make(
-            get: fn() => ($milliseconds = ($this->next_attempt_date->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0
+            get: function() {
+                if(is_null($this->next_attempt_date)) return null;
+                return ($milliseconds = ($this->next_attempt_date->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
+            }
         );
     }
 
@@ -99,6 +102,7 @@ class AutoBillingSchedule extends Pivot
     {
         return Attribute::make(
             get: function() {
+                if(is_null($this->next_attempt_date)) return null;
                 return ($milliseconds = ($this->next_attempt_date->subHours(1)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
             }
         );
@@ -108,6 +112,7 @@ class AutoBillingSchedule extends Pivot
     {
         return Attribute::make(
             get: function() {
+                if(is_null($this->next_attempt_date)) return null;
                 return ($milliseconds = ($this->next_attempt_date->subHours(6)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
             }
         );
@@ -117,6 +122,7 @@ class AutoBillingSchedule extends Pivot
     {
         return Attribute::make(
             get: function() {
+                if(is_null($this->next_attempt_date)) return null;
                 return ($milliseconds = ($this->next_attempt_date->subHours(12)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
             }
         );
@@ -126,6 +132,7 @@ class AutoBillingSchedule extends Pivot
     {
         return Attribute::make(
             get: function() {
+                if(is_null($this->next_attempt_date)) return null;
                 return ($milliseconds = ($this->next_attempt_date->subHours(24)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
             }
         );
@@ -135,6 +142,7 @@ class AutoBillingSchedule extends Pivot
     {
         return Attribute::make(
             get: function() {
+                if(is_null($this->next_attempt_date)) return null;
                 return ($milliseconds = ($this->next_attempt_date->subHours(48)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
             }
         );
@@ -144,6 +152,7 @@ class AutoBillingSchedule extends Pivot
     {
         return Attribute::make(
             get: function() {
+                if(is_null($this->next_attempt_date)) return null;
                 return ($milliseconds = ($this->next_attempt_date->subHours(72)->timestamp - now()->timestamp) * 1000) >= 0 ? $milliseconds : 0;
             }
         );

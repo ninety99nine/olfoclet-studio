@@ -183,7 +183,8 @@
                                     </td>
                                     <!-- Next Attempt Countdown -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <Countdown :time="autoBillingSchedule.next_attempt_date_milli_seconds_left"></Countdown>
+                                        <span v-if="autoBillingSchedule.next_attempt_date_milli_seconds_left == null">...</span>
+                                        <Countdown v-else :time="autoBillingSchedule.next_attempt_date_milli_seconds_left"></Countdown>
                                     </td>
                                     <!-- Attempts -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">

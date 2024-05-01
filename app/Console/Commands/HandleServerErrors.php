@@ -12,14 +12,16 @@ class HandleServerErrors extends Command
 
     public function handle()
     {
-        // Clearing views, routes, configuration, and cache
-        $this->call('view:clear');
-        $this->call('route:clear');
+        // Clearing configuration, routes, views, and cache
         $this->call('config:clear');
+        $this->call('route:clear');
+        $this->call('view:clear');
         $this->call('cache:clear');
 
-        // Additional commands to consider based on common Laravel optimization practices
-        $this->call('config:cache'); // Cache configuration for improved performance
-        $this->call('event:cache'); // Cache event listeners for faster event handling
+        // Caching configuration, routes, views, and events
+        $this->call('config:cache');    // Cache configuration for improved performance
+        $this->call('route:cache');     // Cache route definitions for faster route resolution
+        $this->call('view:cache');      // Cache compiled Blade views for faster view rendering
+        $this->call('event:cache');     // Cache event listeners for faster event handling
     }
 }

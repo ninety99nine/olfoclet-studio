@@ -1,0 +1,1 @@
+import{o,c as t,w as s,u as a,j as c,a as e}from"./app-cc174bfa.js";const r=e("div",{class:"flex items-center"},[e("img",{src:"/images/logo-bold.png",alt:"Logo",class:"w-40"}),e("span",{style:{color:"#1b64f1","font-weight":"400"}},"Studio")],-1),f={__name:"AuthenticationCardLogo",setup(n){return(i,_)=>(o(),t(a(c),{href:"/"},{default:s(()=>[r]),_:1}))}};export{f as _};
