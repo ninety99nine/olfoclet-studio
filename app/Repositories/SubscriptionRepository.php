@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use App\Enums\CreatedUsingAutoBilling;
 use App\Enums\MessageType;
 use App\Models\BillingTransaction;
+use App\Models\Pivots\AutoBillingSchedule;
 use App\Services\SmsService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -267,9 +268,7 @@ class SubscriptionRepository
         //  If the auto billing schedule exists
         if( $existingAutoBillingSchedule ) {
 
-            $autoBillingSchedule['total_successful_attempts'] =
-                ($createdUsingAutoBilling == CreatedUsingAutoBilling::YES)
-                    ? ($existingAutoBillingSchedule->total_successful_attempts + 1) : $existingAutoBillingSchedule->total_successful_attempts;
+            $autoBillingSchedule['total_successful_attempts'] = $existingAutoBillingSchedule->total_successful_attempts + 1;
 
             //  Update existing auto billing schedule
             DB::table('auto_billing_schedules')->where([
@@ -298,6 +297,15 @@ class SubscriptionRepository
      */
     public function cancelProjectSubscription(): bool
     {
+        //  Update any existing auto billing schedule matching this subscription plan
+        DB::table('auto_billing_schedules')->where([
+            'subscriber_id' => $this->subscription->subscriber_id,
+            'subscription_plan_id' => $this->subscription->subscription_plan_id
+        ])->update([
+            'next_attempt_date' => null,
+            'auto_billing_enabled' => false
+        ]);
+
         return $this->project->subscriptions()->active()->where('subscriptions.id', $this->subscription->id)->update([
             'cancelled_at' => Carbon::now()
         ]);
@@ -324,6 +332,14 @@ class SubscriptionRepository
      */
     public function cancelProjectSubscriptionsByMsisdn(string $msisdn): bool
     {
+        //  Update any existing auto billing schedule matching this subscriber MSISDN
+        AutoBillingSchedule::whereHas('subscriber', function (Builder $query) use ($msisdn) {
+            $query->where('msisdn', $msisdn);
+        })->update([
+            'next_attempt_date' => null,
+            'auto_billing_enabled' => false
+        ]);
+
         return $this->project->subscriptions()->active()->whereHas('subscriber', function (Builder $query) use ($msisdn) {
 
             $query->where('msisdn', $msisdn);
