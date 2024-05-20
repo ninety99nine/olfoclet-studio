@@ -302,8 +302,15 @@ class SubscriptionRepository
             'subscriber_id' => $this->subscription->subscriber_id,
             'subscription_plan_id' => $this->subscription->subscription_plan_id
         ])->update([
+            'attempts' => 0,
             'next_attempt_date' => null,
-            'auto_billing_enabled' => false
+            'auto_billing_enabled' => false,
+            'reminded_one_hour_before_at' => null,
+            'reminded_six_hours_before_at' => null,
+            'reminded_twelve_hours_before_at' => null,
+            'reminded_twenty_four_hours_before_at' => null,
+            'reminded_forty_eight_hours_before_at' => null,
+            'reminded_seventy_two_hours_before_at' => null,
         ]);
 
         return $this->project->subscriptions()->active()->where('subscriptions.id', $this->subscription->id)->update([
@@ -336,8 +343,15 @@ class SubscriptionRepository
         AutoBillingSchedule::whereHas('subscriber', function (Builder $query) use ($msisdn) {
             $query->where('msisdn', $msisdn);
         })->update([
+            'attempts' => 0,
             'next_attempt_date' => null,
-            'auto_billing_enabled' => false
+            'auto_billing_enabled' => false,
+            'reminded_one_hour_before_at' => null,
+            'reminded_six_hours_before_at' => null,
+            'reminded_twelve_hours_before_at' => null,
+            'reminded_twenty_four_hours_before_at' => null,
+            'reminded_forty_eight_hours_before_at' => null,
+            'reminded_seventy_two_hours_before_at' => null,
         ]);
 
         return $this->project->subscriptions()->active()->whereHas('subscriber', function (Builder $query) use ($msisdn) {
