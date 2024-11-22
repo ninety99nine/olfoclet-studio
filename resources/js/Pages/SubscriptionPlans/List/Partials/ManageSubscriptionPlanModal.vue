@@ -784,9 +784,7 @@
                         };
                     }else if(data.can_auto_bill == false) {
                         delete data.next_auto_billing_reminder_sms_message;
-                        delete data.billing_purchase_category_code;
                         delete data.auto_billing_reminder_ids;
-                        delete data.billing_product_id;
                         return data;
                     }else {
                         return data;
@@ -884,8 +882,8 @@
                     price: this.hasSubscriptionPlan ? ((this.subscriptionPlan.price ?? {}).amount_without_currency) : null,
                     max_auto_billing_attempts: this.hasSubscriptionPlan ? this.subscriptionPlan.max_auto_billing_attempts : 3,
                     billing_product_id: this.hasSubscriptionPlan ? this.subscriptionPlan.billing_product_id : 'Product 123',
+                    billing_purchase_category_code: this.hasSubscriptionPlan ? this.subscriptionPlan.billing_purchase_category_code : '',
                     duration: this.hasSubscriptionPlan ? (this.subscriptionPlan.is_folder ? null : this.subscriptionPlan.duration.toString()) : '3',
-                    billing_purchase_category_code: this.hasSubscriptionPlan ? this.subscriptionPlan.billing_purchase_category_code : 'Daily_autorenew_pack',
                     auto_billing_reminder_ids: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_reminders.map((autoBillingReminder) => autoBillingReminder.id) : [],
                     insufficient_funds_message: this.hasSubscriptionPlan ? this.subscriptionPlan.insufficient_funds_message : 'You do not have enough funds to complete this transaction',
                     auto_billing_disabled_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_disabled_sms_message : 'You have been successfully unsubscribed from {{ subscriptionPlanName }}. Dial *xxx# to subscribe.',
