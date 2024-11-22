@@ -787,6 +787,8 @@
                         delete data.auto_billing_reminder_ids;
                         return data;
                     }else {
+                        if(data.billing_purchase_category_code.trim() == '') delete data.billing_purchase_category_code;
+                        if(data.billing_product_id.trim() == '') delete data.billing_product_id;
                         return data;
                     }
                 }).post(route('create.subscription.plan', { project: route().params.project }), options);
