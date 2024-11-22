@@ -92,6 +92,7 @@ class ProjectController extends Controller
             'settings.sms_sender_number' => [$requiredIfCanSendMessages, 'nullable', 'string', 'starts_with:'.config('app.SMS_NUMBER_EXTENSION', '267'), 'regex:/^[0-9]+$/', 'size:11'],
             'settings.auto_billing_client_id' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
             'settings.auto_billing_client_secret' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
+            'settings.auto_billing_on_behalf_of' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
         ], [
 
             //  Messages

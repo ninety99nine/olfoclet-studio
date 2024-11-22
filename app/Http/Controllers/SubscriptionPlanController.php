@@ -119,8 +119,14 @@ class SubscriptionPlanController extends Controller
         //  Get the subscription plan auto billing disabled sms message
         $autoBillingDisabledSmsMessage = $request->input('auto_billing_disabled_sms_message');
 
+        //  Get the subscription plan auto billing product ID
+        $billingProductId = $request->input('billing_product_id');
+
+        //  Get the subscription plan auto billing purchase category code
+        $billingPurchaseCategoryCode = $request->input('billing_purchase_category_code');
+
         // Create a new subscription plan using the repository
-        $this->subscriptionPlanRepository->createProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $successfulAutoBillingPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingDisabledSmsMessage, $autoBillingReminderIds, $parentId);
+        $this->subscriptionPlanRepository->createProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $billingProductId, $billingPurchaseCategoryCode, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $successfulAutoBillingPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingDisabledSmsMessage, $autoBillingReminderIds, $parentId);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
@@ -175,8 +181,14 @@ class SubscriptionPlanController extends Controller
         //  Get the subscription plan auto billing disabled sms message
         $autoBillingDisabledSmsMessage = $request->input('auto_billing_disabled_sms_message');
 
+        //  Get the subscription plan auto billing product ID
+        $billingProductId = $request->input('billing_product_id');
+
+        //  Get the subscription plan auto billing purchase category code
+        $billingPurchaseCategoryCode = $request->input('billing_purchase_category_code');
+
         // Update existing subscription plan using the repository
-        $this->subscriptionPlanRepository->updateProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $successfulAutoBillingPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingDisabledSmsMessage, $autoBillingReminderIds);
+        $this->subscriptionPlanRepository->updateProjectSubscriptionPlan($name, $description, $active, $isFolder, $price, $duration, $frequency, $tags, $canAutoBill, $billingProductId, $billingPurchaseCategoryCode, $maxAutoBillingAttempts, $insufficientFundsMessage, $successfulPaymentSmsMessage, $successfulAutoBillingPaymentSmsMessage, $nextAutoBillingReminderSmsMessage, $autoBillingDisabledSmsMessage, $autoBillingReminderIds);
 
         return redirect()->back()->with('message', 'Updated Successfully');
     }

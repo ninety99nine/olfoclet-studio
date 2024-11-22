@@ -23,6 +23,8 @@ class CreateSubscriptionPlansTable extends Migration
             $table->unsignedInteger('duration')->nullable();
             $table->decimal('price', 10, 2)->nullable();
             $table->json('tags')->nullable();
+            $table->string('billing_product_id', 500)->nullable();
+            $table->string('billing_purchase_category_code', 500)->nullable();
             $table->boolean('can_auto_bill')->default(false);
             $table->unsignedTinyInteger('max_auto_billing_attempts')->default(1);
             $table->string('insufficient_funds_message', 500)->nullable();

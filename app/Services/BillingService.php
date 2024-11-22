@@ -33,6 +33,10 @@ class BillingService
         $msisdn = $subscriber->msisdn;
         $amount = $subscriptionPlan->price->amount;
         $description = $subscriptionPlan->description;
+        $onBehalfOf = $project->settings['billing_name'];
+        $productId = $subscriptionPlan->billing_product_id;
+        $purchaseCategoryCode = $subscriptionPlan->billing_purchase_category_code;
+
         $clientId = $project->settings['auto_billing_client_id'];
         $clientSecret = $project->settings['auto_billing_client_secret'];
 
@@ -235,12 +239,14 @@ class BillingService
                                 $failureType = BillingTransactionFailureType::UsageConsumptionRetrievalFailed;
                                 $failureReason = $response['body']['description'];
 
-                                if(isset($response['body']['message']) && isset($response['body']['message'])) {
+                                if(isset($response['body']['message']) && isset($response['body']['description'])) {
                                     $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
                                 }else if(isset($response['body']['message'])) {
                                     $failureReason = trim($response['body']['message']);
                                 }else if(isset($response['body']['description'])) {
                                     $failureReason = trim($response['body']['description']);
+                                }else{
+                                    $failureReason = json_encode($response['body']);
                                 }
 
                             }
@@ -321,7 +327,7 @@ class BillingService
                              *      ]
                              *  ]
                              */
-                            $response = self::requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $description, $accessToken);
+                            $response = self::requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken);
 
                             if($status = $response['status']) {
 
@@ -336,7 +342,7 @@ class BillingService
                                     if(isset($response['body']['requestError']['serviceException'])) $failureReason = $response['body']['requestError']['serviceException']['text'];
                                 }
 
-                                if(isset($response['body']['message'])) {
+                                if(!isset($failureReason) && isset($response['body']['message'])) {
                                     $failureReason = $response['body']['message'];
                                 }
 
@@ -359,12 +365,14 @@ class BillingService
 
                     $failureType = BillingTransactionFailureType::ProductInventoryRetrievalFailed;
 
-                    if(isset($response['body']['message']) && isset($response['body']['message'])) {
+                    if(isset($response['body']['message']) && isset($response['body']['description'])) {
                         $failureReason = trim($response['body']['message'] ."\n". $response['body']['description']);
                     }else if(isset($response['body']['message'])) {
                         $failureReason = trim($response['body']['message']);
                     }else if(isset($response['body']['description'])) {
                         $failureReason = trim($response['body']['description']);
+                    }else{
+                        $failureReason = json_encode($response['body']);
                     }
 
                 }
@@ -453,7 +461,7 @@ class BillingService
 
                 $response = $e->getResponse();
 
-            } catch (\GuzzleHttp\Exception\ConnectException $e) {
+            } catch (\Throwable $e) {
 
                 return [
                     'status' => false,
@@ -563,7 +571,7 @@ class BillingService
 
             $response = $e->getResponse();
 
-        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+        } catch (\Throwable $e) {
 
             return [
                 'status' => false,
@@ -669,7 +677,7 @@ class BillingService
 
             $response = $e->getResponse();
 
-        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+        } catch (\Throwable $e) {
 
             return [
                 'status' => false,
@@ -794,17 +802,25 @@ class BillingService
      *  @param BillingTransaction $billingTransaction - The billing transaction Model
      *  @param string $msisdn - The MSISDN
      *  @param string $amount - The amount to be billed e.g 10.00
+     *  @param string $onBehalfOf - Entity name to allow aggregator or acquiring partners to specify the actual payee
+     *  @param string $productId - Combines with the onBehalfOf to uniquely identify the product being purchased
+     *  @param string $purchaseCategoryCode - A category defining the content type. (This parameter MUST be filled with values validated by AAS integration team)
      *  @param string $description - The description of the transaction
      *  @param string $accessToken - The access token
      *
      *  @return array
      */
-    public static function requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $description, $accessToken): array
+    public static function requestAirtimeBillingDeductFee($billingTransaction, $msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken): array
     {
         try {
 
             //  Set the request endpoint
             $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/payment/v1/tel%3A%2B'.$msisdn.'/transactions/amount';
+
+            $chargingMetaData = [];
+            if(!empty($productId)) $chargingMetaData['productId'] = $productId;
+            if(!empty($onBehalfOf)) $chargingMetaData['onBehalfOf'] = $onBehalfOf;
+            if(!empty($purchaseCategoryCode)) $chargingMetaData['purchaseCategoryCode'] = $purchaseCategoryCode;
 
             //  Set the request options
             $options = [
@@ -817,18 +833,14 @@ class BillingService
                     'amountTransaction' => [
                         'endUserId' => 'tel:+'.$msisdn,
                         'paymentAmount' => [
-                        'chargingInformation' => [
-                            'amount' => (float) $amount,
-                            'currency' => config('app.CURRENCY'),
-                            'description' => [
-                            0 => $description,
+                            'chargingInformation' => [
+                                'amount' => (float) $amount,
+                                'currency' => config('app.CURRENCY'),
+                                'description' => [
+                                    0 => $description,
+                                ],
                             ],
-                        ],
-                        'chargingMetaData' => [
-                            'productId' => (isset($product_id) && !empty($product_id)) ? $product_id : null,
-                            'serviceId' => (isset($service_id) && !empty($service_id)) ? $service_id : null,
-                            'purchaseCategoryCode' => (isset($purchase_category_code) && !empty($purchase_category_code)) ? $purchase_category_code : null,
-                        ],
+                            'chargingMetaData' => $chargingMetaData
                         ],
                         'clientCorrelator' => $billingTransaction->id.'-'.now(),   //	'unique-technical-id',
                         'referenceCode' => 'referenceCode-'.now(),                 //	'Service_provider_payment_reference',
@@ -848,7 +860,7 @@ class BillingService
 
             $response = $e->getResponse();
 
-        } catch (\GuzzleHttp\Exception\ConnectException $e) {
+        } catch (\Throwable $e) {
 
             return [
                 'status' => false,

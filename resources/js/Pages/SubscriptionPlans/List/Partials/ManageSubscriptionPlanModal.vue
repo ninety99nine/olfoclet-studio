@@ -319,6 +319,49 @@
                                 <jet-input-error :message="form.errors.successful_payment_sms_message" class="mt-2" />
                             </div>
 
+                            <!-- Billing Product ID -->
+                            <div class="mb-4">
+                                <div class="flex mb-1">
+                                    <jet-label for="billing_product_id" value="Billing Product ID (AAS)" />
+                                    <el-popover :width="400">
+                                        <template #reference>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                            </svg>
+                                        </template>
+                                        <template #default>
+                                            <span class="break-normal">
+                                                This is the subscription plan identifier used by the Mobile Network to distiguish between transactions based on the product being purchased. Give a unique name that will distinguish this subscription plan as a product
+                                            </span>
+                                        </template>
+                                    </el-popover>
+                                </div>
+                                <jet-input id="billing_product_id" type="text" class="w-full mt-1 block" v-model="form.billing_product_id" placeholder="Product 123"/>
+                                <jet-input-error :message="form.errors.billing_product_id" class="mt-2" />
+                            </div>
+
+                            <!-- Billing Purchase Category Code -->
+                            <div class="mb-4">
+
+                                <div class="flex mb-1">
+                                    <jet-label for="billing_purchase_category_code" value="Billing Purchase Category Code (AAS)" />
+                                    <el-popover :width="400">
+                                        <template #reference>
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+                                            </svg>
+                                        </template>
+                                        <template #default>
+                                            <span class="break-normal">
+                                                This is the subscription plan category used by the Mobile Network to distiguish between transactions. This parameter MUST be filled with values validated by AAS integration team
+                                            </span>
+                                        </template>
+                                    </el-popover>
+                                </div>
+                                <jet-input id="billing_purchase_category_code" type="text" class="w-full mt-1 block" v-model="form.billing_purchase_category_code" placeholder="Product 123"/>
+                                <jet-input-error :message="form.errors.billing_purchase_category_code" class="mt-2" />
+                            </div>
+
                             <!-- Auto Bill -->
                             <div class="mb-4">
                                 <span class="text-sm text-gray-500">Can Auto Bill</span>
@@ -741,7 +784,9 @@
                         };
                     }else if(data.can_auto_bill == false) {
                         delete data.next_auto_billing_reminder_sms_message;
+                        delete data.billing_purchase_category_code;
                         delete data.auto_billing_reminder_ids;
+                        delete data.billing_product_id;
                         return data;
                     }else {
                         return data;
@@ -838,7 +883,9 @@
                     can_auto_bill: this.hasSubscriptionPlan ? this.subscriptionPlan.can_auto_bill : false,
                     price: this.hasSubscriptionPlan ? ((this.subscriptionPlan.price ?? {}).amount_without_currency) : null,
                     max_auto_billing_attempts: this.hasSubscriptionPlan ? this.subscriptionPlan.max_auto_billing_attempts : 3,
+                    billing_product_id: this.hasSubscriptionPlan ? this.subscriptionPlan.billing_product_id : 'Product 123',
                     duration: this.hasSubscriptionPlan ? (this.subscriptionPlan.is_folder ? null : this.subscriptionPlan.duration.toString()) : '3',
+                    billing_purchase_category_code: this.hasSubscriptionPlan ? this.subscriptionPlan.billing_purchase_category_code : 'Daily_autorenew_pack',
                     auto_billing_reminder_ids: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_reminders.map((autoBillingReminder) => autoBillingReminder.id) : [],
                     insufficient_funds_message: this.hasSubscriptionPlan ? this.subscriptionPlan.insufficient_funds_message : 'You do not have enough funds to complete this transaction',
                     auto_billing_disabled_sms_message: this.hasSubscriptionPlan ? this.subscriptionPlan.auto_billing_disabled_sms_message : 'You have been successfully unsubscribed from {{ subscriptionPlanName }}. Dial *xxx# to subscribe.',

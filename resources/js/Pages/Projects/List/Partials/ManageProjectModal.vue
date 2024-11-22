@@ -174,6 +174,13 @@
                                 </span>
                             </div>
 
+                            <div class="col-span-12">
+                                <!-- Billing Name (onBehalfOf) -->
+                                <jet-label for="billing_name" value="Billing Name (onBehalfOf)" />
+                                <jet-input id="billing_name" type="text" class="w-full mt-1 block" v-model="form.settings.billing_name" />
+                                <jet-input-error :message="form.errors['settings.billing_name']" class="mt-2" />
+                            </div>
+
                             <div class="col-span-6 sm:col-span-12">
                                 <jet-label for="auto_billing_client_id" value="Client ID" />
                                 <jet-input id="auto_billing_client_id" :type="showAutoBillingClientSecret ? 'text' : 'password'" placeholder="*************************" class="w-full mt-1 block" v-model="form.settings.auto_billing_client_id" />
