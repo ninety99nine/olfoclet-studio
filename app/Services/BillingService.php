@@ -30,7 +30,6 @@ class BillingService
     public static function billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): BillingTransaction
     {
         $msisdn = $subscriber->msisdn;
-        $clientCorrelator = Str::uuid();
         $amount = $subscriptionPlan->price->amount;
         $description = $subscriptionPlan->description;
         $onBehalfOf = $project->settings['billing_name'];
@@ -47,10 +46,12 @@ class BillingService
             'project_id' => $project->id,
             'description' => $description,
             'subscriber_id' => $subscriber->id,
-            'client_correlator' => $clientCorrelator,
+            'client_correlator' => '123',
             'subscription_plan_id' => $subscriptionPlan->id,
             'created_using_auto_billing' => $createdUsingAutoBilling->value,
         ]);
+
+        $clientCorrelator = $billingTransaction->id;
 
         try {
 
