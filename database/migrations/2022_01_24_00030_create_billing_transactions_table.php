@@ -26,6 +26,7 @@ class CreateBillingTransactionsTable extends Migration
             $table->json('failure_reason')->nullable();
             $table->boolean('created_using_auto_billing')->default(0);
             $table->string('client_correlator');
+            $table->string('reference_code');
             $table->foreignId('subscription_id')->nullable();
             $table->foreignId('subscription_plan_id');
             $table->foreignId('subscriber_id');

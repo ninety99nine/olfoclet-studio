@@ -30,6 +30,8 @@ class BillingService
     public static function billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): BillingTransaction
     {
         $msisdn = $subscriber->msisdn;
+        $referenceCode = Str::uuid();
+        $clientCorrelator = Str::uuid();
         $amount = $subscriptionPlan->price->amount;
         $description = $subscriptionPlan->description;
         $onBehalfOf = $project->settings['billing_name'];
@@ -46,15 +48,11 @@ class BillingService
             'project_id' => $project->id,
             'description' => $description,
             'subscriber_id' => $subscriber->id,
-            'client_correlator' => '123',
+            'reference_code' => $referenceCode,
+            'client_correlator' => $clientCorrelator,
             'subscription_plan_id' => $subscriptionPlan->id,
             'created_using_auto_billing' => $createdUsingAutoBilling->value,
         ]);
-
-        $clientCorrelator = $billingTransaction->id;
-        $moreData = [
-
-        ];
 
         try {
 
@@ -63,6 +61,8 @@ class BillingService
             $failureReason = null;
             $fundsAfterDeduction = null;
             $fundsBeforeDeduction = null;
+
+            $more_data = [];
 
             /**
              *  ------------------------
@@ -92,8 +92,6 @@ class BillingService
              *  ]
              */
             $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret);
-
-            $moreData['token'] = $response['body'];
 
             if($status = $response['status']) {
 
@@ -135,8 +133,6 @@ class BillingService
                  *  ]
                  */
                 $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken);
-
-                $moreData['productInventory'] = $response['body'];
 
                 if($status = $response['status']) {
 
@@ -216,7 +212,6 @@ class BillingService
                              *  ]
                              */
                             $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken);
-                            $moreData['usageConsumption'] = $response['body'];
 
                             if($status = $response['status']) {
 
@@ -332,8 +327,7 @@ class BillingService
                              *      ]
                              *  ]
                              */
-                            $response = self::requestAirtimeBillingDeductFee($msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken, $clientCorrelator);
-                            $moreData['deductFee'] = $response['body'];
+                            $response = self::requestAirtimeBillingDeductFee($msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken, $clientCorrelator, $referenceCode, $more_data);
 
                             if($status = $response['status']) {
 
@@ -367,13 +361,13 @@ class BillingService
 
             //  Update billing transaction
             $billingTransaction->update([
+                'more_data' => $more_data,
                 'is_successful' => $status,
                 'rating_type' => $ratingType,
                 'failure_type' => $failureType,
                 'failure_reason' => $failureReason,
                 'funds_after_deduction' => $fundsAfterDeduction,
-                'funds_before_deduction' => $fundsBeforeDeduction,
-                'more_data' => $moreData
+                'funds_before_deduction' => $fundsBeforeDeduction
             ]);
 
             //  Return a fresh instance of the billing transaction
@@ -970,7 +964,9 @@ class BillingService
         string $purchaseCategoryCode,
         string $description,
         string $accessToken,
-        string $clientCorrelator
+        string $clientCorrelator,
+        string $referenceCode,
+        array &$more_data
     ): array
     {
         $endpoint = config('app.ORANGE_BILLING_ENDPOINT') . "/payment/v1/tel:+$msisdn/transactions/amount";
@@ -999,7 +995,7 @@ class BillingService
                         'chargingMetaData' => $chargingMetaData,
                     ],
                     'clientCorrelator' => $clientCorrelator,
-                    'referenceCode' => 'referenceCode-' . now()->timestamp,
+                    'referenceCode' => $referenceCode,
                     'transactionOperationStatus' => 'Charged',
                 ],
             ],
@@ -1019,12 +1015,20 @@ class BillingService
                 // Create a new HTTP Guzzle Client
                 $httpClient = new Client();
 
+                $more_data['request'] = [
+                    'method' => 'POST',
+                    'endpoint' => $endpoint,
+                    'options' => $options
+                ];
+
                 // Perform the HTTP request
                 $response = $httpClient->request('POST', $endpoint, $options);
 
                 // Parse the response body
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
+
+                $more_data['response'] = $bodyAsArray;
 
                 // Get the response status code
                 $statusCode = $response->getStatusCode();
