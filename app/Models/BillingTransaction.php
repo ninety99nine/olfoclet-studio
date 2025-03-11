@@ -34,6 +34,7 @@ class BillingTransaction extends Model
         'funds_after_deduction' => Money::class,
         'funds_before_deduction' => Money::class,
         'created_using_auto_billing' => 'boolean',
+        'more_data' => 'array',
     ];
 
     /**
@@ -45,7 +46,7 @@ class BillingTransaction extends Model
         'amount', 'is_successful', 'rating_type', 'funds_before_deduction', 'funds_after_deduction',
         'description', 'failure_type', 'failure_reason', 'subscriber_id', 'project_id',
         'subscription_plan_id', 'subscription_id', 'created_using_auto_billing',
-        'client_correlator'
+        'client_correlator', 'more_data'
     ];
 
     /*

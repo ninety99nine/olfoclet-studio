@@ -52,6 +52,9 @@ class BillingService
         ]);
 
         $clientCorrelator = $billingTransaction->id;
+        $moreData = [
+
+        ];
 
         try {
 
@@ -89,6 +92,8 @@ class BillingService
              *  ]
              */
             $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret);
+
+            $moreData['token'] = $response['body'];
 
             if($status = $response['status']) {
 
@@ -130,6 +135,8 @@ class BillingService
                  *  ]
                  */
                 $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken);
+
+                $moreData['productInventory'] = $response['body'];
 
                 if($status = $response['status']) {
 
@@ -209,6 +216,7 @@ class BillingService
                              *  ]
                              */
                             $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken);
+                            $moreData['usageConsumption'] = $response['body'];
 
                             if($status = $response['status']) {
 
@@ -325,6 +333,7 @@ class BillingService
                              *  ]
                              */
                             $response = self::requestAirtimeBillingDeductFee($msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken, $clientCorrelator);
+                            $moreData['deductFee'] = $response['body'];
 
                             if($status = $response['status']) {
 
@@ -363,7 +372,8 @@ class BillingService
                 'failure_type' => $failureType,
                 'failure_reason' => $failureReason,
                 'funds_after_deduction' => $fundsAfterDeduction,
-                'funds_before_deduction' => $fundsBeforeDeduction
+                'funds_before_deduction' => $fundsBeforeDeduction,
+                'more_data' => $moreData
             ]);
 
             //  Return a fresh instance of the billing transaction
