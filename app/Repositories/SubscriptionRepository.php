@@ -76,23 +76,16 @@ class SubscriptionRepository
     public function createProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO, BillingTransaction|null $billingTransaction = null): Subscription
     {
         /**
-         *  @var Subscription $subscriptionWithFurthestEndAt
+         * @var Subscription|null $subscriptionWithFurthestEndAt
          */
         $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
-                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+                                                    ->where('subscription_plan_id', $subscriptionPlan->id)
+                                                    ->first();
 
-        //  If we have an existing subscription of the same subscription plan
-        if($subscriptionWithFurthestEndAt) {
-
-            //  Set the start at datetime to the end datetime of the existing subscription
-            $startAt = $subscriptionWithFurthestEndAt->end_at;
-
-        }else{
-
-            //  Set the current datetime
-            $startAt = Carbon::now();
-
-        }
+        // Use the furthest end date if it's in the future, otherwise use now()
+        $startAt = ($subscriptionWithFurthestEndAt && $subscriptionWithFurthestEndAt->end_at && $subscriptionWithFurthestEndAt->end_at->isFuture())
+            ? $subscriptionWithFurthestEndAt->end_at
+            : now();
 
         $endAt = $this->calculateEndDate($startAt, $subscriptionPlan);
 
@@ -167,23 +160,16 @@ class SubscriptionRepository
         }
 
         /**
-         *  @var Subscription $subscriptionWithFurthestEndAt
+         * @var Subscription|null $subscriptionWithFurthestEndAt
          */
         $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
-                                                    ->where('subscription_plan_id', $subscriptionPlan->id)->first();
+                                                    ->where('subscription_plan_id', $subscriptionPlan->id)
+                                                    ->first();
 
-        //  If we have an existing subscription of the same subscription plan
-        if($subscriptionWithFurthestEndAt) {
-
-            //  Set the start at datetime to the end datetime of the existing subscription
-            $startAt = $subscriptionWithFurthestEndAt->end_at;
-
-        }else{
-
-            //  Set the current datetime
-            $startAt = Carbon::now();
-
-        }
+        // Use the furthest end date if it's in the future, otherwise use now()
+        $startAt = ($subscriptionWithFurthestEndAt && $subscriptionWithFurthestEndAt->end_at && $subscriptionWithFurthestEndAt->end_at->isFuture())
+            ? $subscriptionWithFurthestEndAt->end_at
+            : now();
 
         $endAt = $this->calculateEndDate($startAt, $subscriptionPlan);
 
