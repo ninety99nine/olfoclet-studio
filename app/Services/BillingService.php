@@ -969,7 +969,7 @@ class BillingService
         array &$more_data
     ): array
     {
-        $endpoint = config('app.ORANGE_BILLING_ENDPOINT') . "/payment/v1/tel:+$msisdn/transactions/amount";
+        $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/payment/v1/tel%3A%2B'.$msisdn.'/transactions/amount';
 
         $chargingMetaData = array_filter([
             'productId' => $productId,
