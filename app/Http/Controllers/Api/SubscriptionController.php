@@ -97,7 +97,7 @@ class SubscriptionController extends Controller
         }else {
 
             //  Failure message
-            $message = $billingTransaction->failure_reason;
+            $message = $billingTransaction->last_failure_message;
 
         }
 
