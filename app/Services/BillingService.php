@@ -226,9 +226,6 @@ class BillingService
                                     //  Set the funds before deduction
                                     $fundsBeforeDeduction = $remainingValue;
 
-                                    //  Set the funds after deduction
-                                    $fundsAfterDeduction = $hasEnoughFunds ? ($remainingValue - $amount) : $remainingValue;
-
                                     //  If we do not have enough funds
                                     if( !$hasEnoughFunds ) {
 
@@ -333,6 +330,7 @@ class BillingService
                                 //  The billing is successful at this point
 
                             }else{
+
                                 $failureType = BillingTransactionFailureType::DeductFeeFailed;
                                 $failureReason = json_encode($response['body']);
                             }
@@ -351,6 +349,10 @@ class BillingService
             }else{
                 $failureType = BillingTransactionFailureType::TokenGenerationFailed;
                 $failureReason = json_encode($response['body']);
+            }
+
+            if(!$status) {
+                $fundsAfterDeduction = $fundsBeforeDeduction;
             }
 
             //  Update billing transaction
