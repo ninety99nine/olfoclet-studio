@@ -302,11 +302,10 @@ class SubscriptionRepository
             });
         }
 
-        $subscriptionPlanIds = $query->pluck('subscription_plan_id')->toArray();
+        $subscriptions = $query->get();
+        $subscriptionPlanIds = $subscriptions->pluck('subscription_plan_id')->toArray();
 
         if (count($subscriptionPlanIds)) {
-
-            $subscriptions = $query->get();
 
             $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $subscriptionPlanIds);
             $result = $query->update(['cancelled_at' => Carbon::now()]);
