@@ -66,7 +66,7 @@
                                         <span>Rating Type</span>
                                     </th>
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Auto Billing</span>
+                                        <span>Billed Automatically</span>
                                     </th>
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Description</span>
@@ -152,7 +152,7 @@
                                         <RatingTypeBadge v-else :billingTransaction="billingTransaction"></RatingTypeBadge>
                                     </td>
 
-                                    <!-- Created Using Auto Billing -->
+                                    <!-- Billed Automatically -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
                                         <CreatedUsingAutoBillingBadge :billingTransaction="billingTransaction"></CreatedUsingAutoBillingBadge>
                                     </td>

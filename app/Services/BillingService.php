@@ -220,13 +220,10 @@ class BillingService
                                 if( $status = !empty($accountMainBalanceBucket) ) {
 
                                     //  Get the remaining value (The Airtime left that we can bill from the bucket balance)
-                                    $remainingValue = $accountMainBalanceBucket['bucketBalance'][0]['remainingValue'];
+                                    $fundsBeforeDeduction = $accountMainBalanceBucket['bucketBalance'][0]['remainingValue'];
 
                                     //  Determine if we have enough funds
-                                    $status = $hasEnoughFunds = ($remainingValue >= $amount);
-
-                                    //  Set the funds before deduction
-                                    $fundsBeforeDeduction = $remainingValue;
+                                    $status = $hasEnoughFunds = ($fundsBeforeDeduction >= $amount);
 
                                     //  If we do not have enough funds
                                     if( !$hasEnoughFunds ) {
@@ -353,8 +350,8 @@ class BillingService
                 $failureReason = json_encode($response['body']);
             }
 
-            if(!$status) {
-                $fundsAfterDeduction = $fundsBeforeDeduction;
+            if($status) {
+                $fundsAfterDeduction = $fundsBeforeDeduction - $amount;
             }
 
             //  Update billing transaction
