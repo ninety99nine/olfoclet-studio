@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Subscriptions;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CancelSubscriptionsRequest extends FormRequest
@@ -9,7 +10,9 @@ class CancelSubscriptionsRequest extends FormRequest
     public function rules()
     {
         return [
-            'msisdn' => ['required', 'string', 'regex:/^267\d{8}$/']
+            'msisdn' => ['required', 'string', 'regex:/^267\d{8}$/'],
+            'tags' => ['sometimes', 'array'],
+            'tags.*' => ['string']
         ];
     }
 

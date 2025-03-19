@@ -154,15 +154,17 @@ class SubscriptionController extends Controller
 
     public function cancelSubscriptions(CancelSubscriptionsRequest $request): JsonResponse
     {
-        //  Get the MSISDN
-        $msisdn = $request->input('msisdn');
+        $data = [
+            'msisdn' => $request->input('msisdn') ?? null,
+            'tags' => $request->input('tags') ?? null
+        ];
 
         // Cancel the subscriptions matching the specified subscriber msisdn
-        $status = $this->subscriptionRepository->cancelProjectSubscriptionsByMsisdn($msisdn);
+        $status = $this->subscriptionRepository->cancelProjectSubscriptions($data);
 
         // Return a success JSON response
         return response()->json([
-            'message' => $status ? 'Subscriptions cancelled successfully' : 'Failed to cancel subscriptions',
+            'message' => $status ? 'Subscriptions cancelled successfully' : 'No subscriptions cancelled',
             'status' => $status
         ]);
     }

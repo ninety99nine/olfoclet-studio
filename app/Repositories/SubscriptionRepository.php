@@ -283,25 +283,25 @@ class SubscriptionRepository
      */
     public function cancelProjectSubscription(): bool
     {
-        //  Update any existing auto billing schedule matching this subscription plan
-        DB::table('auto_billing_schedules')->where([
-            'subscriber_id' => $this->subscription->subscriber_id,
-            'subscription_plan_id' => $this->subscription->subscription_plan_id
-        ])->update([
-            'attempts' => 0,
-            'next_attempt_date' => null,
-            'auto_billing_enabled' => false,
-            'reminded_one_hour_before_at' => null,
-            'reminded_six_hours_before_at' => null,
-            'reminded_twelve_hours_before_at' => null,
-            'reminded_twenty_four_hours_before_at' => null,
-            'reminded_forty_eight_hours_before_at' => null,
-            'reminded_seventy_two_hours_before_at' => null,
-        ]);
+        // Stop auto billing schedule on this subscription
+        $this->stopAutoBillingScheduleOnSubscription();
 
-        return $this->project->subscriptions()->active()->where('subscriptions.id', $this->subscription->id)->update([
+        $result = $this->project->subscriptions()->active()->where('subscriptions.id', $this->subscription->id)->update([
             'cancelled_at' => Carbon::now()
         ]);
+
+        $this->subscription->load(['subscriptionPlan', 'subscriber']);
+        $subscriptionPlan = $this->subscription->subscriptionPlan;
+        $subscriber = $this->subscription->subscriber;
+
+        if($subscriptionPlan && $subscriber) {
+            $messageContent = $subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+            if(!empty($messageContent)) {
+                SmsService::sendSms($this->project, $subscriber, $messageContent, MessageType::AutoBillingDisabled);
+            }
+        }
+
+        return $result;
     }
 
     /**
@@ -320,33 +320,38 @@ class SubscriptionRepository
     /**
      *  Cancel subscriptions matching the subscriber msisdn.
      *
-     *  @param string $msisdn The MSISDN (Mobile Subscriber Integrated Services Digital Network Number).
+     *  @param array $data
      *  @return bool True if the update is successful, false otherwise.
      */
-    public function cancelProjectSubscriptionsByMsisdn(string $msisdn): bool
+    public function cancelProjectSubscriptions(array $data): bool
     {
-        //  Update any existing auto billing schedule matching this subscriber MSISDN
-        AutoBillingSchedule::whereHas('subscriber', function (Builder $query) use ($msisdn) {
+        $tags = $data['tags'] ?? null;
+        $msisdn = $data['msisdn'] ?? null;
+
+        $query = $this->project->subscriptions()->active();
+
+        $query = $query->whereHas('subscriber', function (Builder $query) use ($msisdn) {
             $query->where('msisdn', $msisdn);
-        })->update([
-            'attempts' => 0,
-            'next_attempt_date' => null,
-            'auto_billing_enabled' => false,
-            'reminded_one_hour_before_at' => null,
-            'reminded_six_hours_before_at' => null,
-            'reminded_twelve_hours_before_at' => null,
-            'reminded_twenty_four_hours_before_at' => null,
-            'reminded_forty_eight_hours_before_at' => null,
-            'reminded_seventy_two_hours_before_at' => null,
-        ]);
+        });
 
-        return $this->project->subscriptions()->active()->whereHas('subscriber', function (Builder $query) use ($msisdn) {
+        if (!empty($tags)) {
+            $query->whereHas('subscriptionPlan', function (Builder $query) use ($tags) {
+                foreach ($tags as $tag) {
+                    $query->whereJsonContains('tags', $tag);
+                }
+            });
+        }
 
-            $query->where('msisdn', $msisdn);
+        $subscriptionPlanIds = $query->pluck('subscription_plan_id')->toArray();
 
-        })->update([
-            'cancelled_at' => Carbon::now()
-        ]);
+        if(count($subscriptionPlanIds)) {
+
+            $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $subscriptionPlanIds);
+            return $query->update(['cancelled_at' => Carbon::now()]);
+
+        }
+
+        return false;
     }
 
     /**
@@ -363,8 +368,71 @@ class SubscriptionRepository
             throw new ModelNotFoundException();
         }
 
+        // Stop auto billing schedule on this subscription
+        $this->stopAutoBillingScheduleOnSubscription();
+
         // Delete subscription
-        return $this->subscription->delete();
+        $result = $this->subscription->delete();
+
+        $this->subscription->load(['subscriptionPlan', 'subscriber']);
+        $subscriptionPlan = $this->subscription->subscriptionPlan;
+        $subscriber = $this->subscription->subscriber;
+
+        if($subscriptionPlan && $subscriber) {
+            $messageContent = $subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+            if(!empty($messageContent)) {
+                SmsService::sendSms($this->project, $subscriber, $messageContent, MessageType::AutoBillingDisabled);
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     *  Stop auto billing schedule on subscription
+     *
+     *  @return bool
+     */
+    protected function stopAutoBillingScheduleOnSubscription(): bool
+    {
+        return AutoBillingSchedule::where([
+            'subscriber_id' => $this->subscription->subscriber_id,
+            'subscription_plan_id' => $this->subscription->subscription_plan_id
+        ])->update([
+            'attempts' => 0,
+            'next_attempt_date' => null,
+            'auto_billing_enabled' => false,
+            'reminded_one_hour_before_at' => null,
+            'reminded_six_hours_before_at' => null,
+            'reminded_twelve_hours_before_at' => null,
+            'reminded_twenty_four_hours_before_at' => null,
+            'reminded_forty_eight_hours_before_at' => null,
+            'reminded_seventy_two_hours_before_at' => null,
+        ]);
+    }
+
+    /**
+     *  Stop subscriptions auto billing schedules
+     *
+     *  @return string $msisdn
+     *  @return array $subscriptionPlanIds
+     *  @return bool
+     */
+    protected function stopAutoBillingScheduleOnSubscriptions(string $msisdn, array $subscriptionPlanIds): bool
+    {
+        return AutoBillingSchedule::whereHas('subscriber', function (Builder $query) use ($msisdn) {
+            $query->where('msisdn', $msisdn);
+        })->whereIn('subscription_plan_id', $subscriptionPlanIds)->update([
+            'attempts' => 0,
+            'next_attempt_date' => null,
+            'auto_billing_enabled' => false,
+            'reminded_one_hour_before_at' => null,
+            'reminded_six_hours_before_at' => null,
+            'reminded_twelve_hours_before_at' => null,
+            'reminded_twenty_four_hours_before_at' => null,
+            'reminded_forty_eight_hours_before_at' => null,
+            'reminded_seventy_two_hours_before_at' => null,
+        ]);
     }
 
     /**

@@ -454,7 +454,7 @@
                                 <!-- Next Auto Billing Reminder SMS Message -->
                                 <div class="mb-4">
                                     <div class="flex mb-1">
-                                        <jet-label for="sub-pl-next-auto-billing-reminder-sms-message" value="Next Auto Billing Reminder SMS Message" />
+                                        <jet-label for="next_auto_billing_reminder_sms_message" value="Next Auto Billing Reminder SMS Message" />
 
                                         <el-popover :width="400">
                                             <template #reference>
@@ -496,14 +496,14 @@
                                             </template>
                                         </el-popover>
                                     </div>
-                                    <jet-textarea id="sub-pl-next-auto-billing-reminder-sms-message" class="w-full mt-1 block" v-model="form.next_auto_billing_reminder_sms_message" />
+                                    <jet-textarea id="next_auto_billing_reminder_sms_message" class="w-full mt-1 block" v-model="form.next_auto_billing_reminder_sms_message" />
                                     <jet-input-error :message="form.errors.next_auto_billing_reminder_sms_message" class="mt-2" />
                                 </div>
 
                                 <!-- Auto Billing Disabled SMS Message -->
                                 <div class="mb-4">
                                     <div class="flex mb-1">
-                                        <jet-label for="sub-pl-next-auto-billing-reminder-sms-message" value="Auto Billing Disabled SMS Message" />
+                                        <jet-label for="auto_billing_disabled_sms_message" value="Auto Billing Disabled SMS Message" />
 
                                         <el-popover :width="400">
                                             <template #reference>
@@ -535,13 +535,13 @@
                                                         </tbody>
                                                     </table>
 
-                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You have been successfully unsubscribed from {{ subscriptionPlanName }} priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.'"></span></p>
+                                                    <p class="mt-4"><strong>Example:</strong> <span v-html="'You have unsubscribed from {{ subscriptionPlanName }} priced {{ subscriptionPlanPrice }}. Dial *217# to subscribe.'"></span></p>
                                                 </div>
 
                                             </template>
                                         </el-popover>
                                     </div>
-                                    <jet-textarea id="sub-pl-next-auto-billing-reminder-sms-message" class="w-full mt-1 block" v-model="form.auto_billing_disabled_sms_message" />
+                                    <jet-textarea id="auto_billing_disabled_sms_message" class="w-full mt-1 block" v-model="form.auto_billing_disabled_sms_message" />
                                     <jet-input-error :message="form.errors.auto_billing_disabled_sms_message" class="mt-2" />
                                 </div>
 

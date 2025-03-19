@@ -30,19 +30,27 @@ class Subscription extends Model
     protected $fillable = ['subscriber_id', 'subscription_plan_id', 'start_at', 'end_at', 'cancelled_at', 'created_using_auto_billing', 'project_id'];
 
     /*
-     *  Scope: Return active subscriptions
-     */
+    *  Scope: Return active subscriptions
+    */
     public function scopeActive($query)
     {
-        return $query->where('start_at', '<=' , Carbon::now())->where('end_at', '>' , Carbon::now());
+        return $query->where(function ($query) {
+            $query->where('start_at', '<=', Carbon::now())
+                ->where('end_at', '>', Carbon::now())
+                ->whereNull('cancelled_at');
+        });
     }
 
     /*
-     *  Scope: Return inactive subscriptions
-     */
+    *  Scope: Return inactive subscriptions
+    */
     public function scopeInActive($query)
     {
-        return $query->where('start_at', '>' , Carbon::now())->orWhere('end_at', '<=' , Carbon::now());
+        return $query->where(function ($query) {
+            $query->where('start_at', '>', Carbon::now())
+                ->orWhere('end_at', '<=', Carbon::now())
+                ->orWhereNotNull('cancelled_at');
+        });
     }
 
     /*
@@ -89,7 +97,8 @@ class Subscription extends Model
      */
     public function getIsActiveAttribute()
     {
-        return (Carbon::parse($this->start_at)->isCurrentDay() || Carbon::parse($this->start_at)->isPast()) &&
-                Carbon::parse($this->end_at)->isFuture() && is_null($this->cancelled_at);
+        return $this->start_at <= Carbon::now()
+            && $this->end_at > Carbon::now()
+            && is_null($this->cancelled_at);
     }
 }

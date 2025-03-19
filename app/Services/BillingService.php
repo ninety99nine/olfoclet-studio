@@ -62,8 +62,6 @@ class BillingService
             $fundsAfterDeduction = null;
             $fundsBeforeDeduction = null;
 
-            $more_data = [];
-
             /**
              *  ------------------------
              *  Request the access token
@@ -327,7 +325,7 @@ class BillingService
                              *      ]
                              *  ]
                              */
-                            $response = self::requestAirtimeBillingDeductFee($msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken, $clientCorrelator, $referenceCode, $more_data);
+                            $response = self::requestAirtimeBillingDeductFee($msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken, $clientCorrelator, $referenceCode);
 
                             if($status = $response['status']) {
 
@@ -361,7 +359,6 @@ class BillingService
 
             //  Update billing transaction
             $billingTransaction->update([
-                'more_data' => $more_data,
                 'is_successful' => $status,
                 'rating_type' => $ratingType,
                 'failure_type' => $failureType,
@@ -965,8 +962,7 @@ class BillingService
         string $description,
         string $accessToken,
         string $clientCorrelator,
-        string $referenceCode,
-        array &$more_data
+        string $referenceCode
     ): array
     {
         $endpoint = config('app.ORANGE_BILLING_ENDPOINT').'/payment/v1/tel%3A%2B'.$msisdn.'/transactions/amount';
@@ -1015,20 +1011,12 @@ class BillingService
                 // Create a new HTTP Guzzle Client
                 $httpClient = new Client();
 
-                $more_data['request'] = [
-                    'method' => 'POST',
-                    'endpoint' => $endpoint,
-                    'options' => $options
-                ];
-
                 // Perform the HTTP request
                 $response = $httpClient->request('POST', $endpoint, $options);
 
                 // Parse the response body
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
-
-                $more_data['response'] = $bodyAsArray;
 
                 // Get the response status code
                 $statusCode = $response->getStatusCode();
