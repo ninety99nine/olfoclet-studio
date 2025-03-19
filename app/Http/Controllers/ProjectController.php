@@ -226,7 +226,7 @@ class ProjectController extends Controller
             'name' => ['required', 'string', 'min:3', 'max:500'],
             'can_create_billing_reports' => ['required', 'boolean'],
             'billing_report_email_addresses.*' => ['email'],
-            'billing_report_email_addresses' => [$requiredIfCanCreateBillingReports, 'array', 'max:2'],
+            'billing_report_email_addresses' => [$requiredIfCanCreateBillingReports, 'array'],
             'our_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
             'website_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
             'their_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
