@@ -286,7 +286,9 @@ class SubscriptionRepository
         $tags = $data['tags'] ?? null;
         $msisdn = $data['msisdn'] ?? null;
 
-        $query = $this->project->subscriptions()->with(['subscriber', 'subscriptionPlan'])->active();
+        $subscriber = $this->project->subscribers()->where('msisdn', $msisdn)->first();
+
+        $query = $this->project->subscriptions()->with(['subscriptionPlan'])->active();
 
         $query = $query->whereHas('subscriber', function (Builder $query) use ($msisdn) {
             $query->where('msisdn', $msisdn);
@@ -302,31 +304,33 @@ class SubscriptionRepository
 
         $subscriptionPlanIds = $query->pluck('subscription_plan_id')->toArray();
 
-        if(count($subscriptionPlanIds)) {
-
-            $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $subscriptionPlanIds);
+        if (count($subscriptionPlanIds)) {
 
             $subscriptions = $query->get();
 
-            foreach($subscriptions as $subscription) {
+            $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $subscriptionPlanIds);
+            $result = $query->update(['cancelled_at' => Carbon::now()]);
 
-                $subscriber = $subscription->subscriber;
-                $subscriptionPlans = $subscription->subscriptionPlans;
+            $sentMessages = [];
 
-                foreach($subscriptionPlans as $subscriptionPlan) {
+            foreach ($subscriptions as $subscription) {
+                $subscriptionPlan = $subscription->subscriptionPlan;
 
-                    if($subscriptionPlan && $subscriber) {
+                if ($subscriptionPlan && $subscriber) {
+                    $key = $subscriptionPlan->id . '-' . $subscriber->id;
+
+                    if (!isset($sentMessages[$key])) {
                         $messageContent = $subscriptionPlan->craftAutoBillingDisabledSmsMessage();
-                        if(!empty($messageContent)) {
+
+                        if (!empty($messageContent)) {
                             SmsService::sendSms($this->project, $subscriber, $messageContent, MessageType::AutoBillingDisabled);
+                            $sentMessages[$key] = true;
                         }
                     }
-
                 }
             }
 
-            return $query->update(['cancelled_at' => Carbon::now()]);
-
+            return $result;
         }
 
         return false;
