@@ -78,7 +78,7 @@ class SubscriptionRepository
         /**
          * @var Subscription|null $subscriptionWithFurthestEndAt
          */
-        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
+        $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()->active()
                                                     ->where('subscription_plan_id', $subscriptionPlan->id)
                                                     ->first();
 
@@ -276,6 +276,63 @@ class SubscriptionRepository
     }
 
     /**
+     *  Cancel subscriptions matching the subscriber msisdn.
+     *
+     *  @param array $data
+     *  @return bool True if the update is successful, false otherwise.
+     */
+    public function cancelProjectSubscriptions(array $data): bool
+    {
+        $tags = $data['tags'] ?? null;
+        $msisdn = $data['msisdn'] ?? null;
+
+        $query = $this->project->subscriptions()->with(['subscriber', 'subscriptionPlan'])->active();
+
+        $query = $query->whereHas('subscriber', function (Builder $query) use ($msisdn) {
+            $query->where('msisdn', $msisdn);
+        });
+
+        if (!empty($tags)) {
+            $query->whereHas('subscriptionPlan', function (Builder $query) use ($tags) {
+                foreach ($tags as $tag) {
+                    $query->whereJsonContains('tags', $tag);
+                }
+            });
+        }
+
+        $subscriptionPlanIds = $query->pluck('subscription_plan_id')->toArray();
+
+        if(count($subscriptionPlanIds)) {
+
+            $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $subscriptionPlanIds);
+
+            $subscriptions = $query->get();
+
+            foreach($subscriptions as $subscription) {
+
+                $subscriber = $subscription->subscriber;
+                $subscriptionPlans = $subscription->subscriptionPlans;
+
+                foreach($subscriptionPlans as $subscriptionPlan) {
+
+                    if($subscriptionPlan && $subscriber) {
+                        $messageContent = $subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+                        if(!empty($messageContent)) {
+                            SmsService::sendSms($this->project, $subscriber, $messageContent, MessageType::AutoBillingDisabled);
+                        }
+                    }
+
+                }
+            }
+
+            return $query->update(['cancelled_at' => Carbon::now()]);
+
+        }
+
+        return false;
+    }
+
+    /**
      *  Cancel an existing subscription for the project.
      *
      *  @return bool True if the subscription cancellation is successful, false otherwise.
@@ -315,43 +372,6 @@ class SubscriptionRepository
         return $this->project->subscriptions()->active()->where('subscriptions.id', $this->subscription->id)->update([
             'cancelled_at' => null
         ]);
-    }
-
-    /**
-     *  Cancel subscriptions matching the subscriber msisdn.
-     *
-     *  @param array $data
-     *  @return bool True if the update is successful, false otherwise.
-     */
-    public function cancelProjectSubscriptions(array $data): bool
-    {
-        $tags = $data['tags'] ?? null;
-        $msisdn = $data['msisdn'] ?? null;
-
-        $query = $this->project->subscriptions()->active();
-
-        $query = $query->whereHas('subscriber', function (Builder $query) use ($msisdn) {
-            $query->where('msisdn', $msisdn);
-        });
-
-        if (!empty($tags)) {
-            $query->whereHas('subscriptionPlan', function (Builder $query) use ($tags) {
-                foreach ($tags as $tag) {
-                    $query->whereJsonContains('tags', $tag);
-                }
-            });
-        }
-
-        $subscriptionPlanIds = $query->pluck('subscription_plan_id')->toArray();
-
-        if(count($subscriptionPlanIds)) {
-
-            $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $subscriptionPlanIds);
-            return $query->update(['cancelled_at' => Carbon::now()]);
-
-        }
-
-        return false;
     }
 
     /**

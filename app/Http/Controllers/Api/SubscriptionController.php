@@ -128,6 +128,23 @@ class SubscriptionController extends Controller
         return response()->json(['message' => 'Updated Successfully']);
     }
 
+    public function cancelSubscriptions(CancelSubscriptionsRequest $request): JsonResponse
+    {
+        $data = [
+            'msisdn' => $request->input('msisdn') ?? null,
+            'tags' => $request->input('tags') ?? null
+        ];
+
+        // Cancel the subscriptions matching the specified subscriber msisdn
+        $status = $this->subscriptionRepository->cancelProjectSubscriptions($data);
+
+        // Return a success JSON response
+        return response()->json([
+            'message' => $status ? 'Subscriptions cancelled successfully' : 'No subscriptions cancelled',
+            'status' => $status
+        ]);
+    }
+
     public function cancelSubscription(): JsonResponse
     {
         // Cancel the subscription
@@ -148,23 +165,6 @@ class SubscriptionController extends Controller
         // Return a success JSON response
         return response()->json([
             'message' => $status ? 'Subscription uncancelled successfully' : 'Failed to uncancel subscription',
-            'status' => $status
-        ]);
-    }
-
-    public function cancelSubscriptions(CancelSubscriptionsRequest $request): JsonResponse
-    {
-        $data = [
-            'msisdn' => $request->input('msisdn') ?? null,
-            'tags' => $request->input('tags') ?? null
-        ];
-
-        // Cancel the subscriptions matching the specified subscriber msisdn
-        $status = $this->subscriptionRepository->cancelProjectSubscriptions($data);
-
-        // Return a success JSON response
-        return response()->json([
-            'message' => $status ? 'Subscriptions cancelled successfully' : 'No subscriptions cancelled',
             'status' => $status
         ]);
     }
