@@ -16,6 +16,9 @@ use App\Http\Controllers\MessageController;
 use App\Http\Controllers\ServerController;
 use App\Http\Controllers\TopicController;
 use App\Http\Controllers\UserController;
+use App\Models\BillingTransaction;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -30,6 +33,36 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::redirect('/', '/login', 301);
+
+Route::get('/fix', function () {
+    $updatedCount = 0;
+
+    DB::transaction(function () use (&$updatedCount) {
+
+        foreach (BillingTransaction::whereNotNull('failure_reason')->cursor() as $transaction) {
+
+            $decoded = json_decode($transaction->failure_reason, true);
+
+            if ($decoded === null) {
+                $update['failure_reason_2'] = $transaction->failure_reason;
+            }else{
+                $update['failed_attempts'] = json_encode($decoded['failed_attempts']);
+            }
+
+            $update['failure_reason'] = null;
+            DB::table('billing_transactions')->where('id', $transaction->id)->update($update);
+
+            $updatedCount++;
+
+        }
+
+    });
+
+    return [
+        'status' => 'success',
+        'message' => "Processed all BillingTransaction records. Updated $updatedCount records."
+    ];
+});
 
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 

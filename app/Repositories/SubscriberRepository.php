@@ -68,18 +68,48 @@ class SubscriberRepository
     }
 
     /**
-     *  Show the project subscribers with optional relationships
+     * Show the project subscribers with optional filters, relationships, and countable relationships.
      *
-     *  @param string $msisdn The MSISDN (Mobile Subscriber Integrated Services Digital Network Number).
-     *  @param array $relationships The relationships to eager load on the subscribers.
-     *  @param array $countableRelationships The relationships to count on the subscribers.
-     *  @return LengthAwarePaginator The paginated list of project subscribers.
+     * @param array|null $filters The filters to apply (e.g., msisdn, status, billingStatus).
+     * @param array $relationships The relationships to eager load on the subscribers.
+     * @param array $countableRelationships The relationships to count on the subscribers.
+     * @return LengthAwarePaginator The paginated list of project subscribers.
      */
-    public function getProjectSubscribers($msisdn = null, $relationships = [], $countableRelationships = []): LengthAwarePaginator
+    public function getProjectSubscribers(?array $filters = null, array $relationships = [], array $countableRelationships = []): LengthAwarePaginator
     {
         $query = $this->project->subscribers()->with($relationships)->withCount($countableRelationships);
 
-        $query = $msisdn == null ? $query : $query->where('msisdn', $msisdn);
+        // Apply filters if provided
+        if ($filters) {
+
+            // Mobile number search (partial match)
+            if (!empty($filters['msisdn'])) {
+                $query->where('msisdn', 'like', '%' . $filters['msisdn'] . '%');
+            }
+
+            // Subscription status filter
+            if (!empty($filters['status'])) {
+                $query->whereHas('latestSubscription', function ($q) use ($filters) {
+                    if(strtolower($filters['status']) === 'active') {
+                        $q->active();
+                    }else if(strtolower($filters['status']) === 'inactive') {
+                        $q->inActive();
+                    }
+                });
+            }
+
+            // Billing status filter
+            if (!empty($filters['billingStatus'])) {
+                $query->whereHas('latestUserBillingTransaction', function ($q) use ($filters) {
+                    if(strtolower($filters['billingStatus']) === 'successful') {
+                        $q->successful();
+                    }else if(strtolower($filters['billingStatus']) === 'unsuccessful') {
+                        $q->unsuccessful();
+                    }
+                });
+            }
+
+        }
 
         return $query->latest()->paginate();
     }

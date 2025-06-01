@@ -30,6 +30,7 @@ class BillingTransaction extends Model
     protected $casts = [
         'amount' => Money::class,
         'failure_reason' => 'array',
+        'failed_attempts' => 'array',
         'is_successful' => 'boolean',
         'funds_after_deduction' => Money::class,
         'funds_before_deduction' => Money::class,
@@ -43,7 +44,7 @@ class BillingTransaction extends Model
      */
     protected $fillable = [
         'amount', 'is_successful', 'rating_type', 'funds_before_deduction', 'funds_after_deduction',
-        'description', 'failure_type', 'failure_reason', 'subscriber_id', 'project_id',
+        'description', 'failure_type', 'failure_reason', 'failure_reason_2', 'failed_attempts', 'subscriber_id', 'project_id',
         'subscription_plan_id', 'subscription_id', 'created_using_auto_billing',
         'client_correlator', 'reference_code'
     ];
@@ -110,116 +111,5 @@ class BillingTransaction extends Model
     public function subscriptionPlan()
     {
         return $this->belongsTo(SubscriptionPlan::class);
-    }
-
-    protected function lastFailureMessage(): Attribute
-    {
-        return Attribute::make(
-            get: function() {
-
-                if($this->failure_reason == null || $this->failure_reason->failed_attempts == null) return null;
-
-                $failedAttempts = $this->failure_reason->failed_attempts;
-                $lastAttempt = end($failedAttempts);
-                $failureMessage = null;
-
-                if($this->failure_type == BillingTransactionFailureType::TokenGenerationFailed) {
-
-                    if(isset($lastAttempt['response']['error']) && isset($lastAttempt['response']['error_description'])) {
-
-                        $failureMessage = $lastAttempt['response']['error'];
-                        $failureMessage .= (empty($failureMessage) ? '' : ' - ') . $lastAttempt['response']['error_description'];
-
-                    }else{
-
-                        if(isset($lastAttempt['response']['error'])) {
-                            $failureMessage = $lastAttempt['response']['error'];
-                        }else if(isset($lastAttempt['response']['error_description'])) {
-                            $failureMessage = $lastAttempt['response']['error_description'];
-                        }else{
-                            $failureMessage = ucfirst(BillingTransactionFailureType::TokenGenerationFailed->value);
-                        }
-
-                    }
-
-                }else if($this->failure_type == BillingTransactionFailureType::ProductInventoryRetrievalFailed) {
-
-                    if(isset($lastAttempt['response']['message']) && isset($lastAttempt['response']['description'])) {
-
-                        $failureMessage = $lastAttempt['response']['message'];
-                        $failureMessage .= (empty($failureMessage) ? '' : ' - ') . $lastAttempt['response']['description'];
-
-                    }else{
-
-                        if(isset($lastAttempt['response']['message'])) {
-                            $failureMessage = $lastAttempt['response']['message'];
-                        }else if(isset($lastAttempt['response']['description'])) {
-                            $failureMessage = $lastAttempt['response']['description'];
-                        }else{
-                            $failureMessage = ucfirst(BillingTransactionFailureType::ProductInventoryRetrievalFailed->value);
-                        }
-
-                    }
-
-                }else if($this->failure_type == BillingTransactionFailureType::UsageConsumptionRetrievalFailed) {
-
-                    if(isset($lastAttempt['response']['message']) && isset($lastAttempt['response']['description'])) {
-
-                        $failureMessage = $lastAttempt['response']['message'];
-                        $failureMessage .= (empty($failureMessage) ? '' : ' - ') . $lastAttempt['response']['description'];
-
-                    }else{
-
-                        if(isset($lastAttempt['response']['message'])) {
-                            $failureMessage = $lastAttempt['response']['message'];
-                        }else if(isset($lastAttempt['response']['description'])) {
-                            $failureMessage = $lastAttempt['response']['description'];
-                        }else{
-                            $failureMessage = ucfirst(BillingTransactionFailureType::UsageConsumptionRetrievalFailed->value);
-                        }
-
-                    }
-
-                }else if($this->failure_type == BillingTransactionFailureType::DeductFeeFailed) {
-
-                    if(isset($lastAttempt['response']['requestError']['policyException']['text']) && isset($lastAttempt['response']['requestError']['serviceException']['text'])) {
-
-                        $failureMessage = $lastAttempt['response']['error'];
-                        $failureMessage .= (empty($failureMessage) ? '' : ' - ') . $lastAttempt['response']['error_description'];
-
-                    }else{
-
-                        if(isset($lastAttempt['response']['requestError']['policyException']['text'])) {
-                            $failureMessage = $lastAttempt['response']['requestError']['policyException']['text'];
-                        }else if(isset($lastAttempt['response']['requestError']['serviceException']['text'])) {
-                            $failureMessage = $lastAttempt['response']['requestError']['serviceException']['text'];
-                        }else{
-                            $failureMessage = ucfirst(BillingTransactionFailureType::DeductFeeFailed->value);
-                        }
-
-                    }
-
-                }else if($this->failure_type == BillingTransactionFailureType::InternalFailure) {
-
-                    $failureMessage = 'Could not process this transaction because of missing information on your account';
-
-                }else if($this->failure_type == BillingTransactionFailureType::InactiveAccount) {
-
-                    $failureMessage = 'This account is currently inactive. Please contact customer support';
-
-                }else if($this->failure_type == BillingTransactionFailureType::InsufficientFunds) {
-
-                    $failureMessage = 'You do not have enough funds to complete this transaction';
-
-                }else if($this->failure_type == BillingTransactionFailureType::InternalFailure) {
-
-                    $failureMessage = 'Could not process this transaction, please try again';
-
-                }
-
-                return $failureMessage ?? 'Billing failed';
-
-            }
-        );
     }
 }

@@ -232,21 +232,15 @@
 </template>
 <script>
 
-    import SubscriptionPlanActiveStatusBadge from './../../../SubscriptionPlans/List/Partials/ActiveStatusBadge.vue';
-    import SubscriptionActiveStatusBadge from './../../../Subscriptions/List/Partials/ActiveStatusBadge.vue';
-    import BillingTransactionStatusBadge from './BillingTransactionStatusBadge.vue';
-    import CreatedUsingAutoBillingBadge from './CreatedUsingAutoBillingBadge.vue';
     import Pagination from '../../../../Partials/Pagination.vue';
     import JetInputError from '@/Components/InputError.vue';
-    import RatingTypeBadge from './RatingTypeBadge.vue';
     import JetInput from '@/Components/TextInput.vue';
     import { defineComponent } from 'vue';
     import moment from "moment";
 
     export default defineComponent({
         components: {
-            SubscriptionPlanActiveStatusBadge, SubscriptionActiveStatusBadge, Pagination, RatingTypeBadge, BillingTransactionStatusBadge, CreatedUsingAutoBillingBadge,
-            JetInputError, JetInput
+            Pagination, JetInputError, JetInput
         },
         props: {
             projectPayload: Object,

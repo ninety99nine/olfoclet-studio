@@ -59,6 +59,7 @@ class BillingService
             $ratingType = null;
             $failureType = null;
             $failureReason = null;
+            $failedAttempts = null;
             $fundsAfterDeduction = null;
             $fundsBeforeDeduction = null;
 
@@ -236,13 +237,15 @@ class BillingService
                                 }else{
 
                                     $failureType = BillingTransactionFailureType::MissingMainBalanceInformation;
+                                    $failureReason = 'Could not process this transaction because of missing information on your account';
 
                                 }
 
                             }else{
 
                                 $failureType = BillingTransactionFailureType::UsageConsumptionRetrievalFailed;
-                                $failureReason = json_encode($response['body']);
+                                $failureReason = 'Could not process this transaction, please try again';
+                                $failedAttempts = json_encode($response['body']['failed_attempts']);
 
                             }
 
@@ -331,23 +334,27 @@ class BillingService
                             }else{
 
                                 $failureType = BillingTransactionFailureType::DeductFeeFailed;
-                                $failureReason = json_encode($response['body']);
+                                $failureReason = 'Could not process this transaction, please try again';
+                                $failedAttempts = json_encode($response['body']['failed_attempts']);
                             }
 
                         }
 
                     }else{
                         $failureType = BillingTransactionFailureType::InactiveAccount;
+                        $failureReason = 'This account is currently inactive. Please contact customer support';
                     }
 
                 }else{
                     $failureType = BillingTransactionFailureType::ProductInventoryRetrievalFailed;
-                    $failureReason = json_encode($response['body']);
+                    $failureReason = 'Could not process this transaction, please try again';
+                    $failedAttempts = json_encode($response['body']['failed_attempts']);
                 }
 
             }else{
                 $failureType = BillingTransactionFailureType::TokenGenerationFailed;
-                $failureReason = json_encode($response['body']);
+                $failureReason = 'Could not process this transaction, please try again';
+                $failedAttempts = json_encode($response['body']['failed_attempts']);
             }
 
             if($status) {
@@ -360,6 +367,8 @@ class BillingService
                 'rating_type' => $ratingType,
                 'failure_type' => $failureType,
                 'failure_reason' => $failureReason,
+                'failure_reason_2' => $failureReason,
+                'failed_attempts' => $failedAttempts,
                 'funds_after_deduction' => $fundsAfterDeduction,
                 'funds_before_deduction' => $fundsBeforeDeduction
             ]);
@@ -367,14 +376,25 @@ class BillingService
             //  Return a fresh instance of the billing transaction
             return $billingTransaction->fresh();
 
-        } catch (Throwable $th) {
+        } catch (Throwable $e) {
 
             $failureType = BillingTransactionFailureType::InternalFailure;
+            $failureReason = 'Could not process this transaction, please try again';
+
+            $failedAttempts = [
+                [
+                    'attempts' => 1,
+                    'error_code' => $e->getCode() ?: null,
+                    'error_description' => $e->getMessage()
+                ]
+            ];
 
             $billingTransaction->update([
                 'is_successful' => false,
+                'failure_reason' => $failureReason,
+                'failure_reason_2' => $failureReason,
+                'failed_attempts' => $failedAttempts,
                 'failure_type' => $failureType->value,
-                'failure_reason' => $th->getMessage()
             ]);
 
             //  Return a fresh instance of the billing transaction

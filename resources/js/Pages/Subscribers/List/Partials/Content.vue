@@ -10,6 +10,57 @@
 
         <div class="bg-white shadow-xl sm:rounded-lg">
 
+            <!-- Search and Filter Controls -->
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <!-- Mobile Number Search -->
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">Search by Mobile Number</label>
+                        <input
+                            v-model="searchQuery"
+                            @input="debouncedSearch"
+                            type="text"
+                            placeholder="Enter mobile number..."
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                        />
+                    </div>
+
+                    <!-- Filter Controls -->
+                    <div class="flex-1">
+                        <label class="block text-sm font-medium text-gray-700">Filters</label>
+                        <div class="mt-1 flex flex-wrap gap-2">
+                            <select
+                                v-model="filters.status"
+                                @change="applyFilters"
+                                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            >
+                                <option value="">All Statuses</option>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+
+                            <select
+                                v-model="filters.billingStatus"
+                                @change="applyFilters"
+                                class="rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+                            >
+                                <option value="">All Billing Statuses</option>
+                                <option value="successful">Successful</option>
+                                <option value="unsuccessful">Unsuccessful</option>
+                            </select>
+
+                            <button
+                                v-if="hasActiveFilters"
+                                @click="clearFilters"
+                                class="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                            >
+                                Clear Filters
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Table -->
             <div class="flex flex-col overflow-y-auto">
                 <div class="align-middle inline-block min-w-full">
@@ -383,6 +434,7 @@
     import ManageSubscriberModal from './ManageSubscriberModal.vue'
     import Pagination from '../../../../Partials/Pagination.vue'
     import BillingStatusBadge from './BillingStatusBadge.vue'
+    import debounce from 'lodash/debounce'
     import { defineComponent } from 'vue'
     import moment from "moment";
 
@@ -406,7 +458,17 @@
                 isShowingModal: false,
                 modalAction: null,
                 subscriber: null,
-                moment: moment
+                moment: moment,
+                searchQuery: '',
+                filters: {
+                    status: '',
+                    billingStatus: ''
+                },
+            }
+        },
+        computed: {
+            hasActiveFilters() {
+                return Object.values(this.filters).some(filter => filter !== '') || this.searchQuery !== ''
             }
         },
         methods: {
@@ -416,6 +478,28 @@
             refreshContent()
             {
                 this.$inertia.reload();
+            },
+            getQueryParams() {
+                const params = {};
+                params.msisdn = this.searchQuery;
+                params.status = this.filters.status;
+                params.billingStatus = this.filters.billingStatus;
+                return params;
+            },
+            applyFilters() {
+                this.$inertia.get(this.$inertia.page.url, this.getQueryParams(), {
+                    preserveState: true,
+                    preserveScroll: true,
+                    replace: true
+                });
+            },
+            clearFilters() {
+                this.searchQuery = '';
+                this.filters = {
+                    status: '',
+                    billingStatus: ''
+                };
+                this.applyFilters();
             },
             getLatestMessage(subscriber){
                 return subscriber.latest_message ?? {};
@@ -479,6 +563,7 @@
             }
         },
         created() {
+            this.debouncedSearch = debounce(this.applyFilters, 300);
 
             //  Keep refreshing this page content every 5 seconds
             this.refreshContentInterval = setInterval(function() {

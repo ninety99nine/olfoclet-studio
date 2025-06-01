@@ -23,7 +23,8 @@ class CreateBillingTransactionsTable extends Migration
             $table->decimal('funds_before_deduction', 10, 2)->nullable();
             $table->decimal('funds_after_deduction', 10, 2)->nullable();
             $table->enum('failure_type', BillingTransaction::FAILURE_TYPES)->nullable();
-            $table->json('failure_reason')->nullable();
+            $table->string('failure_reason')->nullable();
+            $table->json('failed_attempts')->nullable();
             $table->boolean('created_using_auto_billing')->default(0);
             $table->string('client_correlator');
             $table->string('reference_code');

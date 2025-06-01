@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\Subscriber;
+use Illuminate\Http\Request;
 use App\Repositories\MessageRepository;
 use App\Repositories\SubscriberRepository;
 use App\Http\Requests\Subscribers\CreateSubscriberRequest;
@@ -25,20 +26,29 @@ class SubscriberController extends Controller
         $this->subscriberRepository = new SubscriberRepository($this->project, $subscriber);
     }
 
-    public function showSubscribers()
+    public function showSubscribers(Request $request)
     {
         // Count the messages
         $totalMessages = $this->messageRepository->countProjectMessages();
 
+        // Build query parameters for filtering
+        $filters = [
+            'msisdn' => $request->query('msisdn'),
+            'status' => $request->query('status'),
+            'billingStatus' => $request->query('billingStatus'),
+        ];
+
         // Get the subscribers using the repository with the required relationships and pagination
-        $subscribers = $this->subscriberRepository->getProjectSubscribers(null,
+        $subscribers = $this->subscriberRepository->getProjectSubscribers(
+            $filters,
             ['latestSubscription', 'latestUserBillingTransaction', 'latestAutoBillingTransaction'],
             [
                 'messages', 'subscriptions',
                 'userBillingTransactions', 'successfulUserBillingTransactions', 'unsuccessfulUserBillingTransactions',
                 'autoBillingTransactions', 'successfulAutoBillingTransactions', 'unsuccessfulAutoBillingTransactions',
                 'messagesAsContent', 'messagesAsPaymentConfirmation', 'messagesAsAutoBillingReminder'
-            ]);
+            ]
+        );
 
         // Render the subscribers view
         return Inertia::render('Subscribers/List/Main', [
