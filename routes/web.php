@@ -34,22 +34,19 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login', 301);
 
-Route::get('/fix', function () {
+Route::get('/fix2', function () {
+
     $updatedCount = 0;
 
     DB::transaction(function () use (&$updatedCount) {
 
-        foreach (BillingTransaction::whereNotNull('failure_reason')->cursor() as $transaction) {
+        foreach (BillingTransaction::whereNotNull('failure_reason_2')->cursor() as $transaction) {
 
-            $decoded = json_decode($transaction->failure_reason, true);
+            $update = [
+                'failure_reason_2' => null,
+                'failure_reason' => $transaction->failure_reason_2
+            ];
 
-            if ($decoded === null) {
-                $update['failure_reason_2'] = $transaction->failure_reason;
-            }else{
-                $update['failed_attempts'] = json_encode($decoded['failed_attempts']);
-            }
-
-            $update['failure_reason'] = null;
             DB::table('billing_transactions')->where('id', $transaction->id)->update($update);
 
             $updatedCount++;
