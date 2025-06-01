@@ -29,7 +29,6 @@ class BillingTransaction extends Model
      */
     protected $casts = [
         'amount' => Money::class,
-        'failure_reason' => 'array',
         'failed_attempts' => 'array',
         'is_successful' => 'boolean',
         'funds_after_deduction' => Money::class,
