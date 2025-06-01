@@ -367,7 +367,6 @@ class BillingService
                 'rating_type' => $ratingType,
                 'failure_type' => $failureType,
                 'failure_reason' => $failureReason,
-                'failure_reason_2' => $failureReason,
                 'failed_attempts' => $failedAttempts,
                 'funds_after_deduction' => $fundsAfterDeduction,
                 'funds_before_deduction' => $fundsBeforeDeduction
@@ -392,7 +391,6 @@ class BillingService
             $billingTransaction->update([
                 'is_successful' => false,
                 'failure_reason' => $failureReason,
-                'failure_reason_2' => $failureReason,
                 'failed_attempts' => $failedAttempts,
                 'failure_type' => $failureType->value,
             ]);

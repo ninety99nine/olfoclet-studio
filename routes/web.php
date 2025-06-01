@@ -34,33 +34,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login', 301);
 
-Route::get('/fix-here', function () {
-
-    $updatedCount = 0;
-
-    DB::transaction(function () use (&$updatedCount) {
-
-        foreach (BillingTransaction::whereNotNull('failure_reason_2')->cursor() as $transaction) {
-
-            $update = [
-                'failure_reason_2' => null,
-                'failure_reason' => $transaction->failure_reason_2
-            ];
-
-            DB::table('billing_transactions')->where('id', $transaction->id)->update($update);
-
-            $updatedCount++;
-
-        }
-
-    });
-
-    return [
-        'status' => 'success',
-        'message' => "Processed all BillingTransaction records. Updated $updatedCount records."
-    ];
-});
-
 Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
     //  Server Commands

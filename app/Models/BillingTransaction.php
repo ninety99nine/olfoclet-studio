@@ -43,7 +43,7 @@ class BillingTransaction extends Model
      */
     protected $fillable = [
         'amount', 'is_successful', 'rating_type', 'funds_before_deduction', 'funds_after_deduction',
-        'description', 'failure_type', 'failure_reason', 'failure_reason_2', 'failed_attempts', 'subscriber_id', 'project_id',
+        'description', 'failure_type', 'failure_reason', 'failed_attempts', 'subscriber_id', 'project_id',
         'subscription_plan_id', 'subscription_id', 'created_using_auto_billing',
         'client_correlator', 'reference_code'
     ];
