@@ -34,7 +34,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::redirect('/', '/login', 301);
 
-Route::get('/fix2', function () {
+Route::get('/fix-here', function () {
 
     $updatedCount = 0;
 
