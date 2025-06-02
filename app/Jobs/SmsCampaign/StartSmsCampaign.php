@@ -208,7 +208,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                         'subscriber_messages.subscriber_id',
                                         DB::raw('COUNT(*) as sent_sms_count'),
                                         DB::raw('MAX(created_at) as last_sent_at')
-                                    )->groupBy('subscriber_messages.message_id')
+                                    )->groupBy('subscriber_messages.message_id', 'subscriber_messages.subscriber_id')
                                     ->orderBy('sent_sms_count', 'ASC')
                                     ->orderBy('last_sent_at', 'ASC');
 
