@@ -108,16 +108,16 @@ class SubscriptionPlanController extends Controller
         $insufficientFundsMessage = $request->input('insufficient_funds_message');
 
         //  Get the subscription plan successful payment sms message
-        $successfulPaymentSmsMessage = $request->input('successful_payment_sms_message');
+        $successfulPaymentSmsMessage = $request->input('successful_payment_sms_message') ?? null;
 
         //  Get the subscription plan successful auto billing payment sms message
-        $successfulAutoBillingPaymentSmsMessage = $request->input('successful_auto_billing_payment_sms_message');
+        $successfulAutoBillingPaymentSmsMessage = $request->input('successful_auto_billing_payment_sms_message') ?? null;
 
         //  Get the subscription plan next auto bill reminder sms message
-        $nextAutoBillingReminderSmsMessage = $request->input('next_auto_billing_reminder_sms_message');
+        $nextAutoBillingReminderSmsMessage = $request->input('next_auto_billing_reminder_sms_message') ?? null;
 
         //  Get the subscription plan auto billing disabled sms message
-        $autoBillingDisabledSmsMessage = $request->input('auto_billing_disabled_sms_message');
+        $autoBillingDisabledSmsMessage = $request->input('auto_billing_disabled_sms_message') ?? null;
 
         //  Get the subscription plan auto billing product ID
         $billingProductId = $request->input('billing_product_id');
