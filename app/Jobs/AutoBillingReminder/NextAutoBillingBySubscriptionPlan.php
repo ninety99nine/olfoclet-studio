@@ -101,108 +101,112 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
     {
         try{
 
-            /**
-             *  Query the subscribers that are soon ready for billing.
-             *
-             *  Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
-             *
-             *  The final query output is as follows:
-             *
-             *  [
-             *      {
-             *          "id": 1,
-             *          "msisdn": "26772000001"
-             *      },
-             *      ...
-             *  ]
-             */
-            $subscribers = $this->project->subscribers()->whereHas('autoBillingSchedules', function (Builder $query) {
+            if(!empty($this->subscriptionPlan->next_auto_billing_reminder_sms_message)) {
 
                 /**
-                 *  @var int $hours
+                 *  Query the subscribers that are soon ready for billing.
+                 *
+                 *  Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
+                 *
+                 *  The final query output is as follows:
+                 *
+                 *  [
+                 *      {
+                 *          "id": 1,
+                 *          "msisdn": "26772000001"
+                 *      },
+                 *      ...
+                 *  ]
                  */
-                $hours = $this->autoBillingReminder->hours;
+                $subscribers = $this->project->subscribers()->whereHas('autoBillingSchedules', function (Builder $query) {
 
-                /**
-                 *  Must have an auto billing schedule where the next_attempt_date
-                 *  is set to be exactly x hours from now or less.
-                 */
-                $query->where('auto_billing_enabled', '1')
-                      ->where('next_attempt_date', '>', now())
-                      ->where('next_attempt_date', '<=', now()->addHours($hours))
-                      ->where('subscription_plan_id', $this->subscriptionPlan->id);
+                    /**
+                     *  @var int $hours
+                     */
+                    $hours = $this->autoBillingReminder->hours;
 
-                    //  Must not have been reminded before
-                    if($hours == 1) {
-                        $query->whereNull('reminded_one_hour_before_at');
-                    }else if($hours == 6) {
-                        $query->whereNull('reminded_six_hours_before_at');
-                    }else if($hours == 12) {
-                        $query->whereNull('reminded_twelve_hours_before_at');
-                    }else if($hours == 24) {
-                        $query->whereNull('reminded_twenty_four_hours_before_at');
-                    }else if($hours == 48) {
-                        $query->whereNull('reminded_forty_eight_hours_before_at');
-                    }else if($hours == 72) {
-                        $query->whereNull('reminded_seventy_two_hours_before_at');
-                    }
+                    /**
+                     *  Must have an auto billing schedule where the next_attempt_date
+                     *  is set to be exactly x hours from now or less.
+                     */
+                    $query->where('auto_billing_enabled', '1')
+                        ->where('next_attempt_date', '>', now())
+                        ->where('next_attempt_date', '<=', now()->addHours($hours))
+                        ->where('subscription_plan_id', $this->subscriptionPlan->id);
 
-            })->select('subscribers.id', 'subscribers.msisdn');
+                        //  Must not have been reminded before
+                        if($hours == 1) {
+                            $query->whereNull('reminded_one_hour_before_at');
+                        }else if($hours == 6) {
+                            $query->whereNull('reminded_six_hours_before_at');
+                        }else if($hours == 12) {
+                            $query->whereNull('reminded_twelve_hours_before_at');
+                        }else if($hours == 24) {
+                            $query->whereNull('reminded_twenty_four_hours_before_at');
+                        }else if($hours == 48) {
+                            $query->whereNull('reminded_forty_eight_hours_before_at');
+                        }else if($hours == 72) {
+                            $query->whereNull('reminded_seventy_two_hours_before_at');
+                        }
 
-            //  If we have subscribers to remind
-            if( $subscribers->count() > 0 ) {
+                })->select('subscribers.id', 'subscribers.msisdn');
 
-                $jobs = [];
+                //  If we have subscribers to remind
+                if( $subscribers->count() > 0 ) {
 
-                //  Only query 1000 subscribers at a time (This helps us save memory)
-                $subscribers->chunk(1000, function ($chunked_subscribers) use (&$jobs) {
+                    $jobs = [];
 
-                    //  Foreach subscriber we retrieved from the query
-                    foreach ($chunked_subscribers as $subscriber) {
+                    //  Only query 1000 subscribers at a time (This helps us save memory)
+                    $subscribers->chunk(1000, function ($chunked_subscribers) use (&$jobs) {
 
-                        //  If this project has the sms credentials then continue
-                        if( $this->project->hasSmsCredentials() ) {
+                        //  Foreach subscriber we retrieved from the query
+                        foreach ($chunked_subscribers as $subscriber) {
 
-                            //  Create a job to send the auto billing reminder SMS to the subscriber
-                            $jobs[] = new SendAutoBillingReminderSms($this->project, $subscriber, $this->subscriptionPlan, $this->autoBillingReminder);
+                            //  If this project has the sms credentials then continue
+                            if( $this->project->hasSmsCredentials() ) {
+
+                                //  Create a job to send the auto billing reminder SMS to the subscriber
+                                $jobs[] = new SendAutoBillingReminderSms($this->project, $subscriber, $this->subscriptionPlan, $this->autoBillingReminder);
+
+                            }
 
                         }
 
+                    });
+
+                    //  If we have jobs to process
+                    if( count($jobs) > 0 ) {
+
+                        /**
+                         *  We cannot reference "$this->autoBillingReminder" within the Bus::batch() closures.
+                         *  Therefore we must create an autoBillingReminder variable that we can pass as a
+                         *  parameter of the various closures.
+                         */
+                        $autoBillingReminder = $this->autoBillingReminder;
+
+                        //  Set the sprint name
+                        $sprintName = 'Sprint #' . ($this->autoBillingReminderJobBatchesCount + 1);
+
+                        //  Create the batch to send
+                        $batch = Bus::batch($jobs
+                            )->then(function (Batch $batch) use ($autoBillingReminder) {
+
+                            })->catch(function (Batch $batch, Throwable $e) use ($autoBillingReminder) {
+
+                            })->finally(function (Batch $batch) use ($autoBillingReminder) {
+
+                            })->name($sprintName)->allowFailures()->dispatch();
+
+                        //  Create a new auto billing reminder job batch record
+                        DB::table('auto_billing_reminder_job_batches')->insert([
+                            'auto_billing_reminder_id' => $autoBillingReminder->id,
+                            'subscription_plan_id' => $this->subscriptionPlan->id,
+                            'job_batch_id' => $batch->id,
+                            'created_at' => Carbon::now(),
+                            'updated_at' => Carbon::now()
+                        ]);
+
                     }
-
-                });
-
-                //  If we have jobs to process
-                if( count($jobs) > 0 ) {
-
-                    /**
-                     *  We cannot reference "$this->autoBillingReminder" within the Bus::batch() closures.
-                     *  Therefore we must create an autoBillingReminder variable that we can pass as a
-                     *  parameter of the various closures.
-                     */
-                    $autoBillingReminder = $this->autoBillingReminder;
-
-                    //  Set the sprint name
-                    $sprintName = 'Sprint #' . ($this->autoBillingReminderJobBatchesCount + 1);
-
-                    //  Create the batch to send
-                    $batch = Bus::batch($jobs
-                        )->then(function (Batch $batch) use ($autoBillingReminder) {
-
-                        })->catch(function (Batch $batch, Throwable $e) use ($autoBillingReminder) {
-
-                        })->finally(function (Batch $batch) use ($autoBillingReminder) {
-
-                        })->name($sprintName)->allowFailures()->dispatch();
-
-                    //  Create a new auto billing reminder job batch record
-                    DB::table('auto_billing_reminder_job_batches')->insert([
-                        'auto_billing_reminder_id' => $autoBillingReminder->id,
-                        'subscription_plan_id' => $this->subscriptionPlan->id,
-                        'job_batch_id' => $batch->id,
-                        'created_at' => Carbon::now(),
-                        'updated_at' => Carbon::now()
-                    ]);
 
                 }
 

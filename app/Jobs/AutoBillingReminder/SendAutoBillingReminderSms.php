@@ -99,66 +99,70 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
     {
         try {
 
-            //  Set the message type
-            $messageType = MessageType::AutoBillingReminder;
+            if(!empty($this->subscriptionPlan->next_auto_billing_reminder_sms_message)) {
 
-            /**
-             *  @var Subscription $subscriptionWithFurthestEndAt
-             */
-            $subscriptionWithFurthestEndAt = $this->subscriber->subscriptionWithFurthestEndAt()
-                                                  ->where('subscription_plan_id', $this->subscriptionPlan->id)->first();
-
-            /**
-             *  Set the next auto billing reminder sms message
-             *
-             *  @var string $messageContent
-             */
-            $messageContent = $this->subscriptionPlan->craftNextAutoBillingReminderSmsMessage($subscriptionWithFurthestEndAt);
-
-            /**
-             *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
-             */
-            $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
-
-            /**
-             *  @var bool $isSuccessful Whether the sms was sent successfully
-             */
-            $isSuccessful = $subscriberMessage->is_successful;
-
-            if($isSuccessful) {
+                //  Set the message type
+                $messageType = MessageType::AutoBillingReminder;
 
                 /**
-                 *  @var int $hours
+                 *  @var Subscription $subscriptionWithFurthestEndAt
                  */
-                $hours = $this->autoBillingReminder->hours;
+                $subscriptionWithFurthestEndAt = $this->subscriber->subscriptionWithFurthestEndAt()
+                                                    ->where('subscription_plan_id', $this->subscriptionPlan->id)->first();
 
-                if($hours == 1) {
-                    $data = ['reminded_one_hour_before_at' => $subscriberMessage->created_at];
-                }else if($hours == 6) {
-                    $data = ['reminded_six_hours_before_at' => $subscriberMessage->created_at];
-                }else if($hours == 12) {
-                    $data = ['reminded_twelve_hours_before_at' => $subscriberMessage->created_at];
-                }else if($hours == 24) {
-                    $data = ['reminded_twenty_four_hours_before_at' => $subscriberMessage->created_at];
-                }else if($hours == 48) {
-                    $data = ['reminded_forty_eight_hours_before_at' => $subscriberMessage->created_at];
-                }else if($hours == 72) {
-                    $data = ['reminded_seventy_two_hours_before_at' => $subscriberMessage->created_at];
+                /**
+                 *  Set the next auto billing reminder sms message
+                 *
+                 *  @var string $messageContent
+                 */
+                $messageContent = $this->subscriptionPlan->craftNextAutoBillingReminderSmsMessage($subscriptionWithFurthestEndAt);
+
+                /**
+                 *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
+                 */
+                $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
+
+                /**
+                 *  @var bool $isSuccessful Whether the sms was sent successfully
+                 */
+                $isSuccessful = $subscriberMessage->is_successful;
+
+                if($isSuccessful) {
+
+                    /**
+                     *  @var int $hours
+                     */
+                    $hours = $this->autoBillingReminder->hours;
+
+                    if($hours == 1) {
+                        $data = ['reminded_one_hour_before_at' => $subscriberMessage->created_at];
+                    }else if($hours == 6) {
+                        $data = ['reminded_six_hours_before_at' => $subscriberMessage->created_at];
+                    }else if($hours == 12) {
+                        $data = ['reminded_twelve_hours_before_at' => $subscriberMessage->created_at];
+                    }else if($hours == 24) {
+                        $data = ['reminded_twenty_four_hours_before_at' => $subscriberMessage->created_at];
+                    }else if($hours == 48) {
+                        $data = ['reminded_forty_eight_hours_before_at' => $subscriberMessage->created_at];
+                    }else if($hours == 72) {
+                        $data = ['reminded_seventy_two_hours_before_at' => $subscriberMessage->created_at];
+                    }
+
+                    DB::table('auto_billing_schedules')
+                        ->where('subscriber_id', $this->subscriber->id)
+                        ->where('subscription_plan_id', $this->subscriptionPlan->id)
+                        ->update($data);
                 }
 
-                DB::table('auto_billing_schedules')
-                    ->where('subscriber_id', $this->subscriber->id)
-                    ->where('subscription_plan_id', $this->subscriptionPlan->id)
-                    ->update($data);
-            }
+                /**
+                 *  Return True or False as an indication for whether the SMS sent successfully or not.
+                 *  If we return True then this event will be removed from the queue, otherwise if we
+                 *  return False then this event will be added again to the queue so that we can retry
+                 *  this event 3 times every 1 hour before being rejected entirely.
+                 */
+                return $isSuccessful;
 
-            /**
-             *  Return True or False as an indication for whether the SMS sent successfully or not.
-             *  If we return True then this event will be removed from the queue, otherwise if we
-             *  return False then this event will be added again to the queue so that we can retry
-             *  this event 3 times every 1 hour before being rejected entirely.
-             */
-            return $isSuccessful;
+            }
 
         } catch (\Throwable $th) {
 

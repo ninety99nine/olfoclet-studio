@@ -114,28 +114,43 @@ class SubscriptionRepository
                 //  Set the message type
                 $messageType = MessageType::PaymentConfirmation;
 
+                //  Set the message content
+                $messageContent = null;
+
                 if($createdUsingAutoBilling == CreatedUsingAutoBilling::YES) {
 
-                    /**
-                     *  Set the successful auto billing payment sms message
-                     *
-                     *  @var string $messageContent
-                     */
-                    $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription);
+                    if($subscriptionPlan->successful_auto_billing_payment_sms_message) {
+
+                        /**
+                         *  Set the successful auto billing payment sms message
+                         *
+                         *  @var string $messageContent
+                         */
+                        $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription);
+
+                    }
 
                 }else{
 
-                    /**
-                     *  Set the successful payment sms message
-                     *
-                     *  @var string $messageContent
-                     */
-                    $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription);
+                    if($subscriptionPlan->successful_payment_sms_message) {
+
+                        /**
+                         *  Set the successful payment sms message
+                         *
+                         *  @var string $messageContent
+                         */
+                        $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription);
+
+                    }
 
                 }
 
-                //  Send the successful payment SMS message
-                SmsService::sendSms($this->project, $subscriber, $messageContent, $messageType);
+                if(!empty($messageContent)) {
+
+                    //  Send the successful payment SMS message
+                    SmsService::sendSms($this->project, $subscriber, $messageContent, $messageType);
+
+                }
 
             }
 

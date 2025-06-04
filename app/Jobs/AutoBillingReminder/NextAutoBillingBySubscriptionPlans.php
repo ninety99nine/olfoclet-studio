@@ -61,27 +61,31 @@ class NextAutoBillingBySubscriptionPlans implements ShouldQueue
             foreach ($subscriptionPlanAutoBillingReminders as $subscriptionPlanAutoBillingReminder) {
 
                 /**
-                 *  @var Project $project
-                 */
-                $project = $subscriptionPlanAutoBillingReminder->project;
-
-                /**
                  *  @var SubscriptionPlan $subscriptionPlan
                  */
                 $subscriptionPlan = $subscriptionPlanAutoBillingReminder->subscriptionPlan;
 
-                /**
-                 *  @var AutoBillingReminder $autoBillingReminder
-                 */
-                $autoBillingReminder = $subscriptionPlanAutoBillingReminder->autoBillingReminder;
+                if(!empty($subscriptionPlan->next_auto_billing_reminder_sms_message)) {
 
-                /**
-                 *  @var int $autoBillingReminderJobBatchesCount
-                 */
-                $autoBillingReminderJobBatchesCount = $subscriptionPlan->auto_billing_reminder_job_batches_count;
+                    /**
+                     *  @var Project $project
+                     */
+                    $project = $subscriptionPlanAutoBillingReminder->project;
 
-                //  Add this job to the queue for processing
-                NextAutoBillingBySubscriptionPlan::dispatch($project, $subscriptionPlan, $autoBillingReminder, $autoBillingReminderJobBatchesCount);
+                    /**
+                     *  @var AutoBillingReminder $autoBillingReminder
+                     */
+                    $autoBillingReminder = $subscriptionPlanAutoBillingReminder->autoBillingReminder;
+
+                    /**
+                     *  @var int $autoBillingReminderJobBatchesCount
+                     */
+                    $autoBillingReminderJobBatchesCount = $subscriptionPlan->auto_billing_reminder_job_batches_count;
+
+                    //  Add this job to the queue for processing
+                    NextAutoBillingBySubscriptionPlan::dispatch($project, $subscriptionPlan, $autoBillingReminder, $autoBillingReminderJobBatchesCount);
+
+                }
 
             }
 

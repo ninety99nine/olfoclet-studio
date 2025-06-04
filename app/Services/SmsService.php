@@ -2,16 +2,16 @@
 
 namespace App\Services;
 
-use App\Enums\CacheName;
-use App\Enums\SendMessageFailureType;
-use App\Enums\MessageType;
-use App\Enums\UpdateDeliveryStatusFailureType;
-use App\Helpers\CacheManager;
 use GuzzleHttp\Client;
 use App\Models\Message;
+use App\Enums\CacheName;
 use App\Models\Subscriber;
-use App\Models\Pivots\SubscriberMessage;
+use App\Enums\MessageType;
+use App\Helpers\CacheManager;
 use Illuminate\Support\Facades\Log;
+use App\Enums\SendMessageFailureType;
+use App\Models\Pivots\SubscriberMessage;
+use App\Enums\UpdateDeliveryStatusFailureType;
 
 class SmsService
 {
@@ -203,14 +203,22 @@ class SmsService
 
             return $subscriberMessage;
 
-        } catch (\Throwable $th) {
+        } catch (\Throwable $e) {
 
             $failureType = SendMessageFailureType::InternalFailure;
+
+            Log::error('SMS Sending Fatal Error', [
+                'code' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'project_id' => $project->id,
+                'message_id' => $message->id,
+                'subscriber_id' => $subscriber->id,
+            ]);
 
             $subscriberMessage->update([
                 'is_successful' => false,
                 'failure_type' => $failureType->value,
-                'failure_reason' => $th->getMessage()
+                'failure_reason' => $e->getMessage()
             ]);
 
             //  Return a fresh instance of the subscriber message

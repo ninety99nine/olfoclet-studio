@@ -230,7 +230,16 @@ class BillingService
                                     if( !$hasEnoughFunds ) {
 
                                         $failureType = BillingTransactionFailureType::InsufficientFunds;
-                                        $failureReason = $subscriptionPlan->craftInsufficientFundsMessage();
+
+                                        if(!empty($subscriptionPlan->insufficient_funds_message)) {
+
+                                            $failureReason = $subscriptionPlan->craftInsufficientFundsMessage();
+
+                                        }else{
+
+                                            $failureReason = 'You do not have enough funds to complete this transaction.';
+
+                                        }
 
                                     }
 
@@ -380,6 +389,15 @@ class BillingService
             $failureType = BillingTransactionFailureType::InternalFailure;
             $failureReason = 'Could not process this transaction, please try again';
 
+            Log::error('Airtime Billing Fatal Error', [
+                'code' => $e->getCode(),
+                'message' => $e->getMessage(),
+                'msisdn' => $msisdn,
+                'subscriber_id' => $subscriber->id,
+                'subscription_plan_id' => $subscriptionPlan->id,
+                'billing_transaction_id' => $billingTransaction->id,
+            ]);
+
             $failedAttempts = [
                 [
                     'attempts' => 1,
@@ -503,7 +521,7 @@ class BillingService
 
                 }else{
 
-                    Log::warning('Airtime Billing Token Generation API Error', [
+                    Log::error('Airtime Billing Token Generation API Error (Stage 1)', [
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
                         'status_code' => $statusCode,
@@ -525,7 +543,7 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::warning('Airtime Billing Token Generation API Error', [
+                Log::error('Airtime Billing Token Generation API Error (Stage 2)', [
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
                     'status_code' => $statusCode,
@@ -542,7 +560,7 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Token Generation API Fatal Error', [
+                Log::error('Airtime Billing Token Generation API Fatal Error (Stage 3)', [
                     'attempt' => $attempts,
                     'code' => $e->getCode(),
                     'message' => $e->getMessage()
@@ -650,7 +668,7 @@ class BillingService
 
                 }else{
 
-                    Log::warning('Airtime Billing Product Inventory API Error', [
+                    Log::error('Airtime Billing Product Inventory API Error (Stage 1)', [
                         'msisdn' => $msisdn,
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
@@ -673,7 +691,7 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::warning('Airtime Billing Product Inventory API Error', [
+                Log::error('Airtime Billing Product Inventory API Error (Stage 2)', [
                     'msisdn' => $msisdn,
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
@@ -691,7 +709,7 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Product Inventory API Fatal Error', [
+                Log::error('Airtime Billing Product Inventory API Fatal Error (Stage 3)', [
                     'msisdn' => $msisdn,
                     'attempt' => $attempts,
                     'code' => $e->getCode(),
@@ -836,7 +854,7 @@ class BillingService
 
                 }else{
 
-                    Log::warning('Airtime Billing Usage Consumption API Error', [
+                    Log::error('Airtime Billing Usage Consumption API Error (Stage 1)', [
                         'msisdn' => $msisdn,
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
@@ -859,7 +877,7 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::warning('Airtime Billing Usage Consumption API Error', [
+                Log::error('Airtime Billing Usage Consumption API Error (Stage 2)', [
                     'msisdn' => $msisdn,
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
@@ -877,7 +895,7 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Usage Consumption API Fatal Error', [
+                Log::error('Airtime Billing Usage Consumption API Fatal Error (Stage 3)', [
                     'msisdn' => $msisdn,
                     'attempt' => $attempts,
                     'code' => $e->getCode(),
@@ -1050,7 +1068,7 @@ class BillingService
 
                 }else{
 
-                    Log::warning('Airtime Billing Deduct Fee API Error', [
+                    Log::error('Airtime Billing Deduct Fee API Error (Stage 1)', [
                         'msisdn' => $msisdn,
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
@@ -1073,7 +1091,7 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::warning('Airtime Billing Deduct Fee API Error', [
+                Log::error('Airtime Billing Deduct Fee API Error (Stage 2)', [
                     'msisdn' => $msisdn,
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
@@ -1091,7 +1109,7 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Deduct Fee Fatal API Error', [
+                Log::error('Airtime Billing Deduct Fee Fatal API Error (Stage 3)', [
                     'msisdn' => $msisdn,
                     'attempt' => $attempts,
                     'code' => $e->getCode(),

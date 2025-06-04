@@ -253,6 +253,7 @@
                                     </el-popover>
 
                                 </div>
+                                <p class="text-sm text-gray-500">If no message is specified, default message is returned!</p>
                                 <jet-textarea id="sub-pl-insufficient-funds-message" class="w-full mt-1 block" v-model="form.insufficient_funds_message" />
                                 <jet-input-error :message="form.errors.insufficient_funds_message" class="mt-2" />
                             </div>
@@ -261,7 +262,6 @@
                             <div class="mb-4">
                                 <div class="flex mb-1">
                                     <jet-label for="sub-pl-successful-payment-sms-message" value="Successful Payment SMS Message" />
-
                                     <el-popover :width="400">
                                         <template #reference>
                                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
@@ -313,8 +313,8 @@
 
                                         </template>
                                     </el-popover>
-
                                 </div>
+                                <p class="text-sm text-gray-500">If no message is specified, no SMS message is sent!</p>
                                 <jet-textarea id="sub-pl-successful-payment-sms-message" class="w-full mt-1 block" v-model="form.successful_payment_sms_message" />
                                 <jet-input-error :message="form.errors.successful_payment_sms_message" class="mt-2" />
                             </div>
@@ -429,6 +429,7 @@
                                         </el-popover>
 
                                     </div>
+                                    <p class="text-sm text-gray-500">If no message is specified, no SMS message is sent!</p>
                                     <jet-textarea id="sub-pl-successful-auto-payment-sms-message" class="w-full mt-1 block" v-model="form.successful_auto_billing_payment_sms_message" />
                                     <jet-input-error :message="form.errors.successful_auto_billing_payment_sms_message" class="mt-2" />
                                 </div>
@@ -496,6 +497,7 @@
                                             </template>
                                         </el-popover>
                                     </div>
+                                    <p class="text-sm text-gray-500">If no message is specified, no SMS message is sent!</p>
                                     <jet-textarea id="next_auto_billing_reminder_sms_message" class="w-full mt-1 block" v-model="form.next_auto_billing_reminder_sms_message" />
                                     <jet-input-error :message="form.errors.next_auto_billing_reminder_sms_message" class="mt-2" />
                                 </div>
@@ -541,6 +543,7 @@
                                             </template>
                                         </el-popover>
                                     </div>
+                                    <p class="text-sm text-gray-500">If no message is specified, no SMS message is sent!</p>
                                     <jet-textarea id="auto_billing_disabled_sms_message" class="w-full mt-1 block" v-model="form.auto_billing_disabled_sms_message" />
                                     <jet-input-error :message="form.errors.auto_billing_disabled_sms_message" class="mt-2" />
                                 </div>

@@ -181,7 +181,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         ]);
 
         //  If auto billing has been disabled
-        if(!$autoBillingEnabled) {
+        if(!$autoBillingEnabled && !empty($this->subscriptionPlan->auto_billing_disabled_sms_message)) {
 
             SendAutoBillingDisabledSms::dispatch($this->project, $this->subscriber, $this->subscriptionPlan);
 

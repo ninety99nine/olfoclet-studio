@@ -94,33 +94,37 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
     {
         try {
 
-            //  Set the message type
-            $messageType = MessageType::AutoBillingDisabled;
+            if(!empty($this->subscriptionPlan->auto_billing_disabled_sms_message)) {
 
-            /**
-             *  Set the auto billing disabled sms message
-             *
-             *  @var string $messageContent
-             */
-            $messageContent = $this->subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+                //  Set the message type
+                $messageType = MessageType::AutoBillingDisabled;
 
-            /**
-             *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
-             */
-            $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
+                /**
+                 *  Set the auto billing disabled sms message
+                 *
+                 *  @var string $messageContent
+                 */
+                $messageContent = $this->subscriptionPlan->craftAutoBillingDisabledSmsMessage();
 
-            /**
-             *  @var bool $isSuccessful Whether the sms was sent successfully
-             */
-            $isSuccessful = $subscriberMessage->is_successful;
+                /**
+                 *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
+                 */
+                $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
 
-            /**
-             *  Return True or False as an indication for whether the SMS sent successfully or not.
-             *  If we return True then this event will be removed from the queue, otherwise if we
-             *  return False then this event will be added again to the queue so that we can retry
-             *  this event 3 times every 1 hour before being rejected entirely.
-             */
-            return $isSuccessful;
+                /**
+                 *  @var bool $isSuccessful Whether the sms was sent successfully
+                 */
+                $isSuccessful = $subscriberMessage->is_successful;
+
+                /**
+                 *  Return True or False as an indication for whether the SMS sent successfully or not.
+                 *  If we return True then this event will be removed from the queue, otherwise if we
+                 *  return False then this event will be added again to the queue so that we can retry
+                 *  this event 3 times every 1 hour before being rejected entirely.
+                 */
+                return $isSuccessful;
+
+            }
 
         } catch (\Throwable $th) {
 
