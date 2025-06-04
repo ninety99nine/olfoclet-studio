@@ -23,11 +23,11 @@ class CreateSubscriptionPlanRequest extends FormRequest
             'billing_purchase_category_code' => ['sometimes', 'string', 'min:1', 'max:500'],
             'description' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:255'],
             'max_auto_billing_attempts' => [$requiredIfIsNotFolder, 'sometimes', 'integer', 'min:1', 'max:10'],
-            'insufficient_funds_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:500'],
-            'successful_payment_sms_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:500'],
-            'auto_billing_disabled_sms_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:500'],
-            'next_auto_billing_reminder_sms_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:500'],
-            'successful_auto_billing_payment_sms_message' => [$requiredIfIsNotFolder, 'sometimes', 'string', 'min:10', 'max:500'],
+            'insufficient_funds_message' => [$requiredIfIsNotFolder, 'nullable', 'string', 'min:10', 'max:500'],
+            'successful_payment_sms_message' => [$requiredIfIsNotFolder, 'nullable', 'string', 'min:10', 'max:500'],
+            'auto_billing_disabled_sms_message' => [$requiredIfIsNotFolder, 'nullable', 'string', 'min:10', 'max:500'],
+            'next_auto_billing_reminder_sms_message' => [$requiredIfIsNotFolder, 'nullable', 'string', 'min:10', 'max:500'],
+            'successful_auto_billing_payment_sms_message' => [$requiredIfIsNotFolder, 'nullable', 'string', 'min:10', 'max:500'],
         ];
     }
 
