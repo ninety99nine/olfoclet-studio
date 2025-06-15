@@ -31,24 +31,19 @@ class Kernel extends ConsoleKernel
          *  If the job queue appears to dispatch the jobs, but no jobs are being
          *  saved on the database for processing then do the following:
          *
-         *  (1) Stop running the queue service (i.e stop running the php artisan queue:work)
-         *      On production run: "sudo supervisorctl stop all" to stop the supervisor queue service
-         *  (2) Run: php artisan config:clear && php artisan cache:clear
-         *  (3) Run: php artisan queue:work
-         *  (4) Run: php artisan schedule:work on local server
-         *      but use cron jobs on production server
-         *  (5) Start running the queue service (i.e start running the php artisan queue:work)
-         *      On production run: "sudo supervisorctl start all" to start the supervisor queue service
-         *
-         *  Make sure you have set the "QUEUE_CONNECTION=database" in the .env file
+         *  Make sure you have set the "QUEUE_CONNECTION=database" in the .env file.
          *  Remember to clear the cache after changes to the .env file. Consider
          *  running the following commands to reset:
          *
-         *  (1) php artisan config:cache
-         *  (2) php artisan config:clear
-         *  (3) php artisan cache:clear
+         *  ✅ LOCAL DEVELOPMENT:
          *
-         *  or everything in this order if you are on production using supervisor:
+         *  stop running the php artisan queue:work
+         *  sudo php artisan config:cache
+         *  sudo php artisan config:clear
+         *  sudo php artisan cache:clear
+         *  start running the php artisan queue:work
+         *
+         *  ✅ PRODUCTION (Supervisor setup):
          *
          *  sudo supervisorctl stop all
          *  sudo php artisan config:cache
