@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Project;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -19,8 +20,19 @@ class VerifyApiBearerToken
         //  Get the Bearer Token
         $bearerToken = $request->bearerToken();
 
+        if(!empty($bearerToken) && $bearerToken == config('app.API_BEARER_TOKEN')) {
+            $isValid = true;
+        }else{
+            $project = Project::findOrFail(request()->project);
+            if($bearerToken == $project->secret_token) {
+                $isValid = true;
+            }else{
+                $isValid = false;
+            }
+        }
+
         //  Validate the Bearer Token
-        if(!empty($bearerToken) && ($bearerToken == $request->project->secret_token || $bearerToken == config('app.API_BEARER_TOKEN'))) {
+        if($isValid) {
 
             //  Allow request to proceed
             return $next($request);
