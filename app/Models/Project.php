@@ -58,7 +58,7 @@ class Project extends Model
     protected $fillable = [
         'name', 'description', 'pdf_path', 'website_url', 'can_auto_bill', 'can_send_messages', 'settings',
         'costs', 'can_create_billing_reports', 'our_share_percentage', 'their_share_percentage',
-        'billing_report_email_addresses'
+        'billing_report_email_addresses', 'secret_token'
     ];
 
     /**

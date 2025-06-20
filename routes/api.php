@@ -23,13 +23,13 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-Route::/*middleware('verify.api.bearer.token')->*/prefix('/projects')->name('api.')->group(function () {
+Route::middleware('verify.api.bearer.token')->prefix('/projects')->name('api.')->group(function () {
 
     Route::prefix('{project}')->group(function () {
 
         //  Topics
         Route::prefix('topics')->group(function () {
-            Route::get('/', [TopicController::class, 'showTopipcs'])->name('show.topics');
+            Route::get('/', [TopicController::class, 'showTopics'])->name('show.topics');
 
             Route::prefix('{topic}')->group(function () {
                 Route::get('/{type?}', [TopicController::class, 'showTopic'])->name('show.topic');

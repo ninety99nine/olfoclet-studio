@@ -6,6 +6,7 @@ use \Carbon\Carbon;
 use App\Models\User;
 use Inertia\Inertia;
 use App\Models\Project;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
@@ -76,7 +77,6 @@ class ProjectController extends Controller
         //  Validate the request inputs
         Validator::make($request->all(), [
             'can_auto_bill' => ['required', 'boolean'],
-            'can_send_messages' => ['required', 'boolean'],
             'costs.*.name' => ['string', 'min:1', 'max:40'],
             'costs.*.percentage' => ['integer', 'min:1', 'max:100'],
             'costs' => [$requiredIfCanCreateBillingReports, 'array', $costsValidation],
@@ -85,7 +85,7 @@ class ProjectController extends Controller
             'billing_report_email_addresses.*' => ['email'],
             'billing_report_email_addresses' => [$requiredIfCanCreateBillingReports, 'array', 'max:2'],
             'our_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
-            'website_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
+            'website_url' => ['nullable', 'url:http,https', 'max:255'],
             'their_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
             'settings.sms_sender_name' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:11'],
             'settings.sms_client_credentials' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:255'],
@@ -143,6 +143,7 @@ class ProjectController extends Controller
             'costs' => $costs,
             'settings' => $settings,
             'website_url' => $websiteUrl,
+            'secret_token' => Str::uuid(),
             'description' => $description,
             'can_auto_bill' => $canAutoBill,
             'can_send_messages' => $canSendMessages,
@@ -228,13 +229,14 @@ class ProjectController extends Controller
             'billing_report_email_addresses.*' => ['email'],
             'billing_report_email_addresses' => [$requiredIfCanCreateBillingReports, 'array'],
             'our_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
-            'website_url' => ['sometimes', 'nullable', 'url:http,https', 'max:255'],
+            'website_url' => ['nullable', 'url:http,https', 'max:255'],
             'their_share_percentage' => [$requiredIfCanCreateBillingReports, 'integer', 'min:1', 'max:100', $sharePercentageValidation],
             'settings.sms_sender_name' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:11'],
             'settings.sms_client_credentials' => [$requiredIfCanSendMessages, 'nullable', 'string', 'max:255'],
             'settings.sms_sender_number' => [$requiredIfCanSendMessages, 'nullable', 'string', 'starts_with:'.config('app.SMS_NUMBER_EXTENSION', '267'), 'regex:/^[0-9]+$/', 'size:11'],
             'settings.auto_billing_client_id' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
             'settings.auto_billing_client_secret' => [$requiredIfCanAutoBill, 'nullable', 'string', 'max:255'],
+            'secret_token' => ['nullable', 'string', 'min:36', 'max:255'],
         ], [
 
             //  Messages
@@ -278,6 +280,9 @@ class ProjectController extends Controller
 
         //  Set settings
         $settings = $request->input('settings');
+
+        //  Set settings
+        $secret_token = $request->input('secret_token') ?? $project->secret_token;
 
         // Handle file upload
         if ($request->hasFile('pdf')) {
@@ -344,6 +349,7 @@ class ProjectController extends Controller
             'settings' => $settings,
             'website_url' => $websiteUrl,
             'description' => $description,
+            'secret_token' => $secret_token,
             'can_auto_bill' => $canAutoBill,
             'can_send_messages' => $canSendMessages,
             'our_share_percentage' => $ourSharePercentage,

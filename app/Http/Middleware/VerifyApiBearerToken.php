@@ -16,16 +16,14 @@ class VerifyApiBearerToken
      */
     public function handle(Request $request, Closure $next): Response
     {
-        //  Check if the Bearer Token has been provided
-        if($bearerToken = $request->bearerToken()) {
+        //  Get the Bearer Token
+        $bearerToken = $request->bearerToken();
 
-            //  Validate the provided Bearer Token
-            if($bearerToken == config('app.API_BEARER_TOKEN')) {
+        //  Validate the Bearer Token
+        if(!empty($bearerToken) && ($bearerToken == $request->project->secret_token || $bearerToken == config('app.API_BEARER_TOKEN'))) {
 
-                //  Allow request to proceed
-                return $next($request);
-
-            }
+            //  Allow request to proceed
+            return $next($request);
 
         }
 

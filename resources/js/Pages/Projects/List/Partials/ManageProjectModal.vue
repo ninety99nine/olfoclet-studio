@@ -177,7 +177,7 @@
                             <div class="col-span-12">
                                 <!-- Billing Name (onBehalfOf) -->
                                 <jet-label for="billing_name" value="Billing Name (onBehalfOf)" />
-                                <jet-input id="billing_name" type="text" class="w-full mt-1 block" v-model="form.settings.billing_name" />
+                                <jet-input id="billing_name" type="text" class="w-full mt-1 block" v-model="form.settings.secret_token" />
                                 <jet-input-error :message="form.errors['settings.billing_name']" class="mt-2" />
                             </div>
 
@@ -198,6 +198,26 @@
                                 <div class="flex items-center mt-2">
                                     <input v-model="showAutoBillingClientID" id="show_auto_billing_client_id" name="show_auto_billing_client_id" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
                                     <label for="show_auto_billing_client_id" class="ml-3 block text-sm font-medium text-gray-700">Show credentials</label>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="mt-10 mb-10">
+
+                            <el-divider content-position="left"><span class="font-semibold">API Settings</span></el-divider>
+
+                        </div>
+
+                        <div class="grid grid-cols-6 gap-6">
+
+                            <div class="col-span-6 sm:col-span-12">
+                                <jet-label for="secret_token" value="API Secret Token" />
+                                <jet-input id="secret_token" :type="showSecretToken ? 'text' : 'password'" placeholder="*************************" class="w-full mt-1 block" v-model="form.secret_token" />
+                                <jet-input-error :message="form.errors['secret_token']" class="mt-2" />
+                                <div class="flex items-center mt-2">
+                                    <input v-model="showSecretToken" id="show_secret_token" name="show_secret_token" type="checkbox" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded" />
+                                    <label for="show_secret_token" class="ml-3 block text-sm font-medium text-gray-700">Show secret token</label>
                                 </div>
                             </div>
 
@@ -406,6 +426,7 @@
                 showClientCredentials: false,
                 showSuccessMessage: false,
                 showErrorMessage: false,
+                showSecretToken: false
             }
         },
 
@@ -615,6 +636,7 @@
                     pdf_path: this.hasProject ? this.project.pdf_path : null,
                     website_url: this.hasProject ? this.project.website_url : null,
                     description: this.hasProject ? this.project.description : null,
+                    secret_token: this.hasProject ? this.project.secret_token : null,
                     can_auto_bill: this.hasProject ? this.project.can_auto_bill : false,
                     can_send_messages: this.hasProject ? this.project.can_send_messages : false,
                     settings: this.hasProject ? this.project.settings : {

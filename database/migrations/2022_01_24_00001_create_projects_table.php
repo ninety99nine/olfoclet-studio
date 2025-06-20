@@ -27,6 +27,7 @@ class CreateProjectsTable extends Migration
             $table->unsignedTinyInteger('their_share_percentage')->nullable();
             $table->json('billing_report_email_addresses')->nullable();
             $table->json('settings')->nullable();
+            $table->string('secret_token');
             $table->timestamps();
 
             $table->index(['name']);
