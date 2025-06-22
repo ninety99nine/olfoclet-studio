@@ -163,9 +163,7 @@ class SubscriberRepository
             $this->subscriber->msisdn = $msisdn;
         }
 
-        if($metadata != null) {
-            $this->subscriber->metadata = $metadata;
-        }
+        $this->subscriber->metadata = $metadata;
 
         return $this->subscriber->save();
     }
