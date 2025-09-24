@@ -22,9 +22,11 @@ class SubscriptionPlan extends Model
     protected $casts = [
         'active' => 'boolean',
         'price' => Money::class,
+        'trial_days' => 'integer',
         'is_folder' => 'boolean',
         'can_auto_bill' => 'boolean',
-        'tags' => JsonToArray::class
+        'tags' => JsonToArray::class,
+        'max_auto_billing_attempts' => 'integer',
     ];
 
     /**
@@ -33,9 +35,9 @@ class SubscriptionPlan extends Model
      * @var array
      */
     protected $fillable = [
-        'name', 'description', 'active', 'is_folder', 'price', 'frequency', 'duration', 'tags',
+        'name', 'description', 'active', 'is_folder', 'price', 'trial_days', 'frequency', 'duration', 'tags',
         'billing_product_id', 'billing_purchase_category_code', 'can_auto_bill', 'max_auto_billing_attempts',
-        'insufficient_funds_message', 'successful_payment_sms_message',
+        'insufficient_funds_message', 'trial_started_sms_message', 'successful_payment_sms_message',
         'successful_auto_billing_payment_sms_message',
         'next_auto_billing_reminder_sms_message',
         'auto_billing_disabled_sms_message',

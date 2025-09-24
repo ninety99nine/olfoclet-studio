@@ -66,47 +66,57 @@ class SubscriptionController extends Controller
 
     public function createSubscription(CreateSubscriptionRequest $request): JsonResponse
     {
-        //  Get the MSISDN
         $msisdn = $request->input('msisdn');
+        $subscriptionPlanId = $request->input('subscription_plan_id');
 
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
         // Get the subscription plan to be used when creating this subscription
-        $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+        $subscriptionPlan = SubscriptionPlan::find($subscriptionPlanId);
 
-        /**
-         *  Bill the subscriber using artime.
-         *
-         *  @var BillingTransaction $billingTransaction
-         */
-        $billingTransaction = BillingService::billUsingAirtime($this->project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::NO);
+        $offerTrial = ($subscriptionPlan->trial_days > 0) && ($subscriber->subscriptions()->where('subscription_plan_id', $subscriptionPlanId)->count() == 0);
 
-        //  Set the billing transaction status
-        $isSuccessful = $billingTransaction->is_successful;
+        $isSuccessful = true;
+        $billingTransaction = null;
+        $message = 'Subscription created successfully';
 
-        //  If the subscriber was billed successfully
+        if(!$offerTrial) {
+
+            /**
+             *  Bill the subscriber using artime.
+             *
+             *  @var BillingTransaction $billingTransaction
+             */
+            $billingTransaction = BillingService::billUsingAirtime($this->project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::NO);
+
+            //  Set the billing transaction status
+            $isSuccessful = $billingTransaction->is_successful;
+
+            //  If the subscriber was not billed successfully
+            if(!$isSuccessful) {
+
+                //  Failure message
+                $message = $billingTransaction->failure_reason;
+
+            }
+
+        }
+
         if($isSuccessful) {
 
-            //  Success message
-            $message = 'Subscription created successfully';
-
             // Create a new subscription using the repository
-            $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO, $billingTransaction);
-
-        }else {
-
-            //  Failure message
-            $message = $billingTransaction->failure_reason;
+            $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO, $billingTransaction, $offerTrial);
 
         }
 
         // Return JSON response
         return response()->json([
             'message' => $message,
+            'on_trial' => $offerTrial,
             'successful' => $isSuccessful,
-            'billingTransaction' => new BillingTransactionResource($billingTransaction),
-            'subscription' => $isSuccessful ? new SubscriptionResource($subscription) : null
+            'subscription' => $isSuccessful ? new SubscriptionResource($subscription) : null,
+            'billingTransaction' => $billingTransaction == null ? null : new BillingTransactionResource($billingTransaction),
         ], 201);
     }
 

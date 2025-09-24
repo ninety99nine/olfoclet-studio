@@ -18,7 +18,7 @@ class SubscriptionResource extends JsonResource
             'id' => $this->id,
             'endAt' => $this->end_at,
             'startAt' => $this->start_at,
-            'is_active' => $this->is_active,
+            'isActive' => $this->is_active,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
             'cancelledAt' => $this->cancelled_at,

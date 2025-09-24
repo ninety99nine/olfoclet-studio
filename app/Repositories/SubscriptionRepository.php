@@ -70,10 +70,11 @@ class SubscriptionRepository
      *  @param SubscriptionPlan $subscriptionPlan The subscription plan associated with the subscription.
      *  @param CreatedUsingAutoBilling $createdUsingAutoBilling Whether this subscription was created using auto billing.
      *  @param BillingTransaction|null $billingTransaction The BillingTransaction associated with the subscription.
+     *  @param bool $offerTrial Whether or not to offer a trial period.
      *
      *  @return Subscription The newly created subscription instance.
      */
-    public function createProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO, BillingTransaction|null $billingTransaction = null): Subscription
+    public function createProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO, BillingTransaction|null $billingTransaction = null, bool $offerTrial = false): Subscription
     {
         /**
          * @var Subscription|null $subscriptionWithFurthestEndAt
@@ -87,7 +88,8 @@ class SubscriptionRepository
             ? $subscriptionWithFurthestEndAt->end_at
             : now();
 
-        $endAt = $this->calculateEndDate($startAt, $subscriptionPlan);
+
+        $endAt = $this->calculateEndDate($startAt, $subscriptionPlan, $offerTrial);
 
         //  Create a new subscription
         $subscription = Subscription::create([
@@ -105,52 +107,61 @@ class SubscriptionRepository
                 'subscription_id' => $subscription->id,
             ]);
 
-            //  Update the auto billing schedule
-            $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscription, $createdUsingAutoBilling);
+        }
 
-            //  If the project has the SMS credentials
-            if( $this->project->hasSmsCredentials() ) {
+        //  Update the auto billing schedule
+        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscription, $createdUsingAutoBilling);
 
-                //  Set the message type
-                $messageType = MessageType::PaymentConfirmation;
+        //  If the project has the SMS credentials
+        if( $this->project->hasSmsCredentials() ) {
 
-                //  Set the message content
-                $messageContent = null;
+            //  Set the message type
+            $messageType = MessageType::PaymentConfirmation;
 
-                if($createdUsingAutoBilling == CreatedUsingAutoBilling::YES) {
+            //  Set the message content
+            $messageContent = null;
 
-                    if($subscriptionPlan->successful_auto_billing_payment_sms_message) {
+            if($createdUsingAutoBilling == CreatedUsingAutoBilling::YES) {
 
-                        /**
-                         *  Set the successful auto billing payment sms message
-                         *
-                         *  @var string $messageContent
-                         */
-                        $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription);
+                if($subscriptionPlan->successful_auto_billing_payment_sms_message) {
 
-                    }
-
-                }else{
-
-                    if($subscriptionPlan->successful_payment_sms_message) {
-
-                        /**
-                         *  Set the successful payment sms message
-                         *
-                         *  @var string $messageContent
-                         */
-                        $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription);
-
-                    }
+                    /**
+                     *  Set the successful auto billing payment sms message
+                     *
+                     *  @var string $messageContent
+                     */
+                    $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription);
 
                 }
 
-                if(!empty($messageContent)) {
+            }else{
 
-                    //  Send the successful payment SMS message
-                    SmsService::sendSms($this->project, $subscriber, $messageContent, $messageType);
+                if($offerTrial && $subscriptionPlan->trial_started_sms_message) {
+
+                    /**
+                     *  Set the successful payment sms message
+                     *
+                     *  @var string $messageContent
+                     */
+                    $messageContent = $subscriptionPlan->craftTrialStartedSmsMessage($subscription);
+
+                }else if(!$offerTrial && $subscriptionPlan->successful_payment_sms_message) {
+
+                    /**
+                     *  Set the successful payment sms message
+                     *
+                     *  @var string $messageContent
+                     */
+                    $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription);
 
                 }
+
+            }
+
+            if(!empty($messageContent)) {
+
+                //  Send the successful payment SMS message
+                SmsService::sendSms($this->project, $subscriber, $messageContent, $messageType);
 
             }
 
@@ -246,7 +257,7 @@ class SubscriptionRepository
 
         //  Auto billing schedule information
         $autoBillingSchedule = [
-            'attempts' => 0,
+            'attempt' => 0,
             'project_id' => $this->project->id,
             'subscriber_id' => $subscriber->id,
             'reminded_one_hour_before_at' => null,
@@ -269,7 +280,8 @@ class SubscriptionRepository
         //  If the auto billing schedule exists
         if( $existingAutoBillingSchedule ) {
 
-            $autoBillingSchedule['total_successful_attempts'] = $existingAutoBillingSchedule->total_successful_attempts + 1;
+            $autoBillingSchedule['overall_attempts'] = $existingAutoBillingSchedule->overall_attempts + 1;
+            $autoBillingSchedule['overall_successful_attempts'] = $existingAutoBillingSchedule->overall_successful_attempts + 1;
 
             //  Update existing auto billing schedule
             DB::table('auto_billing_schedules')->where([
@@ -437,7 +449,7 @@ class SubscriptionRepository
             'subscriber_id' => $this->subscription->subscriber_id,
             'subscription_plan_id' => $this->subscription->subscription_plan_id
         ])->update([
-            'attempts' => 0,
+            'attempt' => 0,
             'next_attempt_date' => null,
             'auto_billing_enabled' => false,
             'reminded_one_hour_before_at' => null,
@@ -461,7 +473,7 @@ class SubscriptionRepository
         return AutoBillingSchedule::whereHas('subscriber', function (Builder $query) use ($msisdn) {
             $query->where('msisdn', $msisdn);
         })->whereIn('subscription_plan_id', $subscriptionPlanIds)->update([
-            'attempts' => 0,
+            'attempt' => 0,
             'next_attempt_date' => null,
             'auto_billing_enabled' => false,
             'reminded_one_hour_before_at' => null,
@@ -478,9 +490,10 @@ class SubscriptionRepository
      *
      *  @param Carbon $startAt The start at datetime
      *  @param SubscriptionPlan $subscriptionPlan The subscription plan to calculate the end date for.
+     *  @param bool $offerTrial Whether or not to offer a trial period.
      *  @return Carbon The calculated end date.
      */
-    protected function calculateEndDate($startAt, SubscriptionPlan $subscriptionPlan): Carbon
+    protected function calculateEndDate(Carbon $startAt, SubscriptionPlan $subscriptionPlan, bool $offerTrial = false): Carbon
     {
         /**
          *  The copy method essentially creates a new Carbon object which you can
@@ -488,7 +501,10 @@ class SubscriptionRepository
          *
          *  Reference: https://stackoverflow.com/questions/34413877/php-carbon-class-changing-my-original-variable-value
          */
+
         $date = $startAt->copy();
+
+        if($offerTrial) return $date->addDays($subscriptionPlan->trial_days);;
 
         switch ($subscriptionPlan->frequency) {
             case 'Years':

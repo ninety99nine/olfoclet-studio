@@ -153,31 +153,34 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
             'subscription_plan_id' => $this->subscriptionPlan->id
         ])->first();
 
-        $attempts = ((int) $existingAutoBillingSchedule->attempts) + 1;
+        $attempt = $existingAutoBillingSchedule->attempt + 1;
 
         /**
          *  @var $autoBillingEnabled Whether the auto billing is enabled for future attempts
          */
-        $autoBillingEnabled = $attempts < $this->subscriptionPlan->max_auto_billing_attempts;
-        $totalFailedAttempts = $existingAutoBillingSchedule->total_failed_attempts + 1;
-        $nextAttemptDate = now()->addDay();
+        $autoBillingEnabled = $this->subscriptionPlan->max_auto_billing_attempts == 0 || $attempt < $this->subscriptionPlan->max_auto_billing_attempts;
 
-        //  If auto billing on this auto billing schedule is disabled
-        if($autoBillingEnabled == false) {
-            $attempts = 0;
+        if($autoBillingEnabled) {
+            $nextAttemptDate = now()->addHour();
+        }else{
+            $attempt = 0;
             $nextAttemptDate = null;
         }
+
+        $overallAttempts = $existingAutoBillingSchedule->overall_attempts + 1;
+        $overallFailedAttempts = $existingAutoBillingSchedule->overall_failed_attempts + 1;
 
         //  Update the existing auto billing schedule
         DB::table('auto_billing_schedules')->where([
             'subscriber_id' => $this->subscriber->id,
             'subscription_plan_id' => $this->subscriptionPlan->id
         ])->update([
-            'attempts' => $attempts,
+            'attempt' => $attempt,
+            'overall_attempts' => $overallAttempts,
             'updated_at' => $this->billingAttemptAt,
             'next_attempt_date' => $nextAttemptDate,
             'auto_billing_enabled' => $autoBillingEnabled,
-            'total_failed_attempts' => $totalFailedAttempts,
+            'overall_failed_attempts' => $overallFailedAttempts
         ]);
 
         //  If auto billing has been disabled

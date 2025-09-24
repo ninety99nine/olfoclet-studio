@@ -44,8 +44,9 @@ class AutoBillingSchedule extends Pivot
     ];
 
     const VISIBLE_COLUMNS = [
-        'id', 'subscriber_id', 'subscription_plan_id', 'auto_billing_enabled', 'next_attempt_date', 'attempts',
-        'total_successful_attempts', 'total_failed_attempts',
+        'id', 'subscriber_id', 'subscription_plan_id', 'auto_billing_enabled', 'next_attempt_date',
+
+        'attempt', 'overall_attempts', 'overall_failed_attempts', 'overall_successful_attempts',
 
         'reminded_one_hour_before_at', 'reminded_six_hours_before_at', 'reminded_twelve_hours_before_at',
         'reminded_twenty_four_hours_before_at', 'reminded_forty_eight_hours_before_at',

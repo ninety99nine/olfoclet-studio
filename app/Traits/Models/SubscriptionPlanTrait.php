@@ -15,6 +15,18 @@ trait SubscriptionPlanTrait
         ]);
     }
 
+    public function craftTrialStartedSmsMessage(Subscription $subscription)
+    {
+        return $this->handleEmbeddedDynamicContentConversion($this->trial_started_sms_message, [
+            'subscriptionId' => $subscription->id,
+            'subscriptionPlanName' => $this->name,
+            'subscriptionPlanPrice' => $this->price->amount_with_currency,
+            'nextBillableDate' => $subscription->end_at->format('d M Y H:i'),
+            'subscriptionEndDate' => $subscription->end_at->format('d M Y H:i'),
+            'subscriptionStartDate' => $subscription->start_at->format('d M Y H:i'),
+        ]);
+    }
+
     public function craftSuccessfulPaymentSmsMessage(Subscription $subscription)
     {
         return $this->handleEmbeddedDynamicContentConversion($this->successful_payment_sms_message, [

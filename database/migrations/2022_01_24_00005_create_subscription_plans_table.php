@@ -21,13 +21,15 @@ class CreateSubscriptionPlansTable extends Migration
             $table->boolean('is_folder')->default(0);
             $table->string('frequency')->nullable();
             $table->unsignedInteger('duration')->nullable();
+            $table->unsignedSmallInteger('trial_days')->default(0);
             $table->decimal('price', 10, 2)->nullable();
             $table->json('tags')->nullable();
             $table->string('billing_product_id', 500)->nullable();
             $table->string('billing_purchase_category_code', 500)->nullable();
             $table->boolean('can_auto_bill')->default(false);
-            $table->unsignedTinyInteger('max_auto_billing_attempts')->default(1);
+            $table->unsignedTinyInteger('max_auto_billing_attempts')->default(0);
             $table->string('insufficient_funds_message', 500)->nullable();
+            $table->string('trial_started_sms_message', 500)->nullable();
             $table->string('successful_payment_sms_message', 500)->nullable();
             $table->string('successful_auto_billing_payment_sms_message', 500)->nullable();
             $table->string('next_auto_billing_reminder_sms_message', 500)->nullable();

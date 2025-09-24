@@ -89,6 +89,7 @@ class SubscriptionPlanRepository
      *  @param bool $active - Whether the subscription plan is active.
      *  @param bool $isFolder - Whether the subscription plan is a folder.
      *  @param string|null $price - The price of the subscription plan.
+     *  @param int|null $trialDays - The number of trial days before billing.
      *  @param string|null $duration - The duration of the subscription plan.
      *  @param string|null $frequency - The frequency of the subscription plan.
      *  @param array|null $tags - The tags of the subscription plan.
@@ -97,6 +98,7 @@ class SubscriptionPlanRepository
      *  @param string|null $billingPurchaseCategoryCode - Used by the Mobile Network AAS Payment System to specify the category defining the content type (This parameter MUST be filled with values validated by AAS integration team).
      *  @param int|null $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
      *  @param string|null $insufficientFundsMessage - The insufficient funds message of the subscription plan.
+     *  @param string|null $trialStartedSmsMessage - The trial started SMS message of the subscription plan.
      *  @param string|null $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
      *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
      *  @param array|null $autoBillingReminderIds - The auto billing reminder ids of the subscription plan.
@@ -106,10 +108,11 @@ class SubscriptionPlanRepository
      *  @return SubscriptionPlan The newly created subscription plan instance.
      */
     public function createProjectSubscriptionPlan(
-        string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
+        string $name, string|null $description, bool $active, bool $isFolder, string|null $price, int|null $trialDays, string|null $duration,
         string|null $frequency, array|null $tags, bool|null $canAutoBill, string $billingProductId,
         string|null $billingPurchaseCategoryCode, int|null $maxAutoBillingAttempts,
-        string|null $insufficientFundsMessage, string|null $successfulPaymentSmsMessage,
+        string|null $insufficientFundsMessage, string|null $trialStartedSmsMessage,
+        string|null $successfulPaymentSmsMessage,
         string|null $successfulAutoBillingPaymentSmsMessage,
         string|null $nextAutoBillingReminderSmsMessage,
         string|null $autoBillingDisabledSmsMessage,
@@ -125,9 +128,11 @@ class SubscriptionPlanRepository
             'billing_purchase_category_code' => $billingPurchaseCategoryCode,
             'max_auto_billing_attempts' => $maxAutoBillingAttempts ?? 3,
             'insufficient_funds_message' => $insufficientFundsMessage,
+            'trial_started_sms_message' => $trialStartedSmsMessage,
             'billing_product_id' => $billingProductId,
             'can_auto_bill' => $canAutoBill ?? false,
             'project_id' => $this->project->id,
+            'trial_days' => $trialDays ?? 0,
             'description' => $description,
             'frequency' => $frequency,
             'is_folder' => $isFolder,
@@ -165,6 +170,7 @@ class SubscriptionPlanRepository
      *  @param bool $active - Whether the subscription plan is active.
      *  @param bool $isFolder - Whether the subscription plan is a folder.
      *  @param string|null $price - The price of the subscription plan.
+     *  @param int|null $trialDays - The number of trial days before billing.
      *  @param string|null $duration - The duration of the subscription plan.
      *  @param string|null $frequency - The frequency of the subscription plan.
      *  @param array|null $tags - The tags of the subscription plan.
@@ -173,6 +179,7 @@ class SubscriptionPlanRepository
      *  @param string|null $billingPurchaseCategoryCode - Used by the Mobile Network AAS Payment System to specify the category defining the content type (This parameter MUST be filled with values validated by AAS integration team).
      *  @param int|null $maxAutoBillingAttempts - Maximum auto billing attempts of the subscription plan.
      *  @param string|null $insufficientFundsMessage - The insufficient funds message of the subscription plan.
+     *  @param string|null $trialStartedSmsMessage - The trial started SMS message of the subscription plan.
      *  @param string|null $successfulPaymentSmsMessage - The successful payment SMS message of the subscription plan.
      *  @param string|null $nextAutoBillingReminderSmsMessage - The next auto bill reminder SMS message.
      *  @param string|null $autoBillingDisabledSmsMessage - The auto billing disabled SMS message.
@@ -184,10 +191,11 @@ class SubscriptionPlanRepository
      *  @throws \Exception If an error occurs during the update process.
      */
     public function updateProjectSubscriptionPlan(
-        string $name, string|null $description, bool $active, bool $isFolder, string|null $price, string|null $duration,
+        string $name, string|null $description, bool $active, bool $isFolder, string|null $price, int|null $trialDays, string|null $duration,
         string|null $frequency, array|null $tags, bool|null $canAutoBill, string $billingProductId,
         string|null $billingPurchaseCategoryCode, int|null $maxAutoBillingAttempts,
-        string|null $insufficientFundsMessage, string|null $successfulPaymentSmsMessage,
+        string|null $insufficientFundsMessage, string|null $trialStartedSmsMessage,
+        string|null $successfulPaymentSmsMessage,
         string|null $successfulAutoBillingPaymentSmsMessage,
         string|null $nextAutoBillingReminderSmsMessage,
         string|null $autoBillingDisabledSmsMessage,
@@ -203,6 +211,7 @@ class SubscriptionPlanRepository
             'max_auto_billing_attempts' => !is_null($maxAutoBillingAttempts) ? $maxAutoBillingAttempts : $this->subscriptionPlan->max_auto_billing_attempts,
             'can_auto_bill' => !is_null($canAutoBill) ? $canAutoBill : $this->subscriptionPlan->can_auto_bill,
             'successful_auto_billing_payment_sms_message' => $successfulAutoBillingPaymentSmsMessage,
+            'trial_days' => !is_null($trialDays) ? $trialDays : $this->subscriptionPlan->trial_days,
             'is_folder' => !is_null($isFolder) ? $isFolder : $this->subscriptionPlan->is_folder,
             'next_auto_billing_reminder_sms_message' => $nextAutoBillingReminderSmsMessage,
             'active' => !is_null($active) ? $active : $this->subscriptionPlan->active,
@@ -210,6 +219,7 @@ class SubscriptionPlanRepository
             'successful_payment_sms_message' => $successfulPaymentSmsMessage,
             'billing_purchase_category_code' => $billingPurchaseCategoryCode,
             'insufficient_funds_message' => $insufficientFundsMessage,
+            'trial_started_sms_message' => $trialStartedSmsMessage,
             'billing_product_id' => $billingProductId,
             'project_id' => $this->project->id,
             'description' => $description,

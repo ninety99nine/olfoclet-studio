@@ -20,8 +20,8 @@ class SubscriberResource extends JsonResource
             'metadata' => $this->metadata,
             'createdAt' => $this->created_at,
             'updatedAt' => $this->updated_at,
-            'activeSubscriptions' => SubscriptionResource::collection(
-                $this->activeSubscriptions
+            'latestSubscription' => new SubscriptionResource(
+                $this->latestSubscription
             ),
             'links' => [
                 'self' => route('api.show.subscriber', ['project' => $this->project_id, 'subscriber_msisdn' => $this->msisdn]),

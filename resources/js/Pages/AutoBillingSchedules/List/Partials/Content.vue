@@ -59,17 +59,21 @@
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Countdown</span>
                                     </th>
-                                    <!-- Attempts -->
+                                    <!-- Attempt -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Total Attempts Before Disabling</span>
+                                        <span>Attempts Before Disabling</span>
                                     </th>
-                                    <!-- Total Successful Attempts -->
+                                    <!-- Overall Attempts -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Total Successful Attempts</span>
+                                        <span>Overall Attempts</span>
                                     </th>
-                                    <!-- Total Failed Attempts -->
+                                    <!-- Overall Successful Attempts -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Total Failed Attempts</span>
+                                        <span>Overall Successful Attempts</span>
+                                    </th>
+                                    <!-- Overall Failed Attempts -->
+                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
+                                        <span>Overall Failed Attempts</span>
                                     </th>
                                     <!-- Created Date -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50 border-r border-dotted border-r-fuchsia-300">
@@ -186,28 +190,28 @@
                                         <span v-if="autoBillingSchedule.next_attempt_date_milli_seconds_left == null">...</span>
                                         <Countdown v-else :time="autoBillingSchedule.next_attempt_date_milli_seconds_left"></Countdown>
                                     </td>
-                                    <!-- Attempts -->
+                                    <!-- Attempt -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.attempts == null ? '...' : autoBillingSchedule.attempts }}
+                                        {{ autoBillingSchedule.attempt == null ? '...' : autoBillingSchedule.attempt }}
                                             /
-                                        {{ autoBillingSchedule.subscription_plan == null ? '...' : autoBillingSchedule.subscription_plan.max_auto_billing_attempts }}
+                                        {{ autoBillingSchedule.subscription_plan == null ? '...' : (autoBillingSchedule.subscription_plan.max_auto_billing_attempts == 0 ? 'unlimited' : autoBillingSchedule.subscription_plan.max_auto_billing_attempts) }}
                                     </td>
-                                    <!-- Total Successful Attempts -->
+                                    <!-- Overall Attempts -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.total_successful_attempts == null ? '...' : autoBillingSchedule.total_successful_attempts }}
+                                        {{ autoBillingSchedule.overall_attempts == null ? '...' : autoBillingSchedule.overall_attempts }}
                                     </td>
-                                    <!-- Total Failed Attempts -->
+                                    <!-- Overall Successful Attempts -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.total_failed_attempts == null ? '...' : autoBillingSchedule.total_failed_attempts }}
+                                        {{ autoBillingSchedule.overall_successful_attempts == null ? '...' : autoBillingSchedule.overall_successful_attempts }}
+                                    </td>
+                                    <!-- Overall Failed Attempts -->
+                                    <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
+                                        {{ autoBillingSchedule.overall_failed_attempts == null ? '...' : autoBillingSchedule.overall_failed_attempts }}
                                     </td>
                                     <!-- Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50 border-r border-dotted border-r-fuchsia-300">
                                         {{ autoBillingSchedule.created_at == null ? '...' : moment(autoBillingSchedule.created_at).format('lll') }}
                                     </td>
-
-
-
-
 
                                     <!-- Status -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">

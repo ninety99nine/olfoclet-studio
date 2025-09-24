@@ -113,39 +113,25 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                 $subscribers = $this->project->subscribers()->whereHas('autoBillingSchedules', function (Builder $query) {
 
                     /**
-                     *  We need to limit the subscribers based on the auto billing schedules next_attempt_date.
-                     *  The next_attempt_date helps us to determine the acceptable date and time to qualify the
-                     *  subscriber for auto billing e.g
-                     *
-                     *  1) We do not want to auto bill too soon, such as auto billing long before the specified
-                     *     next_attempt_date. We cannot afford to accidentally auto bill subscribers who's
-                     *     subscription only ends 1 month or 1 week from now. That is too soon for the
-                     *     subscriber to be qualified for auto billing.
-                     *
-                     *
-                     *  2) We do not want to auto bill too late, such as auto billing long after the specified
-                     *     next_attempt_date. We cannot afford to accidentally auto bill subscribers who's
-                     *     subscription ended 1 year  ago or 1 month ago. That is too far off for the
-                     *     subscriber to be qualified for auto billing.
-                     *
-                     *  We must search for subscribers who's next_attempt_date is within a reasonable range.
-                     *  We can autobill on the following conditions:
+                     *  We need to limit the auto billing schedules based on the next_attempt_date.
+                     *  The next_attempt_date helps us to determine the acceptable date and time
+                     *  to qualify auto billing. We can autobill on the following conditions:
                      *
                      *  1) If the next_attempt_date has been reached, that is, auto bill on the same
                      *     date and time or sometime after.
                      *
                      *  2) If the next_attempt_date is not some time more than 48 hours from the
-                     *     desired datetime.
+                     *     desired date and time.
                      *
                      *  Remember that the first billing attempt is expected to occur as soon as the
                      *  subscription ends provided that we do not have any downtime or delays while
-                     *  processing other jobs. The second attempt will occur 24 hours later after
-                     *  the first, and the third attempt will occur 24 hours later after the
+                     *  processing other jobs. The second attempt will occur 1 hour later after
+                     *  the first, and the third attempt will occur 1 hour later after the
                      *  second attempt.
                      *
-                     *  Each subscription plan can have from 1 up to 10 maximum auto billing attempts.
+                     *  Each pricing plan can have 1 or more "maximum auto billing attempts" e.g 365.
                      *  The following is a timeline of how the auto billing occurs based on the maximum
-                     *  auto billing attempts set on the subscription plan (max_auto_billing_attempts).
+                     *  auto billing attempts set on the pricing plan (max_auto_billing_attempts).
                      *
                      *  ---------------------------------------------------------------------------------
                      *  Theoretical Timeline for (1) Attempt:
@@ -157,29 +143,29 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                      *
                      *  1) Subscription ends                    2024-01-01 08:00:00
                      *  2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
-                     *  3) Attempt #2 (24 hours later)          2024-01-02 08:00:00 (Assuming attempt #1 failed)
+                     *  3) Attempt #2 (1 hour later)            2024-01-01 09:00:00 (Assuming attempt #1 failed)
                      *  ----------------------------------------------------------------------------------------
                      *  Theoretical Timeline for (3) Attempts:
                      *
                      *  1) Subscription ends                    2024-01-01 08:00:00
                      *  2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
-                     *  3) Attempt #2 (24 hours later)          2024-01-02 08:00:00 (Assuming attempt #1 failed)
-                     *  4) Attempt #3 (24 hours later)          2024-01-03 08:00:00 (Assuming attempt #2 failed)
+                     *  3) Attempt #2 (1 hour later)            2024-01-01 09:00:00 (Assuming attempt #1 failed)
+                     *  4) Attempt #3 (1 hour later)            2024-01-01 10:00:00 (Assuming attempt #2 failed)
                      *  ---------------------------------------------------------------------------------
                      *  This approach continues until the maximum auto billing attempts on the
-                     *  subscription plan (max_auto_billing_attempts) are exhausted.
+                     *  pricing plan (max_auto_billing_attempts) are exhausted.
                      *  ---------------------------------------------------------------------------------
                      *
                      *  In theory, the first attempt date is the same as the subscription end date,
-                     *  the second attempt date is then 24 hours after the first attempt date,
-                     *  the third attempt date is then 24 hours after the second attempt date.
+                     *  the second attempt date is then 1 hour after the first attempt date,
+                     *  the third attempt date is then 1 hour after the second attempt date.
                      *  This is how the theoretical timeline might look like:
                      *
-                     *  Subscription end|            |            |
-                     *                  |            |            |
-                     *                  |< 24 hours >|< 24 hours >|
-                     *                  |            |            |
-                     *         Attempt 1|   Attempt 2|   Attempt 3|
+                     *  Subscription end|          |          |
+                     *                  |          |          |
+                     *                  |< 1 hour >|< 1 hour >|
+                     *                  |          |          |
+                     *         Attempt 1| Attempt 2| Attempt 3|
                      *
                      *  In practice, we might not always be able to run any of these attempts
                      *  exactly on their specified next_attempt_date due to various reasons e.g
@@ -188,19 +174,14 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                      *  attempt delays into consideration for demonstration. This is how
                      *  the practical timeline might look like:
                      *
-                     *  Subscription end|                  |             |            |
-                     *                  |    < x hours >   |             |            |
-                     *                  | unexpected delays|< 24 hours > |< 24 hours >|
-                     *                  |                  |             |            |
-                     *                  |         Attempt 1|    Attempt 2|   Attempt 3|
-                     *
-                     *  To accommodate these possible delays, we can qualify auto billing
-                     *  schedules with a next_attempt_date which is not older than
-                     *  48 hours (2 days).
+                     *  Subscription end|                  |          |          |
+                     *                  |    < x hours >   |          |          |
+                     *                  | unexpected delays|< 1 hour >|< 1 hour >|
+                     *                  |                  |          |          |
+                     *                  |         Attempt 1| Attempt 2| Attempt 3|
                      */
                     $query->where('auto_billing_enabled', '1')
                         ->where('next_attempt_date', '<=', Carbon::now())
-                        ->where('next_attempt_date', '>=', Carbon::now()->subDays(2))
                         ->where('subscription_plan_id', $this->subscriptionPlan->id);
 
                 })->select('subscribers.id', 'subscribers.msisdn');

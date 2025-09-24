@@ -19,9 +19,10 @@ class CreateAutoBillingSchedulesTable extends Migration
             $table->foreignId('subscription_plan_id');
             $table->boolean('auto_billing_enabled')->default(1);
             $table->datetime('next_attempt_date')->nullable();
-            $table->unsignedTinyInteger('attempts')->default(0);
-            $table->unsignedSmallInteger('total_successful_attempts')->default(0);
-            $table->unsignedSmallInteger('total_failed_attempts')->default(0);
+            $table->unsignedInteger('attempt')->default(0);
+            $table->unsignedInteger('overall_attempts')->default(0);
+            $table->unsignedInteger('overall_failed_attempts')->default(0);
+            $table->unsignedInteger('overall_successful_attempts')->default(0);
             $table->datetime('reminded_one_hour_before_at');
             $table->datetime('reminded_six_hours_before_at');
             $table->datetime('reminded_twelve_hours_before_at');
