@@ -2,9 +2,9 @@
 
 namespace App\Models\Pivots;
 
-use App\Models\AutoBillingReminder;
 use App\Models\Project;
 use App\Models\PricingPlan;
+use App\Models\AutoBillingReminder;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class PricingPlanAutoBillingReminder extends Pivot
