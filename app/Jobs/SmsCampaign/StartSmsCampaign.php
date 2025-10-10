@@ -2,6 +2,7 @@
 
 namespace App\Jobs\SmsCampaign;
 
+use Exception;
 use Throwable;
 use Carbon\Carbon;
 use App\Models\Project;
@@ -9,6 +10,8 @@ use Illuminate\Bus\Batch;
 use App\Enums\MessageType;
 use App\Models\SmsCampaign;
 use Illuminate\Bus\Queueable;
+use App\Helpers\PhpCodeValidator;
+use App\Models\Subscriber;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
@@ -311,6 +314,25 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                             //  Foreach subscriber we retrieved from the query
                             foreach ($chunked_subscribers as $subscriber) {
 
+                                // validation_code e.g "return $subscriber['metadata']['receive_daily_quotes'];"
+                                $code = $this->smsCampaign->validation_code;
+
+                                if (!empty($code)) {
+
+                                    [$isValid, $error] = PhpCodeValidator::validate($code);
+
+                                    if (!$isValid) {
+                                        continue; // Skip to the next subscriber
+                                    }
+
+                                    $canSendMessage = $this->executeValidationCode($code, $subscriber);
+
+                                    if (!$canSendMessage) {
+                                        continue; // Skip to the next subscriber
+                                    }
+
+                                }
+
                                 /**
                                  *  Get the ids of the messages that have already been sent.
                                  *  Remember that these messages where eager loaded on each
@@ -429,7 +451,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
             }
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
             Log::error('StartSmsCampaign Job Failed: '. $th->getMessage());
             Log::error($th->getTraceAsString());
@@ -437,4 +459,56 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
         }
     }
 
+    /**
+     * Execute the validation code safely.
+     *
+     * @param string $code
+     * @param Subscriber $subscriber
+     * @return bool
+     * @throws Exception
+     */
+    function executeValidationCode(string $code, Subscriber $subscriber): bool
+    {
+        // Normalize code: strip PHP tags, ensure return statement and semicolon
+        $code = trim($code, '<?php >');
+        $code = trim($code);
+
+        if (!str_starts_with($code, 'return ')) {
+            $code = 'return ' . $code;
+        }
+
+        if (!str_ends_with($code, ';')) {
+            $code .= ';';
+        }
+
+        // Basic safety check: disallow dangerous functions
+        $dangerousFunctions = ['system', 'exec', 'shell_exec', 'passthru', 'eval'];
+
+        foreach ($dangerousFunctions as $func) {
+            if (stripos($code, $func) !== false) {
+                throw new Exception("Code contains prohibited function: $func");
+            }
+        }
+
+        // Execute with subscriber data in a scoped closure
+        try {
+
+            $callable = function () use ($subscriber, $code) {
+                // phpcs:ignore Intelephense.diagnostics.undefinedVariables
+                return eval($code);
+            };
+
+            $result = $callable();
+
+            // Ensure result is boolean
+            if (!is_bool($result)) {
+                return false;
+            }
+
+            return $result;
+
+        } catch (Throwable $e) {
+            throw new Exception("Execution error: {$e->getMessage()}");
+        }
+    }
 }

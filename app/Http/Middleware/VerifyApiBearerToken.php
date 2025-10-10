@@ -23,7 +23,8 @@ class VerifyApiBearerToken
         if(!empty($bearerToken) && $bearerToken == config('app.API_BEARER_TOKEN')) {
             $isValid = true;
         }else{
-            $project = Project::findOrFail(request()->project);
+            $projectId = request()->project instanceof Project ? request()->project->id : request()->project;
+            $project = Project::findOrFail($projectId);
             if($bearerToken == $project->secret_token) {
                 $isValid = true;
             }else{

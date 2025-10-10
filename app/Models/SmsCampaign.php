@@ -49,7 +49,7 @@ class SmsCampaign extends Model
      */
     protected $fillable = [
         'name', 'description', 'schedule_type', 'recurring_duration', 'recurring_frequency',
-        'message_to_send', 'message_ids', 'has_start_date', 'start_date', 'start_time',
+        'message_to_send', 'validation_code', 'message_ids', 'has_start_date', 'start_date', 'start_time',
         'has_end_date', 'end_date', 'end_time', 'can_send_messages',
         'can_repeat_messages', 'days_of_the_week',
         'pricing_plan_ids', 'project_id'

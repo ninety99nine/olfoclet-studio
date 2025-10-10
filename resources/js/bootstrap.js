@@ -9,6 +9,27 @@ window.axios = axios;
 
 window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 
+// Function to set Authorization header based on project
+export function setProjectBearerToken(secretToken) {
+  if (secretToken) {
+    window.axios.defaults.headers.common['Authorization'] = `Bearer ${secretToken}`;
+  } else {
+    // Fallback to accessToken or remove header
+    const accessToken = localStorage.getItem('accessToken');
+    if (accessToken) {
+      window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    } else {
+      delete window.axios.defaults.headers.common['Authorization'];
+    }
+  }
+}
+
+// Initial setup
+const accessToken = localStorage.getItem('accessToken');
+if (accessToken) {
+  setProjectBearerToken(null); // Use accessToken initially
+}
+
 /**
  * Echo exposes an expressive API for subscribing to channels and listening
  * for events that are broadcast by Laravel. Echo and event broadcasting

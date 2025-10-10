@@ -271,6 +271,13 @@
 
                         </div>
 
+                        <!-- Validation Code -->
+                        <div class="mb-4">
+                            <jet-label for="validation_code" value="Validation Code" />
+                            <jet-textarea id="validation_code" class="w-full mt-1 block" placeholder="Write php code without tags <?php ?> e.g $subscriber['metadata']['language'] == true;" v-model="form.validation_code" />
+                            <jet-input-error :message="form.errors.validation_code" class="mt-2" />
+                        </div>
+
                     </template>
 
                 </template>
@@ -308,8 +315,6 @@
 
     import moment from "moment";
     import { defineComponent } from 'vue'
-
-    import axios from "axios";
     import { isArray, isInteger } from "lodash";
     import JetInput from '@/Components/TextInput.vue';
     import JetLabel from '@/Components/InputLabel.vue';
@@ -724,6 +729,7 @@
                 this.form = this.$inertia.form({
                     name: this.hasSmsCampaign ? this.smsCampaign.name : null,
                     description: this.hasSmsCampaign ? this.smsCampaign.description : null,
+                    validation_code: this.hasSmsCampaign ? this.smsCampaign.validation_code : null,
                     can_send_messages: this.hasSmsCampaign ? this.smsCampaign.can_send_messages : false,
                     can_repeat_messages: this.hasSmsCampaign ? this.smsCampaign.can_repeat_messages : true,
                     schedule_type: this.hasSmsCampaign ? this.smsCampaign.schedule_type : this.scheduleTypeOptions[0],

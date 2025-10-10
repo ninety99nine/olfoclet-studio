@@ -29,6 +29,8 @@ class CreateSmsCampaignsTable extends Migration
             $table->enum('message_to_send', SmsCampaign::MESSAGE_TO_SEND)->default(Arr::last(SmsCampaign::MESSAGE_TO_SEND));
             $table->json('message_ids');
 
+            $table->text('validation_code')->nullable();
+
             $table->boolean('has_start_date')->default(false);
             $table->date('start_date')->nullable();
             $table->char('start_time', 5)->nullable();

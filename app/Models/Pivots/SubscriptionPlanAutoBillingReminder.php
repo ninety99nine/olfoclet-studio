@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class PricingPlanAutoBillingReminder extends Pivot
 {
-    protected $table = 'subscription_plan_auto_billing_reminders';
+    protected $table = 'pricing_plan_auto_billing_reminders';
 
     /**
      *  Get the project

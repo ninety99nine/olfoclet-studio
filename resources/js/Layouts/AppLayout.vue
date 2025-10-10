@@ -1,6 +1,6 @@
 <script setup>
 
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import Banner from '@/Components/Banner.vue';
 import NavLink from '@/Components/NavLink.vue';
 import Dropdown from '@/Components/Dropdown.vue';
@@ -175,6 +175,27 @@ const logout = () => {
     isLoggingOut.value = true;
     router.post(route('logout'));
 };
+
+// Watch for project changes to update localStorage and axios headers
+watch(
+  () => page.props.project,
+  (newProject) => {
+    const token = newProject?.secret_token || null;
+    if (token) {
+      localStorage.setItem('projectToken', token);
+      window.axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      localStorage.removeItem('projectToken');
+      const accessToken = localStorage.getItem('accessToken');
+      if (accessToken) {
+        window.axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+      } else {
+        delete window.axios.defaults.headers.common['Authorization'];
+      }
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>

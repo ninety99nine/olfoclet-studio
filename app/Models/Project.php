@@ -186,7 +186,7 @@ class Project extends Model
      */
     public function autoBillingReminders()
     {
-        return $this->belongsToMany(User::class, 'subscription_plan_auto_billing_reminders', 'project_id', 'auto_billing_reminder_id')
+        return $this->belongsToMany(User::class, 'pricing_plan_auto_billing_reminders', 'project_id', 'auto_billing_reminder_id')
                     ->using(PricingPlanAutoBillingReminder::class);
     }
 

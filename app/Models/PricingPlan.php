@@ -137,7 +137,7 @@ class PricingPlan extends Model
      */
     public function autoBillingReminders()
     {
-        return $this->belongsToMany(AutoBillingReminder::class, 'subscription_plan_auto_billing_reminders', 'pricing_plan_id', 'auto_billing_reminder_id');
+        return $this->belongsToMany(AutoBillingReminder::class, 'pricing_plan_auto_billing_reminders', 'pricing_plan_id', 'auto_billing_reminder_id');
     }
 
     /**

@@ -22,7 +22,7 @@ class AutoBillingReminder extends Model
      */
     public function pricingPlans()
     {
-        return $this->belongsToMany(PricingPlan::class, 'subscription_plan_auto_billing_reminders', 'auto_billing_reminder_id', 'pricing_plan_id');
+        return $this->belongsToMany(PricingPlan::class, 'pricing_plan_auto_billing_reminders', 'auto_billing_reminder_id', 'pricing_plan_id');
     }
 
     /**

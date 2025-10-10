@@ -19,7 +19,7 @@ class CreatePricingPlansTable extends Migration
             $table->string('description')->nullable();
             $table->boolean('active')->default(0);
             $table->boolean('is_folder')->default(0);
-            $table->enum('billing_type', ['one time', 'subscription'])->default('subscription');
+            $table->enum('billing_type', ['one time', 'subscription'])->default('one time');
             $table->string('frequency')->nullable();
             $table->unsignedInteger('duration')->nullable();
             $table->unsignedSmallInteger('trial_days')->default(0);
