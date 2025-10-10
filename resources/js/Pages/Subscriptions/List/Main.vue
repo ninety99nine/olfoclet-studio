@@ -3,9 +3,9 @@
         <div class="py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
-                <manage-subscription-modal :showAddbutton="true" :subscriptionPlans="subscriptionPlans" />
+                <manage-subscription-modal :showAddbutton="true" :pricingPlans="pricingPlans" />
 
-                <subscriptions-content :subscriptionsPayload="subscriptionsPayload" :subscriptionPlans="subscriptionPlans" :totalSubscribers="totalSubscribers" />
+                <subscriptions-content :subscriptionsPayload="subscriptionsPayload" :pricingPlans="pricingPlans" :totalSubscribers="totalSubscribers" />
 
             </div>
         </div>
@@ -25,7 +25,7 @@
             ManageSubscriptionModal
         },
         props: {
-            subscriptionPlans: Array,
+            pricingPlans: Array,
             totalSubscribers: Number,
             subscriptionsPayload: Object
         }

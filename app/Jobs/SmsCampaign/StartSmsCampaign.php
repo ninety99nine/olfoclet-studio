@@ -242,35 +242,35 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                      */
                     }])->select('subscribers.id', 'subscribers.msisdn');
 
-                    /***************************************
-                     *  GET QUALIFYING SUBSCRIPTION PLANS  *
-                     **************************************/
+                    /**********************************
+                     *  GET QUALIFYING PRICING PLANS  *
+                     **********************************/
 
-                    $subscriptionPlans = [];
-                    $hasListedSubscriptionPlans = !empty($this->smsCampaign->subscription_plan_ids);
+                    $pricingPlans = [];
+                    $hasListedPricingPlans = !empty($this->smsCampaign->pricing_plan_ids);
 
-                    //  If we have the subscription plan ids
-                    if($hasListedSubscriptionPlans) {
+                    //  If we have the pricing plan ids
+                    if($hasListedPricingPlans) {
 
                         /**
-                         *  The subscription_plan_ids will contain one array with a list
+                         *  The pricing_plan_ids will contain one array with a list
                          *  of arrays of ids from the parent to the child
-                         *  subscription plan that is qualified e.g
+                         *  pricing plan that is qualified e.g
                          *
                          *  [ [1, 10, 20, 30], [1, 10, 20, 35], .... , .e.t.c ]
                          *
-                         *  In the case above we want the subscription plan with id of 30
-                         *  and subscription plan with id 35 which are both descendants
-                         *  of subscription plan 1, 10, and 20
+                         *  In the case above we want the pricing plan with id of 30
+                         *  and pricing plan with id 35 which are both descendants
+                         *  of pricing plan 1, 10, and 20
                          */
 
-                        //  Extract the subscription plans
-                        foreach($this->smsCampaign->subscription_plan_ids as $subscription_plan_ids) {
+                        //  Extract the pricing plans
+                        foreach($this->smsCampaign->pricing_plan_ids as $pricing_plan_ids) {
 
-                            //  Capture the subscription plan descendant or self instances
-                            $subscriptionPlans = array_merge(
-                                $subscriptionPlans,
-                                $this->getSubscriptionPlanDescendantOrSelf($this->project, $subscription_plan_ids, $subscriptionPlans)
+                            //  Capture the pricing plan descendant or self instances
+                            $pricingPlans = array_merge(
+                                $pricingPlans,
+                                $this->getPricingPlanDescendantOrSelf($this->project, $pricing_plan_ids, $pricingPlans)
                             );
 
                         }
@@ -278,13 +278,13 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     }
 
                     //  If this sms campaign requires the subscribers to have an active subscription
-                    if( count($subscriptionPlanIds = collect($subscriptionPlans)->pluck('id')->toArray()) ) {
+                    if( count($pricingPlanIds = collect($pricingPlans)->pluck('id')->toArray()) ) {
 
                         /**
                          *  Limit the subscribers based on the active non cancelled subscriptions
-                         *  matching the specified subscription plans.
+                         *  matching the specified pricing plans.
                          */
-                        $subscribers = $subscribers->hasActiveNonCancelledSubscription($subscriptionPlanIds);
+                        $subscribers = $subscribers->hasActiveNonCancelledSubscription($pricingPlanIds);
 
                     }
 
@@ -293,15 +293,15 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                      *
                      *  Send the subscriber a message if:
                      *
-                     *  1) We have subscribers to send and we don't have any subscription plans listed on this sms campaign
-                     *  2) We have subscribers to send and we do have subscription plans listed on this sms campaign
-                     *     and those listed subscription plans have been found and actually used to qualify these
-                     *     subscribers. We want to avoid a situation where a listed subscription plan has been
+                     *  1) We have subscribers to send and we don't have any pricing plans listed on this sms campaign
+                     *  2) We have subscribers to send and we do have pricing plans listed on this sms campaign
+                     *     and those listed pricing plans have been found and actually used to qualify these
+                     *     subscribers. We want to avoid a situation where a listed pricing plan has been
                      *     has been since deleted from the project. The "$subscribers->count() > 0" may run
-                     *     while the subscribers have not been qualified using the listed subscription plan,
+                     *     while the subscribers have not been qualified using the listed pricing plan,
                      *     thereby qualifying everyone.
                      */
-                    if( ($subscribers->count() > 0) && (!$hasListedSubscriptionPlans || ($hasListedSubscriptionPlans && count($subscriptionPlanIds) > 0))) {
+                    if( ($subscribers->count() > 0) && (!$hasListedPricingPlans || ($hasListedPricingPlans && count($pricingPlanIds) > 0))) {
 
                         $jobs = [];
 

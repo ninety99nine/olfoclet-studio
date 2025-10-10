@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Project;
 use App\Services\BillingService;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Http\JsonResponse;
 use App\Models\BillingTransaction;
 use App\Http\Controllers\Controller;
@@ -30,7 +30,7 @@ class SubscriptionController extends Controller
 
         if(request()->routeIs('api.show.subscription')) {
 
-            $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->with(['subscriptionPlan'])->first();
+            $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->with(['pricingPlan'])->first();
 
         }else{
 
@@ -58,7 +58,7 @@ class SubscriptionController extends Controller
     public function showSubscriptions(): JsonResponse
     {
         // Fetch the subscriptions using the repository with the required relationships and pagination
-        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan:id,name']);
+        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'pricingPlan:id,name']);
 
         // Return subscriptions as a JSON response using SubscriptionResource
         return SubscriptionResource::collection($subscriptions)->response();
@@ -67,15 +67,15 @@ class SubscriptionController extends Controller
     public function createSubscription(CreateSubscriptionRequest $request): JsonResponse
     {
         $msisdn = $request->input('msisdn');
-        $subscriptionPlanId = $request->input('subscription_plan_id');
+        $pricingPlanId = $request->input('pricing_plan_id');
 
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Get the subscription plan to be used when creating this subscription
-        $subscriptionPlan = SubscriptionPlan::find($subscriptionPlanId);
+        // Get the pricing plan to be used when creating this subscription
+        $pricingPlan = PricingPlan::find($pricingPlanId);
 
-        $offerTrial = ($subscriptionPlan->trial_days > 0) && ($subscriber->subscriptions()->where('subscription_plan_id', $subscriptionPlanId)->count() == 0);
+        $offerTrial = ($pricingPlan->trial_days > 0) && ($subscriber->subscriptions()->where('pricing_plan_id', $pricingPlanId)->count() == 0);
 
         $isSuccessful = true;
         $billingTransaction = null;
@@ -88,7 +88,7 @@ class SubscriptionController extends Controller
              *
              *  @var BillingTransaction $billingTransaction
              */
-            $billingTransaction = BillingService::billUsingAirtime($this->project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling::NO);
+            $billingTransaction = BillingService::billUsingAirtime($this->project, $pricingPlan, $subscriber, CreatedUsingAutoBilling::NO);
 
             //  Set the billing transaction status
             $isSuccessful = $billingTransaction->is_successful;
@@ -106,7 +106,7 @@ class SubscriptionController extends Controller
         if($isSuccessful) {
 
             // Create a new subscription using the repository
-            $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO, $billingTransaction, $offerTrial);
+            $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $pricingPlan, CreatedUsingAutoBilling::NO, $billingTransaction, $offerTrial);
 
         }
 
@@ -128,11 +128,11 @@ class SubscriptionController extends Controller
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Get the subscription plan to be used when updating this subscription
-        $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+        // Get the pricing plan to be used when updating this subscription
+        $pricingPlan = PricingPlan::find($request->input('pricing_plan_id'));
 
         // Update existing subscription using the repository
-        $this->subscriptionRepository->updateProjectSubscription($subscriber, $subscriptionPlan);
+        $this->subscriptionRepository->updateProjectSubscription($subscriber, $pricingPlan);
 
         // Return a success JSON response
         return response()->json(['message' => 'Updated Successfully']);

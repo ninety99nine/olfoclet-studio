@@ -50,12 +50,12 @@ const links = ref([
     },
     {
         label: 'Auto Billing',
-        routeName: 'show.auto.billing.subscription.plans',
+        routeName: 'show.auto.billing.pricing.plans',
         activeRouteNames: [
-            'show.auto.billing.subscription.plans',
-            'show.auto.billing.subscription.plan.job.batches'
+            'show.auto.billing.pricing.plans',
+            'show.auto.billing.pricing.plan.job.batches'
         ],
-        permission: 'View auto billing subscription plans'
+        permission: 'View auto billing pricing plans'
     },
     {
         label: 'Subscribers',
@@ -91,13 +91,13 @@ const links = ref([
         permission: 'View sms campaigns'
     },
     {
-        label: 'Subscription Plans',
-        routeName: 'show.subscription.plans',
+        label: 'Pricing Plans',
+        routeName: 'show.pricing.plans',
         activeRouteNames: [
-            'show.subscription.plans',
-            'show.subscription.plan'
+            'show.pricing.plans',
+            'show.pricing.plan'
         ],
-        permission: 'View subscription plans'
+        permission: 'View pricing plans'
     },
     {
         label: 'Billing Transactions',
@@ -117,12 +117,12 @@ const links = ref([
     },
     {
         label: 'Auto Billing Reminders',
-        routeName: 'show.auto.billing.reminder.subscription.plans',
+        routeName: 'show.auto.billing.reminder.pricing.plans',
         activeRouteNames: [
-            'show.auto.billing.reminder.subscription.plans',
-            'show.auto.billing.subscription.plan.reminder.job.batches'
+            'show.auto.billing.reminder.pricing.plans',
+            'show.auto.billing.pricing.plan.reminder.job.batches'
         ],
-        permission: 'View auto billing reminder subscription plans'
+        permission: 'View auto billing reminder pricing plans'
     },
     {
         label: 'Auto Billing Schedules',

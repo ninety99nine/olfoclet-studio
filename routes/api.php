@@ -6,7 +6,7 @@ use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\SubscriberController;
 use App\Http\Controllers\Api\SubscriptionController;
-use App\Http\Controllers\Api\SubscriptionPlanController;
+use App\Http\Controllers\Api\PricingPlanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,12 +71,12 @@ Route::middleware('verify.api.bearer.token')->prefix('/projects')->name('api.')-
             });
         });
 
-        //  Subscription Plans
-        Route::prefix('subscription-plans')->group(function () {
-            Route::get('/', [SubscriptionPlanController::class, 'showSubscriptionPlans'])->name('show.subscription.plans');
+        //  Pricing Plans
+        Route::prefix('pricing-plans')->group(function () {
+            Route::get('/', [PricingPlanController::class, 'showPricingPlans'])->name('show.pricing.plans');
 
-            Route::prefix('{subscription_plan}')->group(function () {
-                Route::get('/{type?}', [SubscriptionPlanController::class, 'showSubscriptionPlan'])->name('show.subscription.plan');
+            Route::prefix('{pricing_plan}')->group(function () {
+                Route::get('/{type?}', [PricingPlanController::class, 'showPricingPlan'])->name('show.pricing.plan');
             });
         });
 

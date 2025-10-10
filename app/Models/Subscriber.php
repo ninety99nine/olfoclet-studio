@@ -34,30 +34,30 @@ class Subscriber extends Model
         return $query->whereNotIn('id', $subscriberIds);
     }
 
-    public function scopeHasActiveNonCancelledSubscription($query, array|int|null $subscriptionPlanId = null, int|null $endsInNumberOfHours = null)
+    public function scopeHasActiveNonCancelledSubscription($query, array|int|null $pricingPlanId = null, int|null $endsInNumberOfHours = null)
     {
-        return $query->whereHas('subscriptions', function (Builder $query) use ($subscriptionPlanId, $endsInNumberOfHours) {
+        return $query->whereHas('subscriptions', function (Builder $query) use ($pricingPlanId, $endsInNumberOfHours) {
 
             /**
              *  Must be any non cancelled but active subscription
              */
             $query->notCancelled()->active();
 
-            if( !is_null($subscriptionPlanId) ) {
+            if( !is_null($pricingPlanId) ) {
 
-                if( is_array($subscriptionPlanIds = $subscriptionPlanId) ) {
+                if( is_array($pricingPlanIds = $pricingPlanId) ) {
 
                     /**
                      *  Must be any subscription that matches the specified plan ids
                      */
-                    $query->whereIn('subscriptions.subscription_plan_id', $subscriptionPlanIds);
+                    $query->whereIn('subscriptions.pricing_plan_id', $pricingPlanIds);
 
                 }else{
 
                     /**
                      *  Must be any subscription that matches the specified plan id
                      */
-                    $query->where('subscriptions.subscription_plan_id', $subscriptionPlanId);
+                    $query->where('subscriptions.pricing_plan_id', $pricingPlanId);
 
                 }
 
@@ -190,20 +190,20 @@ class Subscriber extends Model
     }
 
     /**
-     *  Get the auto billing subscription plans associated with the subscriber
+     *  Get the auto billing pricing plans associated with the subscriber
      */
-    public function autoBillingSubscriptionPlans()
+    public function autoBillingPricingPlans()
     {
-        return $this->belongsToMany(SubscriptionPlan::class, 'auto_billing_schedules')
+        return $this->belongsToMany(PricingPlan::class, 'auto_billing_schedules')
                     ->using(AutoBillingSchedule::class);
     }
 
     /**
-     *  Get the auto billing subscription plans associated with the subscriber
+     *  Get the auto billing pricing plans associated with the subscriber
      */
-    public function autoBillingSubscriptionPlansWithPivotSchedules()
+    public function autoBillingPricingPlansWithPivotSchedules()
     {
-        return $this->autoBillingSubscriptionPlans()
+        return $this->autoBillingPricingPlans()
                     ->withPivot(AutoBillingSchedule::VISIBLE_COLUMNS)
                     ->withTimestamps();
     }

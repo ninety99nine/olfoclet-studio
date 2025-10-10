@@ -16,7 +16,7 @@ class BillingTransactionController extends Controller
     public function __construct()
     {
         $this->project = Project::findOrFail(request()->route('project'));
-        $this->billingTransaction = request()->route('billing_transaction') ? BillingTransaction::findOrFail(request()->route('billing_transaction'))->load(['subscriber', 'subscriptionPlan']) : null;
+        $this->billingTransaction = request()->route('billing_transaction') ? BillingTransaction::findOrFail(request()->route('billing_transaction'))->load(['subscriber', 'pricingPlan']) : null;
 
         $this->billingTransactionRepository = new BillingTransactionRepository($this->project, $this->billingTransaction);
     }
@@ -25,7 +25,7 @@ class BillingTransactionController extends Controller
     {
         // Get the billing transactions using the repository with the required relationships and pagination
         $billingTransactions = $this->billingTransactionRepository->getProjectBillingTransactions(null,
-            ['subscriber', 'subscription', 'subscriptionPlan'], []
+            ['subscriber', 'subscription', 'pricingPlan'], []
         );
 
         // Render the billing transaction view

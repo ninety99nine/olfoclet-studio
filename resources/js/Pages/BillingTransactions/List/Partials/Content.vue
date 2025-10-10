@@ -42,7 +42,7 @@
                                         <div class="font-bold text-fuchsia-500">SUBSCRIPTION</div>
                                     </th>
                                     <th scope="col" colspan="7" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <div class="font-bold text-violet-500">SUBSCRIPTION PLAN</div>
+                                        <div class="font-bold text-violet-500">PRICING PLAN</div>
                                     </th>
                                 </tr>
 
@@ -195,50 +195,50 @@
 
 
 
-                                    <!-- Subscription Plan Name -->
+                                    <!-- Pricing Plan Name -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
-                                        <div v-else class="text-sm text-gray-900">{{ billingTransaction.subscription_plan.name }}</div>
+                                        <div v-if="billingTransaction.pricing_plan == null">...</div>
+                                        <div v-else class="text-sm text-gray-900">{{ billingTransaction.pricing_plan.name }}</div>
                                     </td>
 
-                                    <!-- Subscription Plan Description -->
+                                    <!-- Pricing Plan Description -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
-                                        <div v-else>{{ billingTransaction.subscription_plan.description == null ? '...' : billingTransaction.subscription_plan.description }}</div>
+                                        <div v-if="billingTransaction.pricing_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.pricing_plan.description == null ? '...' : billingTransaction.pricing_plan.description }}</div>
                                     </td>
 
-                                    <!-- Subscription Plan Active -->
+                                    <!-- Pricing Plan Active -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
-                                        <SubscriptionPlanActiveStatusBadge v-else :subscriptionPlan="billingTransaction.subscription_plan"></SubscriptionPlanActiveStatusBadge>
+                                        <div v-if="billingTransaction.pricing_plan == null">...</div>
+                                        <PricingPlanActiveStatusBadge v-else :pricingPlan="billingTransaction.pricing_plan"></PricingPlanActiveStatusBadge>
                                     </td>
 
-                                    <!-- Subscription Plan Tags -->
+                                    <!-- Pricing Plan Tags -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
-                                        <div v-else-if="billingTransaction.subscription_plan.tags.length == 0">...</div>
+                                        <div v-if="billingTransaction.pricing_plan == null">...</div>
+                                        <div v-else-if="billingTransaction.pricing_plan.tags.length == 0">...</div>
                                         <div v-else class="flex space-x-2">
-                                            <div v-for="(tag, index) in billingTransaction.subscription_plan.tags" :key="index" class="bg-blue-50 text-blue-500 border border-blue-300 py-1 px-2 text-xs rounded">
+                                            <div v-for="(tag, index) in billingTransaction.pricing_plan.tags" :key="index" class="bg-blue-50 text-blue-500 border border-blue-300 py-1 px-2 text-xs rounded">
                                                 {{ tag }}
                                             </div>
                                         </div>
                                     </td>
 
-                                    <!-- Subscription Plan Duration -->
+                                    <!-- Pricing Plan Duration -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
-                                        <div v-else>{{ billingTransaction.subscription_plan.duration_in_words == null ? '...' : billingTransaction.subscription_plan.duration_in_words }}</div>
+                                        <div v-if="billingTransaction.pricing_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.pricing_plan.duration_in_words == null ? '...' : billingTransaction.pricing_plan.duration_in_words }}</div>
                                     </td>
 
-                                    <!-- Subscription Plan Price -->
+                                    <!-- Pricing Plan Price -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
-                                        <div v-else>{{ billingTransaction.subscription_plan.price == null ? '...' : billingTransaction.subscription_plan.price.amount_with_currency }}</div>
+                                        <div v-if="billingTransaction.pricing_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.pricing_plan.price == null ? '...' : billingTransaction.pricing_plan.price.amount_with_currency }}</div>
                                     </td>
-                                    <!-- Subscription Plan Created Date -->
+                                    <!-- Pricing Plan Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
-                                        <div v-if="billingTransaction.subscription_plan == null">...</div>
-                                        <div v-else>{{ billingTransaction.subscription_plan.created_at == null ? '...' : moment(billingTransaction.subscription_plan.created_at).format('lll') }}</div>
+                                        <div v-if="billingTransaction.pricing_plan == null">...</div>
+                                        <div v-else>{{ billingTransaction.pricing_plan.created_at == null ? '...' : moment(billingTransaction.pricing_plan.created_at).format('lll') }}</div>
                                     </td>
 
                                 </tr>
@@ -271,7 +271,7 @@
 </template>
 <script>
 
-    import SubscriptionPlanActiveStatusBadge from './../../../SubscriptionPlans/List/Partials/ActiveStatusBadge.vue';
+    import PricingPlanActiveStatusBadge from './../../../PricingPlans/List/Partials/ActiveStatusBadge.vue';
     import SubscriptionActiveStatusBadge from './../../../Subscriptions/List/Partials/ActiveStatusBadge.vue';
     import BillingTransactionStatusBadge from './BillingTransactionStatusBadge.vue';
     import CreatedUsingAutoBillingBadge from './CreatedUsingAutoBillingBadge.vue';
@@ -284,7 +284,7 @@
 
     export default defineComponent({
         components: {
-            SubscriptionPlanActiveStatusBadge, SubscriptionActiveStatusBadge, Pagination, RatingTypeBadge, BillingTransactionStatusBadge, CreatedUsingAutoBillingBadge,
+            PricingPlanActiveStatusBadge, SubscriptionActiveStatusBadge, Pagination, RatingTypeBadge, BillingTransactionStatusBadge, CreatedUsingAutoBillingBadge,
             JetInputError, JetInput
         },
         props: {

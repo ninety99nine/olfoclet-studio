@@ -170,7 +170,7 @@
                                 <span>
                                     <span class="text-sm text-gray-500">Auto Bill</span>
                                     <el-switch v-model="form.can_auto_bill" class="mx-2"></el-switch>
-                                    <span class="text-sm text-gray-400">— {{ form.can_auto_bill ? 'Turn off to stop auto billing on subscription plans' : 'Turn on to start auto billing on subscription plans' }}</span>
+                                    <span class="text-sm text-gray-400">— {{ form.can_auto_bill ? 'Turn off to stop auto billing on pricing plans' : 'Turn on to start auto billing on pricing plans' }}</span>
                                 </span>
                             </div>
 

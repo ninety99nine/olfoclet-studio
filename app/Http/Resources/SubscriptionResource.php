@@ -23,8 +23,8 @@ class SubscriptionResource extends JsonResource
             'updatedAt' => $this->updated_at,
             'cancelledAt' => $this->cancelled_at,
             'createdUsingAutoBilling' => $this->created_using_auto_billing,
-            'subscriptionPlan' => new SubscriptionPlanResource(
-                $this->subscriptionPlan
+            'pricingPlan' => new PricingPlanResource(
+                $this->pricingPlan
             ),
             'links' => [
                 'self' => route('api.show.subscription', ['project' => $this->project_id, 'subscription' => $this->id]),

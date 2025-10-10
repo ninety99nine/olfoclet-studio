@@ -219,17 +219,17 @@
 
                         <div class="mt-8">
 
-                            <el-divider content-position="left"><span class="font-semibold">Subscription Plans</span></el-divider>
+                            <el-divider content-position="left"><span class="font-semibold">Pricing Plans</span></el-divider>
 
                         </div>
 
-                        <!-- Subscription Plans -->
+                        <!-- Pricing Plans -->
                         <div class="mb-4">
 
-                            <span class="block text-sm text-gray-500 mb-4">Choose subscriptions plans required to qualify for this sms campaign</span>
+                            <span class="block text-sm text-gray-500 mb-4">Choose pricing plans required to qualify for this sms campaign</span>
 
-                            <el-cascader id="subscription-plans" v-model="form.subscription_plan_ids" :props="getPropsForSubscriptionPlans()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
-                            <jet-input-error :message="form.errors.subscription_plan_ids" class="mt-2" />
+                            <el-cascader id="pricing-plans" v-model="form.pricing_plan_ids" :props="getPropsForPricingPlans()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
+                            <jet-input-error :message="form.errors.pricing_plan_ids" class="mt-2" />
 
                         </div>
 
@@ -442,7 +442,7 @@
         },
         methods: {
 
-            getPropsForSubscriptionPlans() {
+            getPropsForPricingPlans() {
 
                 return {
                     lazy: true,
@@ -455,27 +455,27 @@
                         //  If this is the first list of options
                         if( level === 0  ){
 
-                            var url = route('api.show.subscription.plans', { project: route().params.project });
+                            var url = route('api.show.pricing.plans', { project: route().params.project });
 
                         //  If this is the nested list of options
                         }else{
 
-                            var url = route('api.show.subscription.plan', { project: route().params.project, subscription_plan: node.data.value, type: 'children' });
+                            var url = route('api.show.pricing.plan', { project: route().params.project, pricing_plan: node.data.value, type: 'children' });
 
                         }
 
                         axios.get(url)
                             .then((response) => {
 
-                                var nodes = response.data.data.map((subscriptionPlan) => {
+                                var nodes = response.data.data.map((pricingPlan) => {
 
-                                    var isActive = subscriptionPlan.active;
-                                    var isFolder = subscriptionPlan.isFolder;
-                                    var hasChildren = subscriptionPlan.childrenCount > 0;
+                                    var isActive = pricingPlan.active;
+                                    var isFolder = pricingPlan.isFolder;
+                                    var hasChildren = pricingPlan.childrenCount > 0;
 
                                     var leaf = !hasChildren;
-                                    var value = subscriptionPlan.id;
-                                    var label = subscriptionPlan.name.length < 40 ? String (subscriptionPlan.name) : String (subscriptionPlan.name).substring(0, 40);
+                                    var value = pricingPlan.id;
+                                    var label = pricingPlan.name.length < 40 ? String (pricingPlan.name) : String (pricingPlan.name).substring(0, 40);
 
                                     return {
                                         leaf: leaf,
@@ -733,7 +733,7 @@
                     message_to_send: this.hasSmsCampaign ? this.smsCampaign.message_to_send : 'Specific Message',
                     message_ids: this.hasSmsCampaign ? this.smsCampaign.message_ids : [],
 
-                    subscription_plan_ids: this.hasSmsCampaign ? this.smsCampaign.subscription_plan_ids : [],
+                    pricing_plan_ids: this.hasSmsCampaign ? this.smsCampaign.pricing_plan_ids : [],
 
                     //  Set start date to today
                     start_date: this.hasSmsCampaign ? moment(this.smsCampaign.start_date).format('YYYY-MM-DD HH:mm:ss') : new Date(),

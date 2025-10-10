@@ -1,12 +1,12 @@
 <?php
 
-use App\Http\Controllers\AutoBillingReminderSubscriptionPlanController;
-use App\Http\Controllers\AutoBillingSubscriptionPlanController;
+use App\Http\Controllers\AutoBillingReminderPricingPlanController;
+use App\Http\Controllers\AutoBillingPricingPlanController;
 use App\Http\Controllers\AutoBillingScheduleController;
 use App\Http\Controllers\SmsCampaignScheduleController;
 use App\Http\Controllers\BillingTransactionController;
 use App\Http\Controllers\SubscriberMessageController;
-use App\Http\Controllers\SubscriptionPlanController;
+use App\Http\Controllers\PricingPlanController;
 use App\Http\Controllers\BillingReportController;
 use App\Http\Controllers\SubscriptionController;
 use App\Http\Controllers\SmsCampaignController;
@@ -180,18 +180,18 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
-            //  Subscription Plans
-            Route::prefix('subscription-plans')->group(function () {
-                Route::get('/', [SubscriptionPlanController::class, 'showSubscriptionPlans'])->middleware(['project.permission:View subscription plans'])->name('show.subscription.plans');
-                Route::post('/', [SubscriptionPlanController::class, 'createSubscriptionPlan'])->middleware(['project.permission:Manage subscription plans'])->name('create.subscription.plan');
+            //  Pricing Plans
+            Route::prefix('pricing-plans')->group(function () {
+                Route::get('/', [PricingPlanController::class, 'showPricingPlans'])->middleware(['project.permission:View pricing plans'])->name('show.pricing.plans');
+                Route::post('/', [PricingPlanController::class, 'createPricingPlan'])->middleware(['project.permission:Manage pricing plans'])->name('create.pricing.plan');
 
-                Route::prefix('{subscription_plan}')->middleware(['project.permission:Manage subscription plans'])->group(function () {
-                    Route::get('/', [SubscriptionPlanController::class, 'showSubscriptionPlan'])
-                        ->withoutMiddleware(['project.permission:Manage subscription plans'])
-                        ->middleware(['project.permission:View subscription plans'])
-                        ->name('show.subscription.plan');
-                    Route::put('/', [SubscriptionPlanController::class, 'updateSubscriptionPlan'])->name('update.subscription.plan');
-                    Route::delete('/', [SubscriptionPlanController::class, 'deleteSubscriptionPlan'])->name('delete.subscription.plan');
+                Route::prefix('{pricing_plan}')->middleware(['project.permission:Manage pricing plans'])->group(function () {
+                    Route::get('/', [PricingPlanController::class, 'showPricingPlan'])
+                        ->withoutMiddleware(['project.permission:Manage pricing plans'])
+                        ->middleware(['project.permission:View pricing plans'])
+                        ->name('show.pricing.plan');
+                    Route::put('/', [PricingPlanController::class, 'updatePricingPlan'])->name('update.pricing.plan');
+                    Route::delete('/', [PricingPlanController::class, 'deletePricingPlan'])->name('delete.pricing.plan');
                 });
             });
 
@@ -221,27 +221,27 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
-            //  Auto Billing Subscription Plans
-            Route::prefix('auto-billing/subscription-plans')->group(function () {
+            //  Auto Billing Pricing Plans
+            Route::prefix('auto-billing/pricing-plans')->group(function () {
 
-                Route::get('/', [AutoBillingSubscriptionPlanController::class, 'showAutoBillingSubscriptionPlans'])->middleware(['project.permission:View auto billing subscription plans'])->name('show.auto.billing.subscription.plans');
+                Route::get('/', [AutoBillingPricingPlanController::class, 'showAutoBillingPricingPlans'])->middleware(['project.permission:View auto billing pricing plans'])->name('show.auto.billing.pricing.plans');
 
-                Route::prefix('{subscription_plan}')->middleware(['project.permission:Manage auto billing subscription plans'])->group(function () {
-                    Route::get('/job-batches', [AutoBillingSubscriptionPlanController::class, 'showAutoBillingSubscriptionPlanJobBatches'])
-                            ->withoutMiddleware(['project.permission:Manage auto billing subscription plans'])
-                            ->middleware(['project.permission:View auto billing subscription plans'])
-                            ->name('show.auto.billing.subscription.plan.job.batches');
+                Route::prefix('{pricing_plan}')->middleware(['project.permission:Manage auto billing pricing plans'])->group(function () {
+                    Route::get('/job-batches', [AutoBillingPricingPlanController::class, 'showAutoBillingPricingPlanJobBatches'])
+                            ->withoutMiddleware(['project.permission:Manage auto billing pricing plans'])
+                            ->middleware(['project.permission:View auto billing pricing plans'])
+                            ->name('show.auto.billing.pricing.plan.job.batches');
                 });
             });
 
-            //  Auto Billing Reminder Subscription Plans
-            Route::prefix('auto-billing-reminder/subscription-plans')->middleware(['project.permission:View auto billing reminder subscription plans'])->group(function () {
+            //  Auto Billing Reminder Pricing Plans
+            Route::prefix('auto-billing-reminder/pricing-plans')->middleware(['project.permission:View auto billing reminder pricing plans'])->group(function () {
 
-                Route::get('/', [AutoBillingReminderSubscriptionPlanController::class, 'showAutoBillingReminderSubscriptionPlans'])->name('show.auto.billing.reminder.subscription.plans');
+                Route::get('/', [AutoBillingReminderPricingPlanController::class, 'showAutoBillingReminderPricingPlans'])->name('show.auto.billing.reminder.pricing.plans');
 
-                Route::prefix('{subscription_plan}')->group(function () {
-                    Route::get('/job-batches', [AutoBillingReminderSubscriptionPlanController::class, 'showAutoBillingReminderSubscriptionPlanJobBatches'])
-                            ->name('show.auto.billing.subscription.plan.reminder.job.batches');
+                Route::prefix('{pricing_plan}')->group(function () {
+                    Route::get('/job-batches', [AutoBillingReminderPricingPlanController::class, 'showAutoBillingReminderPricingPlanJobBatches'])
+                            ->name('show.auto.billing.pricing.plan.reminder.job.batches');
                 });
             });
 

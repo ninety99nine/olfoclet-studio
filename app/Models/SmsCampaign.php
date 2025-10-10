@@ -39,7 +39,7 @@ class SmsCampaign extends Model
         'can_repeat_messages' => 'boolean',
         'message_ids' => JsonToArray::class,
         'days_of_the_week' => JsonToArray::class,
-        'subscription_plan_ids' => JsonToArray::class,
+        'pricing_plan_ids' => JsonToArray::class,
     ];
 
     /**
@@ -52,7 +52,7 @@ class SmsCampaign extends Model
         'message_to_send', 'message_ids', 'has_start_date', 'start_date', 'start_time',
         'has_end_date', 'end_date', 'end_time', 'can_send_messages',
         'can_repeat_messages', 'days_of_the_week',
-        'subscription_plan_ids', 'project_id'
+        'pricing_plan_ids', 'project_id'
     ];
 
     /**

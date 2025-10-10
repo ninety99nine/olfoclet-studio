@@ -4,12 +4,12 @@ namespace App\Http\Controllers;
 
 use Inertia\Inertia;
 use App\Models\Project;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use App\Http\Controllers\Controller;
 use App\Enums\CreatedUsingAutoBilling;
 use App\Repositories\SubscriberRepository;
 use App\Repositories\SubscriptionRepository;
-use App\Repositories\SubscriptionPlanRepository;
+use App\Repositories\PricingPlanRepository;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
 
@@ -19,7 +19,7 @@ class SubscriptionController extends Controller
     protected $subscription;
     protected $subscriberRepository;
     protected $subscriptionRepository;
-    protected $subscriptionPlanRepository;
+    protected $pricingPlanRepository;
 
     public function __construct()
     {
@@ -27,7 +27,7 @@ class SubscriptionController extends Controller
 
         if(request()->routeIs('api.show.subscription')) {
 
-            $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->with(['subscriptionPlan'])->first();
+            $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->with(['pricingPlan'])->first();
 
         }else{
 
@@ -40,7 +40,7 @@ class SubscriptionController extends Controller
         }
 
         $this->subscriberRepository = new SubscriberRepository($this->project, null);
-        $this->subscriptionPlanRepository = new SubscriptionPlanRepository($this->project, null);
+        $this->pricingPlanRepository = new PricingPlanRepository($this->project, null);
         $this->subscriptionRepository = new SubscriptionRepository($this->project, $this->subscription);
     }
 
@@ -49,17 +49,17 @@ class SubscriptionController extends Controller
         //  Get the total subscribers
         $totalSubscribers = $this->subscriberRepository->countProjectSubscribers();
 
-        // Fetch the subscription plans using the repository with the required relationships and pagination
-        $subscriptionPlans = $this->subscriptionPlanRepository->queryProjectSubscriptionPlans()->get();
+        // Fetch the pricing plans using the repository with the required relationships and pagination
+        $pricingPlans = $this->pricingPlanRepository->queryProjectPricingPlans()->get();
 
         // Fetch the subscriptions using the repository with the required relationships and pagination
-        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'subscriptionPlan']);
+        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'pricingPlan']);
 
         // Render the subscriptions view
         return Inertia::render('Subscriptions/List/Main', [
             'totalSubscribers' => $totalSubscribers,
             'subscriptionsPayload' => $subscriptions,
-            'subscriptionPlans' => $subscriptionPlans
+            'pricingPlans' => $pricingPlans
         ]);
     }
 
@@ -71,11 +71,11 @@ class SubscriptionController extends Controller
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Get the subscription plan to be used when creating this subscription
-        $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+        // Get the pricing plan to be used when creating this subscription
+        $pricingPlan = PricingPlan::find($request->input('pricing_plan_id'));
 
         // Create a new subscription using the repository
-        $this->subscriptionRepository->createProjectSubscription($subscriber, $subscriptionPlan, CreatedUsingAutoBilling::NO);
+        $this->subscriptionRepository->createProjectSubscription($subscriber, $pricingPlan, CreatedUsingAutoBilling::NO);
 
         return redirect()->back()->with('message', 'Created Successfully');
     }
@@ -88,11 +88,11 @@ class SubscriptionController extends Controller
         // Fetch the subscriber from the subscriber repository
         $subscriber = $this->subscriberRepository->findOrCreateSubscriber($msisdn);
 
-        // Get the subscription plan to be used when updating this subscription
-        $subscriptionPlan = SubscriptionPlan::find($request->input('subscription_plan_id'));
+        // Get the pricing plan to be used when updating this subscription
+        $pricingPlan = PricingPlan::find($request->input('pricing_plan_id'));
 
         // Update existing subscription using the repository
-        $this->subscriptionRepository->updateProjectSubscription($subscriber, $subscriptionPlan);
+        $this->subscriptionRepository->updateProjectSubscription($subscriber, $pricingPlan);
 
         return redirect()->back()->with('message', 'Updated Successfully');
     }

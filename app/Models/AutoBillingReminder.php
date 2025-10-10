@@ -18,11 +18,11 @@ class AutoBillingReminder extends Model
     protected $fillable = ['name', 'hours'];
 
     /**
-     * Get the subscription plans associated with the auto billing reminder
+     * Get the pricing plans associated with the auto billing reminder
      */
-    public function subscriptionPlans()
+    public function pricingPlans()
     {
-        return $this->belongsToMany(SubscriptionPlan::class, 'subscription_plan_auto_billing_reminders', 'auto_billing_reminder_id', 'subscription_plan_id');
+        return $this->belongsToMany(PricingPlan::class, 'subscription_plan_auto_billing_reminders', 'auto_billing_reminder_id', 'pricing_plan_id');
     }
 
     /**

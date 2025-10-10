@@ -38,7 +38,7 @@ class CreateSmsCampaignsTable extends Migration
             $table->char('end_time', 5)->nullable();
 
             $table->json('days_of_the_week')->nullable();
-            $table->json('subscription_plan_ids');
+            $table->json('pricing_plan_ids');
 
             $table->foreignId('project_id');
             $table->timestamps();

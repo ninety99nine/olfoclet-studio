@@ -4,7 +4,7 @@ namespace App\Jobs\AutoBillingReminder;
 
 use App\Models\Project;
 use Illuminate\Bus\Queueable;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use App\Models\AutoBillingReminder;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
@@ -12,10 +12,10 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
-use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
-use App\Jobs\AutoBillingReminder\NextAutoBillingBySubscriptionPlan;
+use App\Models\Pivots\PricingPlanAutoBillingReminder;
+use App\Jobs\AutoBillingReminder\NextAutoBillingByPricingPlan;
 
-class NextAutoBillingBySubscriptionPlans implements ShouldQueue
+class NextAutoBillingByPricingPlans implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -28,62 +28,62 @@ class NextAutoBillingBySubscriptionPlans implements ShouldQueue
     {
         try{
 
-            $subscriptionPlanAutoBillingReminders = SubscriptionPlanAutoBillingReminder::whereHas('project', function($query) {
+            $pricingPlanAutoBillingReminders = PricingPlanAutoBillingReminder::whereHas('project', function($query) {
 
                 /**
                  *  Must have a project that can auto bill.
                  */
                 return $query->canAutoBill();
 
-            })->whereHas('subscriptionPlan', function($query) {
+            })->whereHas('pricingPlan', function($query) {
 
                 /**
-                 *  Must have an active, non-folder subscription plan that can also auto bill.
+                 *  Must have an active, non-folder pricing plan that can also auto bill.
                  */
                 return $query->active()->nonFolder()->canAutoBill();
 
-            })->with(['project', 'autoBillingReminder', 'subscriptionPlan' => function($query) {
+            })->with(['project', 'autoBillingReminder', 'pricingPlan' => function($query) {
 
                 $query->withCount('autoBillingReminderJobBatches');
 
             }])->get();
 
             /**
-             *  Order the subscriptionPlanAutoBillingReminders by the autoBillingReminder hours
+             *  Order the pricingPlanAutoBillingReminders by the autoBillingReminder hours
              *  so that those with more hours appear at the top of the stack while those with
              *  fewer hours appear at the bottom of the stack.
              */
-            $subscriptionPlanAutoBillingReminders = $subscriptionPlanAutoBillingReminders->sortByDesc(function ($subscriptionPlanAutoBillingReminder) {
-                return $subscriptionPlanAutoBillingReminder->autoBillingReminder->hours;
+            $pricingPlanAutoBillingReminders = $pricingPlanAutoBillingReminders->sortByDesc(function ($pricingPlanAutoBillingReminder) {
+                return $pricingPlanAutoBillingReminder->autoBillingReminder->hours;
             })->all();
 
             // Foreach project
-            foreach ($subscriptionPlanAutoBillingReminders as $subscriptionPlanAutoBillingReminder) {
+            foreach ($pricingPlanAutoBillingReminders as $pricingPlanAutoBillingReminder) {
 
                 /**
-                 *  @var SubscriptionPlan $subscriptionPlan
+                 *  @var PricingPlan $pricingPlan
                  */
-                $subscriptionPlan = $subscriptionPlanAutoBillingReminder->subscriptionPlan;
+                $pricingPlan = $pricingPlanAutoBillingReminder->pricingPlan;
 
-                if(!empty($subscriptionPlan->next_auto_billing_reminder_sms_message)) {
+                if(!empty($pricingPlan->next_auto_billing_reminder_sms_message)) {
 
                     /**
                      *  @var Project $project
                      */
-                    $project = $subscriptionPlanAutoBillingReminder->project;
+                    $project = $pricingPlanAutoBillingReminder->project;
 
                     /**
                      *  @var AutoBillingReminder $autoBillingReminder
                      */
-                    $autoBillingReminder = $subscriptionPlanAutoBillingReminder->autoBillingReminder;
+                    $autoBillingReminder = $pricingPlanAutoBillingReminder->autoBillingReminder;
 
                     /**
                      *  @var int $autoBillingReminderJobBatchesCount
                      */
-                    $autoBillingReminderJobBatchesCount = $subscriptionPlan->auto_billing_reminder_job_batches_count;
+                    $autoBillingReminderJobBatchesCount = $pricingPlan->auto_billing_reminder_job_batches_count;
 
                     //  Add this job to the queue for processing
-                    NextAutoBillingBySubscriptionPlan::dispatch($project, $subscriptionPlan, $autoBillingReminder, $autoBillingReminderJobBatchesCount);
+                    NextAutoBillingByPricingPlan::dispatch($project, $pricingPlan, $autoBillingReminder, $autoBillingReminderJobBatchesCount);
 
                 }
 
@@ -91,7 +91,7 @@ class NextAutoBillingBySubscriptionPlans implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::error('NextAutoBillingBySubscriptionPlans Job Failed: '. $th->getMessage());
+            Log::error('NextAutoBillingByPricingPlans Job Failed: '. $th->getMessage());
 
         }
     }

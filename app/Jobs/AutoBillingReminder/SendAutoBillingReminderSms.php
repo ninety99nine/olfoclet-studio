@@ -9,7 +9,7 @@ use App\Models\Subscription;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\AutoBillingReminder;
@@ -27,7 +27,7 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
 
     public $project;
     public $subscriber;
-    public $subscriptionPlan;
+    public $pricingPlan;
     public $autoBillingReminder;
 
     /**
@@ -49,11 +49,11 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function __construct(Project $project, Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, AutoBillingReminder $autoBillingReminder)
+    public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan, AutoBillingReminder $autoBillingReminder)
     {
         $this->project = $project;
         $this->subscriber = $subscriber;
-        $this->subscriptionPlan = $subscriptionPlan;
+        $this->pricingPlan = $pricingPlan;
         $this->autoBillingReminder = $autoBillingReminder;
     }
 
@@ -71,7 +71,7 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->subscriptionPlan->id.'-'.$this->subscriber->id;
+        return $this->pricingPlan->id.'-'.$this->subscriber->id;
     }
 
     /**
@@ -99,7 +99,7 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
     {
         try {
 
-            if(!empty($this->subscriptionPlan->next_auto_billing_reminder_sms_message)) {
+            if(!empty($this->pricingPlan->next_auto_billing_reminder_sms_message)) {
 
                 //  Set the message type
                 $messageType = MessageType::AutoBillingReminder;
@@ -108,14 +108,14 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
                  *  @var Subscription $subscriptionWithFurthestEndAt
                  */
                 $subscriptionWithFurthestEndAt = $this->subscriber->subscriptionWithFurthestEndAt()
-                                                    ->where('subscription_plan_id', $this->subscriptionPlan->id)->first();
+                                                    ->where('pricing_plan_id', $this->pricingPlan->id)->first();
 
                 /**
                  *  Set the next auto billing reminder sms message
                  *
                  *  @var string $messageContent
                  */
-                $messageContent = $this->subscriptionPlan->craftNextAutoBillingReminderSmsMessage($subscriptionWithFurthestEndAt);
+                $messageContent = $this->pricingPlan->craftNextAutoBillingReminderSmsMessage($subscriptionWithFurthestEndAt);
 
                 /**
                  *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
@@ -150,7 +150,7 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
 
                     DB::table('auto_billing_schedules')
                         ->where('subscriber_id', $this->subscriber->id)
-                        ->where('subscription_plan_id', $this->subscriptionPlan->id)
+                        ->where('pricing_plan_id', $this->pricingPlan->id)
                         ->update($data);
                 }
 

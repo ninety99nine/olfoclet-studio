@@ -528,14 +528,14 @@
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Auth/VerifyEmail.vue"
   },
-  "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Main.vue": {
+  "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Main.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
     "file": "assets/Main-50ad3efc.js",
     "imports": [
       "_AppLayout-336641a3.js",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/Content.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
       "_base-560bd877.js",
@@ -545,12 +545,12 @@
       "_moment-fbc5633a.js",
       "_SecondaryButton-595e01f3.js",
       "_Pagination-a57567dc.js",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue"
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Main.vue"
+    "src": "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Main.vue"
   },
-  "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue": {
+  "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -560,9 +560,9 @@
       "resources/js/app.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue"
+    "src": "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue"
   },
-  "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/Content.vue": {
+  "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/Content.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -573,35 +573,35 @@
       "_moment-fbc5633a.js",
       "_SecondaryButton-595e01f3.js",
       "_Pagination-a57567dc.js",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
       "_icon-cfceea8b.js",
       "_index-20f83223.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/Content.vue"
+    "src": "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/Content.vue"
   },
-  "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue": {
+  "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
-    "file": "assets/SubscriptionPlanCanAutoBillBadge-4eecc623.js",
+    "file": "assets/PricingPlanCanAutoBillBadge-4eecc623.js",
     "imports": [
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue"
+    "src": "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue"
   },
-  "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/Main.vue": {
+  "resources/js/Pages/AutoBillingReminderPricingPlans/List/Main.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
     "file": "assets/Main-f578ee6e.js",
     "imports": [
       "_AppLayout-336641a3.js",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/Partials/Content.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
       "_base-560bd877.js",
@@ -609,15 +609,15 @@
       "_icon-cfceea8b.js",
       "_constants-24ec7b7a.js",
       "_el-popover-848e500b.js",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
       "_Pagination-a57567dc.js",
       "_moment-fbc5633a.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/Main.vue"
+    "src": "resources/js/Pages/AutoBillingReminderPricingPlans/List/Main.vue"
   },
-  "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/Partials/Content.vue": {
+  "resources/js/Pages/AutoBillingReminderPricingPlans/List/Partials/Content.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -626,8 +626,8 @@
       "_base-560bd877.js",
       "_el-popper-111808da.js",
       "_el-popover-848e500b.js",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
       "_Pagination-a57567dc.js",
       "resources/js/app.js",
       "_moment-fbc5633a.js",
@@ -636,7 +636,7 @@
       "_constants-24ec7b7a.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/Partials/Content.vue"
+    "src": "resources/js/Pages/AutoBillingReminderPricingPlans/List/Partials/Content.vue"
   },
   "resources/js/Pages/AutoBillingSchedules/List/Main.vue": {
     "css": [
@@ -655,7 +655,7 @@
       "_constants-24ec7b7a.js",
       "_el-popover-848e500b.js",
       "resources/js/Pages/BillingTransactions/List/Partials/CreatedUsingAutoBillingBadge.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/BillingTransactions/List/Partials/RatingTypeBadge.vue",
       "resources/js/Pages/AutoBillingSchedules/List/Partials/AutoBillingReminderStatusBadge.vue",
       "_Countdown-0ba92a1f.js",
@@ -705,7 +705,7 @@
     "imports": [
       "resources/js/Pages/BillingTransactions/List/Partials/BillingTransactionStatusBadge.vue",
       "resources/js/Pages/BillingTransactions/List/Partials/CreatedUsingAutoBillingBadge.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/BillingTransactions/List/Partials/RatingTypeBadge.vue",
       "resources/js/Pages/AutoBillingSchedules/List/Partials/AutoBillingReminderStatusBadge.vue",
       "resources/js/Pages/AutoBillingSchedules/List/Partials/AutoBillingEnabledStatusBadge.vue",
@@ -723,14 +723,14 @@
     "isDynamicEntry": true,
     "src": "resources/js/Pages/AutoBillingSchedules/List/Partials/Content.vue"
   },
-  "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Main.vue": {
+  "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Main.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
     "file": "assets/Main-5fc1754c.js",
     "imports": [
       "_AppLayout-336641a3.js",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/Content.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
       "_base-560bd877.js",
@@ -739,13 +739,13 @@
       "_index-20f83223.js",
       "_Pagination-a57567dc.js",
       "_SecondaryButton-595e01f3.js",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
       "_moment-fbc5633a.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Main.vue"
+    "src": "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Main.vue"
   },
-  "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue": {
+  "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -755,9 +755,9 @@
       "resources/js/app.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue"
+    "src": "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue"
   },
-  "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/Content.vue": {
+  "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/Content.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -767,7 +767,7 @@
       "_el-breadcrumb-item-edd249ab.js",
       "_Pagination-a57567dc.js",
       "_SecondaryButton-595e01f3.js",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
       "_moment-fbc5633a.js",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
@@ -775,28 +775,28 @@
       "_index-20f83223.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/Content.vue"
+    "src": "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/Content.vue"
   },
-  "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue": {
+  "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
-    "file": "assets/SubscriptionPlanCanAutoBillBadge-bd6f4588.js",
+    "file": "assets/PricingPlanCanAutoBillBadge-bd6f4588.js",
     "imports": [
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue"
+    "src": "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue"
   },
-  "resources/js/Pages/AutoBillingSubscriptionPlans/List/Main.vue": {
+  "resources/js/Pages/AutoBillingPricingPlans/List/Main.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
     "file": "assets/Main-dba3face.js",
     "imports": [
       "_AppLayout-336641a3.js",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/Partials/Content.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
       "_base-560bd877.js",
@@ -804,15 +804,15 @@
       "_icon-cfceea8b.js",
       "_constants-24ec7b7a.js",
       "_el-popover-848e500b.js",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
       "_Pagination-a57567dc.js",
       "_moment-fbc5633a.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingSubscriptionPlans/List/Main.vue"
+    "src": "resources/js/Pages/AutoBillingPricingPlans/List/Main.vue"
   },
-  "resources/js/Pages/AutoBillingSubscriptionPlans/List/Partials/Content.vue": {
+  "resources/js/Pages/AutoBillingPricingPlans/List/Partials/Content.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -821,8 +821,8 @@
       "_base-560bd877.js",
       "_el-popper-111808da.js",
       "_el-popover-848e500b.js",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
       "_Pagination-a57567dc.js",
       "resources/js/app.js",
       "_moment-fbc5633a.js",
@@ -831,7 +831,7 @@
       "_constants-24ec7b7a.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/AutoBillingSubscriptionPlans/List/Partials/Content.vue"
+    "src": "resources/js/Pages/AutoBillingPricingPlans/List/Partials/Content.vue"
   },
   "resources/js/Pages/BillingReports/List/Main.vue": {
     "css": [
@@ -885,7 +885,7 @@
       "resources/js/Pages/BillingTransactions/List/Partials/Content.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/Subscriptions/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/BillingTransactions/List/Partials/BillingTransactionStatusBadge.vue",
       "_base-560bd877.js",
@@ -925,7 +925,7 @@
     ],
     "file": "assets/Content-5d17a646.js",
     "imports": [
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/Subscriptions/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/BillingTransactions/List/Partials/BillingTransactionStatusBadge.vue",
       "resources/js/Pages/BillingTransactions/List/Partials/CreatedUsingAutoBillingBadge.vue",
@@ -1710,20 +1710,20 @@
     "isDynamicEntry": true,
     "src": "resources/js/Pages/Subscribers/List/Partials/SubscriptionStatusBadge.vue"
   },
-  "resources/js/Pages/SubscriptionPlans/List/Main.vue": {
+  "resources/js/Pages/PricingPlans/List/Main.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
     "file": "assets/Main-67814878.js",
     "imports": [
       "_AppLayout-336641a3.js",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/Content.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ManageSubscriptionPlanModal.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/Content.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ManagePricingPlanModal.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
       "_moment-fbc5633a.js",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/FolderStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/FolderStatusBadge.vue",
       "_Pagination-a57567dc.js",
       "_base-560bd877.js",
       "_el-tag-72070bdc.js",
@@ -1746,9 +1746,9 @@
       "_SecondaryButton-595e01f3.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/SubscriptionPlans/List/Main.vue"
+    "src": "resources/js/Pages/PricingPlans/List/Main.vue"
   },
-  "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue": {
+  "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -1758,9 +1758,9 @@
       "resources/js/app.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue"
+    "src": "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue"
   },
-  "resources/js/Pages/SubscriptionPlans/List/Partials/Content.vue": {
+  "resources/js/Pages/PricingPlans/List/Partials/Content.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -1768,10 +1768,10 @@
     "imports": [
       "_moment-fbc5633a.js",
       "resources/js/app.js",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/FolderStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/FolderStatusBadge.vue",
       "_Pagination-a57567dc.js",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ManageSubscriptionPlanModal.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ManagePricingPlanModal.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "_base-560bd877.js",
       "_el-tag-72070bdc.js",
@@ -1794,9 +1794,9 @@
       "_SecondaryButton-595e01f3.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/SubscriptionPlans/List/Partials/Content.vue"
+    "src": "resources/js/Pages/PricingPlans/List/Partials/Content.vue"
   },
-  "resources/js/Pages/SubscriptionPlans/List/Partials/FolderStatusBadge.vue": {
+  "resources/js/Pages/PricingPlans/List/Partials/FolderStatusBadge.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
@@ -1806,13 +1806,13 @@
       "resources/js/app.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/SubscriptionPlans/List/Partials/FolderStatusBadge.vue"
+    "src": "resources/js/Pages/PricingPlans/List/Partials/FolderStatusBadge.vue"
   },
-  "resources/js/Pages/SubscriptionPlans/List/Partials/ManageSubscriptionPlanModal.vue": {
+  "resources/js/Pages/PricingPlans/List/Partials/ManagePricingPlanModal.vue": {
     "css": [
       "assets/app-310eb978.css"
     ],
-    "file": "assets/ManageSubscriptionPlanModal-d8e1b69d.js",
+    "file": "assets/ManagePricingPlanModal-d8e1b69d.js",
     "imports": [
       "_base-560bd877.js",
       "_el-tag-72070bdc.js",
@@ -1837,7 +1837,7 @@
       "_index-20f83223.js"
     ],
     "isDynamicEntry": true,
-    "src": "resources/js/Pages/SubscriptionPlans/List/Partials/ManageSubscriptionPlanModal.vue"
+    "src": "resources/js/Pages/PricingPlans/List/Partials/ManagePricingPlanModal.vue"
   },
   "resources/js/Pages/Subscriptions/List/Main.vue": {
     "css": [
@@ -1850,7 +1850,7 @@
       "resources/js/Pages/Subscriptions/List/Partials/ManageSubscriptionModal.vue",
       "__plugin-vue_export-helper-c27b6911.js",
       "resources/js/app.js",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/Subscriptions/List/Partials/ActiveStatusBadge.vue",
       "_Pagination-a57567dc.js",
       "_moment-fbc5633a.js",
@@ -1893,7 +1893,7 @@
     ],
     "file": "assets/Content-539caf37.js",
     "imports": [
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/Subscriptions/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/Subscriptions/List/Partials/ManageSubscriptionModal.vue",
       "_Pagination-a57567dc.js",
@@ -2152,22 +2152,22 @@
       "resources/js/Pages/Auth/ResetPassword.vue",
       "resources/js/Pages/Auth/TwoFactorChallenge.vue",
       "resources/js/Pages/Auth/VerifyEmail.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Main.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/Content.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/Main.vue",
-      "resources/js/Pages/AutoBillingReminderSubscriptionPlans/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Main.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/Main.vue",
+      "resources/js/Pages/AutoBillingReminderPricingPlans/List/Partials/Content.vue",
       "resources/js/Pages/AutoBillingSchedules/List/Main.vue",
       "resources/js/Pages/AutoBillingSchedules/List/Partials/AutoBillingEnabledStatusBadge.vue",
       "resources/js/Pages/AutoBillingSchedules/List/Partials/AutoBillingReminderStatusBadge.vue",
       "resources/js/Pages/AutoBillingSchedules/List/Partials/Content.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Main.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/Content.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/JobBatches/List/Partials/SubscriptionPlanCanAutoBillBadge.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/Main.vue",
-      "resources/js/Pages/AutoBillingSubscriptionPlans/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Main.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/AutoBillingStatusBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/Content.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/Main.vue",
+      "resources/js/Pages/AutoBillingPricingPlans/List/Partials/Content.vue",
       "resources/js/Pages/BillingReports/List/Main.vue",
       "resources/js/Pages/BillingReports/List/Partials/Content.vue",
       "resources/js/Pages/BillingTransactions/List/Main.vue",
@@ -2210,11 +2210,11 @@
       "resources/js/Pages/Subscribers/List/Partials/Content.vue",
       "_ManageSubscriberModal-cb834ead.js",
       "resources/js/Pages/Subscribers/List/Partials/SubscriptionStatusBadge.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Main.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ActiveStatusBadge.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/Content.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/FolderStatusBadge.vue",
-      "resources/js/Pages/SubscriptionPlans/List/Partials/ManageSubscriptionPlanModal.vue",
+      "resources/js/Pages/PricingPlans/List/Main.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/Content.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/FolderStatusBadge.vue",
+      "resources/js/Pages/PricingPlans/List/Partials/ManagePricingPlanModal.vue",
       "resources/js/Pages/Subscriptions/List/Main.vue",
       "resources/js/Pages/Subscriptions/List/Partials/ActiveStatusBadge.vue",
       "resources/js/Pages/Subscriptions/List/Partials/Content.vue",

@@ -4,10 +4,10 @@ namespace App\Models\Pivots;
 
 use App\Models\AutoBillingReminder;
 use App\Models\Project;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class SubscriptionPlanAutoBillingReminder extends Pivot
+class PricingPlanAutoBillingReminder extends Pivot
 {
     protected $table = 'subscription_plan_auto_billing_reminders';
 
@@ -20,11 +20,11 @@ class SubscriptionPlanAutoBillingReminder extends Pivot
     }
 
     /**
-     *  Get the subscription plan
+     *  Get the pricing plan
      */
-    public function subscriptionPlan()
+    public function pricingPlan()
     {
-        return $this->belongsTo(SubscriptionPlan::class);
+        return $this->belongsTo(PricingPlan::class);
     }
 
     /**

@@ -16,7 +16,7 @@ class BillingReportController extends Controller
     public function __construct()
     {
         $this->project = Project::findOrFail(request()->route('project'));
-        $this->billingReport = request()->route('billing_report') ? BillingReport::findOrFail(request()->route('billing_report'))->load(['subscriber', 'subscriptionPlan']) : null;
+        $this->billingReport = request()->route('billing_report') ? BillingReport::findOrFail(request()->route('billing_report'))->load(['subscriber', 'pricingPlan']) : null;
 
         $this->billingReportRepository = new BillingReportRepository($this->project, $this->billingReport);
     }

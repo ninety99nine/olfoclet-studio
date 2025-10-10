@@ -56,7 +56,7 @@
         methods: {
             canSendReminder() {
 
-                var reminders = this.autoBillingSchedule.subscription_plan.auto_billing_reminders;
+                var reminders = this.autoBillingSchedule.pricing_plan.auto_billing_reminders;
 
                 for (let index = 0; index < reminders.length; index++) {
 

@@ -4,7 +4,7 @@
 
         <ManageSubscriptionModal
             v-model="isShowingModal" :action="modalAction" :subscription="subscription"
-            :subscriptionPlans="subscriptionPlans"
+            :pricingPlans="pricingPlans"
             @onDeleted="onDeleted"
         />
 
@@ -25,7 +25,7 @@
                                         <div class="font-bold text-teal-500">SUBSCRIPTION</div>
                                     </th>
                                     <th scope="col" colspan="6" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <div class="font-bold text-fuchsia-500">SUBSCRIPTION PLAN</div>
+                                        <div class="font-bold text-fuchsia-500">PRICING PLAN</div>
                                     </th>
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
 
@@ -116,29 +116,29 @@
 
 
 
-                                    <!-- Subscription Plan Name -->
+                                    <!-- Pricing Plan Name -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        <div class="text-sm text-gray-900">{{ subscription.subscription_plan.name }}</div>
+                                        <div class="text-sm text-gray-900">{{ subscription.pricing_plan.name }}</div>
                                     </td>
-                                    <!-- Subscription Plan Description -->
+                                    <!-- Pricing Plan Description -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        {{ subscription.subscription_plan.description == null ? '...' : subscription.subscription_plan.description }}
+                                        {{ subscription.pricing_plan.description == null ? '...' : subscription.pricing_plan.description }}
                                     </td>
-                                    <!-- Subscription Plan Active -->
+                                    <!-- Pricing Plan Active -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <SubscriptionPlanActiveStatusBadge :subscriptionPlan="subscription.subscription_plan"></SubscriptionPlanActiveStatusBadge>
+                                        <PricingPlanActiveStatusBadge :pricingPlan="subscription.pricing_plan"></PricingPlanActiveStatusBadge>
                                     </td>
-                                    <!-- Subscription Plan Duration -->
+                                    <!-- Pricing Plan Duration -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        {{ subscription.subscription_plan.duration_in_words == null ? '...' : subscription.subscription_plan.duration_in_words }}
+                                        {{ subscription.pricing_plan.duration_in_words == null ? '...' : subscription.pricing_plan.duration_in_words }}
                                     </td>
-                                    <!-- Subscription Plan Price -->
+                                    <!-- Pricing Plan Price -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        {{ subscription.subscription_plan.price == null ? '...' : subscription.subscription_plan.price.amount_with_currency }}
+                                        {{ subscription.pricing_plan.price == null ? '...' : subscription.pricing_plan.price.amount_with_currency }}
                                     </td>
-                                    <!-- Subscription Plan Created Date -->
+                                    <!-- Pricing Plan Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        {{ subscription.subscription_plan.created_at == null ? '...' : moment(subscription.subscription_plan.created_at).format('lll') }}
+                                        {{ subscription.pricing_plan.created_at == null ? '...' : moment(subscription.pricing_plan.created_at).format('lll') }}
                                     </td>
 
 
@@ -176,7 +176,7 @@
 </template>
 <script>
 
-    import SubscriptionPlanActiveStatusBadge from './../../../SubscriptionPlans/List/Partials/ActiveStatusBadge.vue';
+    import PricingPlanActiveStatusBadge from './../../../PricingPlans/List/Partials/ActiveStatusBadge.vue';
     import SubscriptionActiveStatusBadge from './ActiveStatusBadge.vue';
     import ManageSubscriptionModal from './ManageSubscriptionModal.vue';
     import Pagination from '../../../../Partials/Pagination.vue';
@@ -185,11 +185,11 @@
 
     export default defineComponent({
         components: {
-            ManageSubscriptionModal, SubscriptionActiveStatusBadge, SubscriptionPlanActiveStatusBadge, Pagination
+            ManageSubscriptionModal, SubscriptionActiveStatusBadge, PricingPlanActiveStatusBadge, Pagination
         },
         props: {
             totalSubscribers: Number,
-            subscriptionPlans: Array,
+            pricingPlans: Array,
             subscriptionsPayload: Object
         },
         data() {

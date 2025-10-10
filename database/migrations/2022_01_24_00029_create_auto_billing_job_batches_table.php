@@ -16,14 +16,14 @@ class CreateAutoBillingJobBatchesTable extends Migration
         Schema::create('auto_billing_job_batches', function (Blueprint $table) {
             $table->id();
             $table->string('job_batch_id');
-            $table->foreignId('subscription_plan_id');
+            $table->foreignId('pricing_plan_id');
             $table->timestamps();
 
-            $table->index(['job_batch_id', 'subscription_plan_id']);
+            $table->index(['job_batch_id', 'pricing_plan_id']);
 
             /*  Foreign Key Constraints */
             $table->foreign('job_batch_id')->references('id')->on('job_batches')->cascadeOnDelete();
-            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->cascadeOnDelete();
+            $table->foreign('pricing_plan_id')->references('id')->on('pricing_plans')->cascadeOnDelete();
         });
     }
 

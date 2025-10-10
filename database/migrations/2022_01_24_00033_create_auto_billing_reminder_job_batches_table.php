@@ -16,11 +16,11 @@ class CreateAutoBillingReminderJobBatchesTable extends Migration
         Schema::create('auto_billing_reminder_job_batches', function (Blueprint $table) {
             $table->id();
             $table->string('job_batch_id');
-            $table->foreignId('subscription_plan_id');
+            $table->foreignId('pricing_plan_id');
             $table->foreignId('auto_billing_reminder_id');
             $table->timestamps();
 
-            $table->index(['job_batch_id', 'subscription_plan_id'], 'job_batch_id_subscription_plan_id_index');
+            $table->index(['job_batch_id', 'pricing_plan_id'], 'job_batch_id_pricing_plan_id_index');
             $table->index(['job_batch_id', 'auto_billing_reminder_id'], 'job_batch_id_auto_billing_reminder_id_index');
 
             /**
@@ -39,7 +39,7 @@ class CreateAutoBillingReminderJobBatchesTable extends Migration
              *  "abrjb_auto_billing_reminder_id_foreign"
              */
             $table->foreign('job_batch_id', 'abrjb_job_batch_id_foreign')->references('id')->on('job_batches')->cascadeOnDelete();
-            $table->foreign('subscription_plan_id', 'abrjb_subscription_plan_id_foreign')->references('id')->on('subscription_plans')->cascadeOnDelete();
+            $table->foreign('pricing_plan_id', 'abrjb_pricing_plan_id_foreign')->references('id')->on('pricing_plans')->cascadeOnDelete();
             $table->foreign('auto_billing_reminder_id', 'abrjb_auto_billing_reminder_id_foreign')->references('id')->on('auto_billing_reminders')->cascadeOnDelete();
         });
     }

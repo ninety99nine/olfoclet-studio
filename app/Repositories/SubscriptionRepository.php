@@ -6,7 +6,7 @@ use Carbon\Carbon;
 use App\Models\Project;
 use App\Models\Subscriber;
 use App\Models\Subscription;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Support\Facades\DB;
 use App\Enums\CreatedUsingAutoBilling;
 use App\Enums\MessageType;
@@ -67,20 +67,20 @@ class SubscriptionRepository
      *  Create a new subscription for the project.
      *
      *  @param Subscriber $subscriber The subscriber for whom the subscription will be created.
-     *  @param SubscriptionPlan $subscriptionPlan The subscription plan associated with the subscription.
+     *  @param PricingPlan $pricingPlan The pricing plan associated with the subscription.
      *  @param CreatedUsingAutoBilling $createdUsingAutoBilling Whether this subscription was created using auto billing.
      *  @param BillingTransaction|null $billingTransaction The BillingTransaction associated with the subscription.
      *  @param bool $offerTrial Whether or not to offer a trial period.
      *
      *  @return Subscription The newly created subscription instance.
      */
-    public function createProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO, BillingTransaction|null $billingTransaction = null, bool $offerTrial = false): Subscription
+    public function createProjectSubscription(Subscriber $subscriber, PricingPlan $pricingPlan, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO, BillingTransaction|null $billingTransaction = null, bool $offerTrial = false): Subscription
     {
         /**
          * @var Subscription|null $subscriptionWithFurthestEndAt
          */
         $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()->active()
-                                                    ->where('subscription_plan_id', $subscriptionPlan->id)
+                                                    ->where('pricing_plan_id', $pricingPlan->id)
                                                     ->first();
 
         // Use the furthest end date if it's in the future, otherwise use now()
@@ -89,12 +89,12 @@ class SubscriptionRepository
             : now();
 
 
-        $endAt = $this->calculateEndDate($startAt, $subscriptionPlan, $offerTrial);
+        $endAt = $this->calculateEndDate($startAt, $pricingPlan, $offerTrial);
 
         //  Create a new subscription
         $subscription = Subscription::create([
             'created_using_auto_billing' => $createdUsingAutoBilling->value,
-            'subscription_plan_id' => $subscriptionPlan->id,
+            'pricing_plan_id' => $pricingPlan->id,
             'subscriber_id' => $subscriber->id,
             'project_id' => $this->project->id,
             'start_at' => $startAt,
@@ -110,7 +110,7 @@ class SubscriptionRepository
         }
 
         //  Update the auto billing schedule
-        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscription, $createdUsingAutoBilling);
+        $this->updateAutoBillingSchedule($subscriber, $pricingPlan, $subscription, $createdUsingAutoBilling);
 
         //  If the project has the SMS credentials
         if( $this->project->hasSmsCredentials() ) {
@@ -123,36 +123,36 @@ class SubscriptionRepository
 
             if($createdUsingAutoBilling == CreatedUsingAutoBilling::YES) {
 
-                if($subscriptionPlan->successful_auto_billing_payment_sms_message) {
+                if($pricingPlan->successful_auto_billing_payment_sms_message) {
 
                     /**
                      *  Set the successful auto billing payment sms message
                      *
                      *  @var string $messageContent
                      */
-                    $messageContent = $subscriptionPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription);
+                    $messageContent = $pricingPlan->craftSuccessfulAutoBillingPaymentSmsMessage($subscription);
 
                 }
 
             }else{
 
-                if($offerTrial && $subscriptionPlan->trial_started_sms_message) {
+                if($offerTrial && $pricingPlan->trial_started_sms_message) {
 
                     /**
                      *  Set the successful payment sms message
                      *
                      *  @var string $messageContent
                      */
-                    $messageContent = $subscriptionPlan->craftTrialStartedSmsMessage($subscription);
+                    $messageContent = $pricingPlan->craftTrialStartedSmsMessage($subscription);
 
-                }else if(!$offerTrial && $subscriptionPlan->successful_payment_sms_message) {
+                }else if(!$offerTrial && $pricingPlan->successful_payment_sms_message) {
 
                     /**
                      *  Set the successful payment sms message
                      *
                      *  @var string $messageContent
                      */
-                    $messageContent = $subscriptionPlan->craftSuccessfulPaymentSmsMessage($subscription);
+                    $messageContent = $pricingPlan->craftSuccessfulPaymentSmsMessage($subscription);
 
                 }
 
@@ -174,11 +174,11 @@ class SubscriptionRepository
      *  Update an existing subscription for the project.
      *
      *  @param Subscriber $subscriber The subscriber for whom the subscription will be updated.
-     *  @param SubscriptionPlan $subscriptionPlan The new subscription plan associated with the subscription.
+     *  @param PricingPlan $pricingPlan The new pricing plan associated with the subscription.
      *  @return bool True if the update is successful, false otherwise.
      *  @throws \Exception If an error occurs during the update process.
      */
-    public function updateProjectSubscription(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan): bool
+    public function updateProjectSubscription(Subscriber $subscriber, PricingPlan $pricingPlan): bool
     {
         // Make sure the subscription exists and belongs to the project
         if ($this->subscription === null || $this->subscription->project_id !== $this->project->id) {
@@ -189,7 +189,7 @@ class SubscriptionRepository
          * @var Subscription|null $subscriptionWithFurthestEndAt
          */
         $subscriptionWithFurthestEndAt = $subscriber->subscriptionWithFurthestEndAt()
-                                                    ->where('subscription_plan_id', $subscriptionPlan->id)
+                                                    ->where('pricing_plan_id', $pricingPlan->id)
                                                     ->first();
 
         // Use the furthest end date if it's in the future, otherwise use now()
@@ -197,11 +197,11 @@ class SubscriptionRepository
             ? $subscriptionWithFurthestEndAt->end_at
             : now();
 
-        $endAt = $this->calculateEndDate($startAt, $subscriptionPlan);
+        $endAt = $this->calculateEndDate($startAt, $pricingPlan);
 
         //  Update existing subscription
         $status = $this->subscription->update([
-            'subscription_plan_id' => $subscriptionPlan->id,
+            'pricing_plan_id' => $pricingPlan->id,
             'subscriber_id' => $subscriber->id,
             'project_id' => $this->project->id,
             'start_at' => $startAt,
@@ -214,7 +214,7 @@ class SubscriptionRepository
         $subscription = $this->subscription->fresh();
 
         //  Update the auto billing schedule
-        $this->updateAutoBillingSchedule($subscriber, $subscriptionPlan, $subscription);
+        $this->updateAutoBillingSchedule($subscriber, $pricingPlan, $subscription);
 
         return $status;
     }
@@ -223,32 +223,32 @@ class SubscriptionRepository
      *  Update the auto billing schedule.
      *
      *  @param Subscriber $subscriber The subscriber for whom the auto billing schedule will be updated.
-     *  @param SubscriptionPlan $subscriptionPlan The new subscription plan associated with the subscription.
+     *  @param PricingPlan $pricingPlan The new pricing plan associated with the subscription.
      *  @param Subscription $subscriptionWithFurthestEndAt The subscription with the furthest end at datetime.
      *  @param CreatedUsingAutoBilling $createdUsingAutoBilling Whether this subscription was created using auto billing.
      *
      *  @return void
      */
-    public function updateAutoBillingSchedule(Subscriber $subscriber, SubscriptionPlan $subscriptionPlan, Subscription $subscriptionWithFurthestEndAt, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): void
+    public function updateAutoBillingSchedule(Subscriber $subscriber, PricingPlan $pricingPlan, Subscription $subscriptionWithFurthestEndAt, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): void
     {
         /**
          *  @var bool $autoBillingEnabled Whether auto billing is enabled for the auto billing schedule.
          *
          *  This will also disable auto billing on an existing auto billing schedule if the subscription
-         *  plan no longer supports auto billing. Remember that when the subscription plan can_auto_bill
-         *  is "false", the AutoBillingBySubscriptionPlans Job will ignore the subscription plan since
+         *  plan no longer supports auto billing. Remember that when the pricing plan can_auto_bill
+         *  is "false", the AutoBillingByPricingPlans Job will ignore the pricing plan since
          *  it does not support auto billing. So the auto_billing_enabled is not necessary to stop
-         *  auto billing since this will be stopped at the AutoBillingBySubscriptionPlans Job
-         *  layer, but its just to ensure that if the subscription plan can_auto_bill is set
-         *  back to "true" and the AutoBillingBySubscriptionPlans Job recognises the same
-         *  subscription plan for auto billing, then we do not auto bill subscribers who
-         *  opted in while the subscription plan can_auto_bill was disabled. This avoids
+         *  auto billing since this will be stopped at the AutoBillingByPricingPlans Job
+         *  layer, but its just to ensure that if the pricing plan can_auto_bill is set
+         *  back to "true" and the AutoBillingByPricingPlans Job recognises the same
+         *  pricing plan for auto billing, then we do not auto bill subscribers who
+         *  opted in while the pricing plan can_auto_bill was disabled. This avoids
          *  situations where a user subscribes while auto billing is not supported,
          *  then when it is supported after they have already subscribed, they
          *  then get auto billed eventhough they opted in while the
-         *  subscription plan was not running on auto billing.
+         *  pricing plan was not running on auto billing.
          */
-        $autoBillingEnabled = $subscriptionPlan->can_auto_bill;
+        $autoBillingEnabled = $pricingPlan->can_auto_bill;
 
         /**
          *  @var bool $nextAttemptDate The date and time for auto billing to be attempted
@@ -267,14 +267,14 @@ class SubscriptionRepository
             'reminded_twenty_four_hours_before_at' => null,
             'reminded_forty_eight_hours_before_at' => null,
             'reminded_seventy_two_hours_before_at' => null,
-            'subscription_plan_id' => $subscriptionPlan->id,
+            'pricing_plan_id' => $pricingPlan->id,
             'next_attempt_date' => $autoBillingEnabled ? $nextAttemptDate : null
         ];
 
         //  Query the existing auto billing schedule (if any)
         $existingAutoBillingSchedule = DB::table('auto_billing_schedules')->where([
             'subscriber_id' => $subscriber->id,
-            'subscription_plan_id' => $subscriptionPlan->id
+            'pricing_plan_id' => $pricingPlan->id
         ])->first();
 
         //  If the auto billing schedule exists
@@ -286,13 +286,13 @@ class SubscriptionRepository
             //  Update existing auto billing schedule
             DB::table('auto_billing_schedules')->where([
                 'subscriber_id' => $subscriber->id,
-                'subscription_plan_id' => $subscriptionPlan->id
+                'pricing_plan_id' => $pricingPlan->id
             ])->update($autoBillingSchedule);
 
         }else {
 
-            //  Check if this subscription plan supports auto billing
-            if($subscriptionPlan->can_auto_bill) {
+            //  Check if this pricing plan supports auto billing
+            if($pricingPlan->can_auto_bill) {
 
                 //  Create a new auto billing schedule
                 DB::table('auto_billing_schedules')->insert($autoBillingSchedule);
@@ -315,14 +315,14 @@ class SubscriptionRepository
 
         $subscriber = $this->project->subscribers()->where('msisdn', $msisdn)->first();
 
-        $query = $this->project->subscriptions()->with(['subscriptionPlan'])->active();
+        $query = $this->project->subscriptions()->with(['pricingPlan'])->active();
 
         $query = $query->whereHas('subscriber', function (Builder $query) use ($msisdn) {
             $query->where('msisdn', $msisdn);
         });
 
         if (!empty($tags)) {
-            $query->whereHas('subscriptionPlan', function (Builder $query) use ($tags) {
+            $query->whereHas('pricingPlan', function (Builder $query) use ($tags) {
                 foreach ($tags as $tag) {
                     $query->whereJsonContains('tags', $tag);
                 }
@@ -330,23 +330,23 @@ class SubscriptionRepository
         }
 
         $subscriptions = $query->get();
-        $subscriptionPlanIds = $subscriptions->pluck('subscription_plan_id')->toArray();
+        $pricingPlanIds = $subscriptions->pluck('pricing_plan_id')->toArray();
 
-        if (count($subscriptionPlanIds)) {
+        if (count($pricingPlanIds)) {
 
-            $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $subscriptionPlanIds);
+            $this->stopAutoBillingScheduleOnSubscriptions($msisdn, $pricingPlanIds);
             $result = $query->update(['cancelled_at' => Carbon::now()]);
 
             $sentMessages = [];
 
             foreach ($subscriptions as $subscription) {
-                $subscriptionPlan = $subscription->subscriptionPlan;
+                $pricingPlan = $subscription->pricingPlan;
 
-                if ($subscriptionPlan && $subscriber) {
-                    $key = $subscriptionPlan->id . '-' . $subscriber->id;
+                if ($pricingPlan && $subscriber) {
+                    $key = $pricingPlan->id . '-' . $subscriber->id;
 
                     if (!isset($sentMessages[$key])) {
-                        $messageContent = $subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+                        $messageContent = $pricingPlan->craftAutoBillingDisabledSmsMessage();
 
                         if (!empty($messageContent)) {
                             SmsService::sendSms($this->project, $subscriber, $messageContent, MessageType::AutoBillingDisabled);
@@ -377,12 +377,12 @@ class SubscriptionRepository
             'cancelled_at' => Carbon::now()
         ]);
 
-        $this->subscription->load(['subscriptionPlan', 'subscriber']);
-        $subscriptionPlan = $this->subscription->subscriptionPlan;
+        $this->subscription->load(['pricingPlan', 'subscriber']);
+        $pricingPlan = $this->subscription->pricingPlan;
         $subscriber = $this->subscription->subscriber;
 
-        if($subscriptionPlan && $subscriber) {
-            $messageContent = $subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+        if($pricingPlan && $subscriber) {
+            $messageContent = $pricingPlan->craftAutoBillingDisabledSmsMessage();
             if(!empty($messageContent)) {
                 SmsService::sendSms($this->project, $subscriber, $messageContent, MessageType::AutoBillingDisabled);
             }
@@ -424,12 +424,12 @@ class SubscriptionRepository
         // Delete subscription
         $result = $this->subscription->delete();
 
-        $this->subscription->load(['subscriptionPlan', 'subscriber']);
-        $subscriptionPlan = $this->subscription->subscriptionPlan;
+        $this->subscription->load(['pricingPlan', 'subscriber']);
+        $pricingPlan = $this->subscription->pricingPlan;
         $subscriber = $this->subscription->subscriber;
 
-        if($subscriptionPlan && $subscriber) {
-            $messageContent = $subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+        if($pricingPlan && $subscriber) {
+            $messageContent = $pricingPlan->craftAutoBillingDisabledSmsMessage();
             if(!empty($messageContent)) {
                 SmsService::sendSms($this->project, $subscriber, $messageContent, MessageType::AutoBillingDisabled);
             }
@@ -447,7 +447,7 @@ class SubscriptionRepository
     {
         return AutoBillingSchedule::where([
             'subscriber_id' => $this->subscription->subscriber_id,
-            'subscription_plan_id' => $this->subscription->subscription_plan_id
+            'pricing_plan_id' => $this->subscription->pricing_plan_id
         ])->update([
             'attempt' => 0,
             'next_attempt_date' => null,
@@ -465,14 +465,14 @@ class SubscriptionRepository
      *  Stop subscriptions auto billing schedules
      *
      *  @return string $msisdn
-     *  @return array $subscriptionPlanIds
+     *  @return array $pricingPlanIds
      *  @return bool
      */
-    protected function stopAutoBillingScheduleOnSubscriptions(string $msisdn, array $subscriptionPlanIds): bool
+    protected function stopAutoBillingScheduleOnSubscriptions(string $msisdn, array $pricingPlanIds): bool
     {
         return AutoBillingSchedule::whereHas('subscriber', function (Builder $query) use ($msisdn) {
             $query->where('msisdn', $msisdn);
-        })->whereIn('subscription_plan_id', $subscriptionPlanIds)->update([
+        })->whereIn('pricing_plan_id', $pricingPlanIds)->update([
             'attempt' => 0,
             'next_attempt_date' => null,
             'auto_billing_enabled' => false,
@@ -486,14 +486,14 @@ class SubscriptionRepository
     }
 
     /**
-     *  Calculate the end date based on the subscription plan frequency and duration.
+     *  Calculate the end date based on the pricing plan frequency and duration.
      *
      *  @param Carbon $startAt The start at datetime
-     *  @param SubscriptionPlan $subscriptionPlan The subscription plan to calculate the end date for.
+     *  @param PricingPlan $pricingPlan The pricing plan to calculate the end date for.
      *  @param bool $offerTrial Whether or not to offer a trial period.
      *  @return Carbon The calculated end date.
      */
-    protected function calculateEndDate(Carbon $startAt, SubscriptionPlan $subscriptionPlan, bool $offerTrial = false): Carbon
+    protected function calculateEndDate(Carbon $startAt, PricingPlan $pricingPlan, bool $offerTrial = false): Carbon
     {
         /**
          *  The copy method essentially creates a new Carbon object which you can
@@ -504,21 +504,21 @@ class SubscriptionRepository
 
         $date = $startAt->copy();
 
-        if($offerTrial) return $date->addDays($subscriptionPlan->trial_days);;
+        if($offerTrial) return $date->addDays($pricingPlan->trial_days);;
 
-        switch ($subscriptionPlan->frequency) {
+        switch ($pricingPlan->frequency) {
             case 'Years':
-                return $date->addYears($subscriptionPlan->duration);
+                return $date->addYears($pricingPlan->duration);
             case 'Months':
-                return $date->addMonths($subscriptionPlan->duration);
+                return $date->addMonths($pricingPlan->duration);
             case 'Weeks':
-                return $date->addWeeks($subscriptionPlan->duration);
+                return $date->addWeeks($pricingPlan->duration);
             case 'Days':
-                return $date->addDays($subscriptionPlan->duration);
+                return $date->addDays($pricingPlan->duration);
             case 'Hours':
-                return $date->addHours($subscriptionPlan->duration);
+                return $date->addHours($pricingPlan->duration);
             case 'Minutes':
-                return $date->addMinutes($subscriptionPlan->duration);
+                return $date->addMinutes($pricingPlan->duration);
             default:
                 return $date->addDay();
         }

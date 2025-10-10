@@ -44,7 +44,7 @@ class BillingTransaction extends Model
     protected $fillable = [
         'amount', 'is_successful', 'rating_type', 'funds_before_deduction', 'funds_after_deduction',
         'description', 'failure_type', 'failure_reason', 'failed_attempts', 'subscriber_id', 'project_id',
-        'subscription_plan_id', 'subscription_id', 'created_using_auto_billing',
+        'pricing_plan_id', 'subscription_id', 'created_using_auto_billing',
         'client_correlator', 'reference_code'
     ];
 
@@ -105,10 +105,10 @@ class BillingTransaction extends Model
     }
 
     /**
-     * Get the subscription plans associated with the billing transaction.
+     * Get the pricing plans associated with the billing transaction.
      */
-    public function subscriptionPlan()
+    public function pricingPlan()
     {
-        return $this->belongsTo(SubscriptionPlan::class);
+        return $this->belongsTo(PricingPlan::class);
     }
 }

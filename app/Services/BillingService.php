@@ -9,7 +9,7 @@ use App\Enums\CacheName;
 use App\Models\Subscriber;
 use Illuminate\Support\Str;
 use App\Helpers\CacheManager;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use App\Models\BillingTransaction;
 use Illuminate\Support\Facades\Log;
 use App\Enums\CreatedUsingAutoBilling;
@@ -21,22 +21,22 @@ class BillingService
      *  Bill subscriber on their airtime
      *
      *  @param Project $project - The project Model
-     *  @param SubscriptionPlan $subscriptionPlan - The subscription plan Model
+     *  @param PricingPlan $pricingPlan - The pricing plan Model
      *  @param Subscriber $subscriber - The subscriber Model
      *  @param CreatedUsingAutoBilling $createdUsingAutoBilling - Whether this is an auto billing transaction
      *
      *  @return BillingTransaction
      */
-    public static function billUsingAirtime($project, $subscriptionPlan, $subscriber, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): BillingTransaction
+    public static function billUsingAirtime($project, $pricingPlan, $subscriber, CreatedUsingAutoBilling $createdUsingAutoBilling = CreatedUsingAutoBilling::NO): BillingTransaction
     {
         $msisdn = $subscriber->msisdn;
         $referenceCode = Str::uuid();
         $clientCorrelator = Str::uuid();
-        $amount = $subscriptionPlan->price->amount;
-        $description = $subscriptionPlan->description;
+        $amount = $pricingPlan->price->amount;
+        $description = $pricingPlan->description;
         $onBehalfOf = $project->settings['billing_name'];
-        $productId = $subscriptionPlan->billing_product_id;
-        $purchaseCategoryCode = $subscriptionPlan->billing_purchase_category_code;
+        $productId = $pricingPlan->billing_product_id;
+        $purchaseCategoryCode = $pricingPlan->billing_purchase_category_code;
 
         $clientId = $project->settings['auto_billing_client_id'];
         $clientSecret = $project->settings['auto_billing_client_secret'];
@@ -50,7 +50,7 @@ class BillingService
             'subscriber_id' => $subscriber->id,
             'reference_code' => $referenceCode,
             'client_correlator' => $clientCorrelator,
-            'subscription_plan_id' => $subscriptionPlan->id,
+            'pricing_plan_id' => $pricingPlan->id,
             'created_using_auto_billing' => $createdUsingAutoBilling->value,
         ]);
 
@@ -233,9 +233,9 @@ class BillingService
 
                                             $failureType = BillingTransactionFailureType::InsufficientFunds;
 
-                                            if(!empty($subscriptionPlan->insufficient_funds_message)) {
+                                            if(!empty($pricingPlan->insufficient_funds_message)) {
 
-                                                $failureReason = $subscriptionPlan->craftInsufficientFundsMessage();
+                                                $failureReason = $pricingPlan->craftInsufficientFundsMessage();
 
                                             }else{
 
@@ -403,7 +403,7 @@ class BillingService
                 'message' => $e->getMessage(),
                 'msisdn' => $msisdn,
                 'subscriber_id' => $subscriber->id,
-                'subscription_plan_id' => $subscriptionPlan->id,
+                'pricing_plan_id' => $pricingPlan->id,
                 'billing_transaction_id' => $billingTransaction->id,
             ]);
 

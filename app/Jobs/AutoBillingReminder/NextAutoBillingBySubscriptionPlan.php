@@ -7,7 +7,7 @@ use Carbon\Carbon;
 use App\Models\Project;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Support\Facades\DB;
 use App\Models\AutoBillingReminder;
 use Illuminate\Support\Facades\Log;
@@ -20,7 +20,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use App\Jobs\AutoBillingReminder\SendAutoBillingReminderSms;
 
-class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
+class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -32,11 +32,11 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
     protected $project;
 
     /**
-     *  Subscription plan instance.
+     *  Pricing plan instance.
      *
-     *  @var \App\Models\SubscriptionPlan
+     *  @var \App\Models\PricingPlan
      */
-    protected $subscriptionPlan;
+    protected $pricingPlan;
 
     /**
      *  Auto Billing Reminder instance.
@@ -78,10 +78,10 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function __construct(Project $project, SubscriptionPlan $subscriptionPlan, AutoBillingReminder $autoBillingReminder, int $autoBillingReminderJobBatchesCount)
+    public function __construct(Project $project, PricingPlan $pricingPlan, AutoBillingReminder $autoBillingReminder, int $autoBillingReminderJobBatchesCount)
     {
         $this->project = $project;
-        $this->subscriptionPlan = $subscriptionPlan;
+        $this->pricingPlan = $pricingPlan;
         $this->autoBillingReminder = $autoBillingReminder->withoutRelations();
 
         /**
@@ -101,7 +101,7 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
     {
         try{
 
-            if(!empty($this->subscriptionPlan->next_auto_billing_reminder_sms_message)) {
+            if(!empty($this->pricingPlan->next_auto_billing_reminder_sms_message)) {
 
                 /**
                  *  Query the subscribers that are soon ready for billing.
@@ -132,7 +132,7 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                     $query->where('auto_billing_enabled', '1')
                         ->where('next_attempt_date', '>', now())
                         ->where('next_attempt_date', '<=', now()->addHours($hours))
-                        ->where('subscription_plan_id', $this->subscriptionPlan->id);
+                        ->where('pricing_plan_id', $this->pricingPlan->id);
 
                         //  Must not have been reminded before
                         if($hours == 1) {
@@ -166,7 +166,7 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                             if( $this->project->hasSmsCredentials() ) {
 
                                 //  Create a job to send the auto billing reminder SMS to the subscriber
-                                $jobs[] = new SendAutoBillingReminderSms($this->project, $subscriber, $this->subscriptionPlan, $this->autoBillingReminder);
+                                $jobs[] = new SendAutoBillingReminderSms($this->project, $subscriber, $this->pricingPlan, $this->autoBillingReminder);
 
                             }
 
@@ -200,7 +200,7 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                         //  Create a new auto billing reminder job batch record
                         DB::table('auto_billing_reminder_job_batches')->insert([
                             'auto_billing_reminder_id' => $autoBillingReminder->id,
-                            'subscription_plan_id' => $this->subscriptionPlan->id,
+                            'pricing_plan_id' => $this->pricingPlan->id,
                             'job_batch_id' => $batch->id,
                             'created_at' => Carbon::now(),
                             'updated_at' => Carbon::now()
@@ -214,7 +214,7 @@ class NextAutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::error('NextAutoBillingBySubscriptionPlan Job Failed: '. $th->getMessage());
+            Log::error('NextAutoBillingByPricingPlan Job Failed: '. $th->getMessage());
             Log::driver('daily')->error($th->getTraceAsString());
 
             return false;

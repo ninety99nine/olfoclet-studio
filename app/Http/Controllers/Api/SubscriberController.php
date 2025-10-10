@@ -24,7 +24,7 @@ class SubscriberController extends Controller
 
         if(request()->routeIs('api.show.subscriber')) {
 
-            $this->subscriber = $this->project->subscribers()->where('msisdn', request()->subscriber_msisdn)->with(['latestSubscription.subscriptionPlan'])->first();
+            $this->subscriber = $this->project->subscribers()->where('msisdn', request()->subscriber_msisdn)->with(['latestSubscription.pricingPlan'])->first();
 
         }else{
 

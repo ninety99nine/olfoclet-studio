@@ -29,17 +29,17 @@ class CreateBillingTransactionsTable extends Migration
             $table->string('client_correlator');
             $table->string('reference_code');
             $table->foreignId('subscription_id')->nullable();
-            $table->foreignId('subscription_plan_id');
+            $table->foreignId('pricing_plan_id');
             $table->foreignId('subscriber_id');
             $table->foreignId('project_id');
             $table->timestamps();
 
-            $table->index(['subscription_plan_id']);
+            $table->index(['pricing_plan_id']);
             $table->index(['subscriber_id']);
             $table->index(['project_id']);
 
             /*  Foreign Key Constraints */
-            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->cascadeOnDelete();
+            $table->foreign('pricing_plan_id')->references('id')->on('pricing_plans')->cascadeOnDelete();
             $table->foreign('subscription_id')->references('id')->on('subscriptions')->cascadeOnDelete();
             $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
             $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();

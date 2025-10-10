@@ -5,10 +5,10 @@ namespace App\Console;
 use App\Jobs\SmsCampaign\StartSmsCampaigns;
 use Illuminate\Console\Scheduling\Schedule;
 use App\Jobs\BillingReport\StartCreatingBillingReports;
-use App\Jobs\AutoBilling\AutoBillingBySubscriptionPlans;
+use App\Jobs\AutoBilling\AutoBillingByPricingPlans;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Jobs\SmsDeliveryStatus\StartSmsDeliveryStatusUpdate;
-use App\Jobs\AutoBillingReminder\NextAutoBillingBySubscriptionPlans;
+use App\Jobs\AutoBillingReminder\NextAutoBillingByPricingPlans;
 
 class Kernel extends ConsoleKernel
 {
@@ -65,10 +65,10 @@ class Kernel extends ConsoleKernel
         if(config('app.CAN_RUN_AUTO_BILLING')) {
 
             //  Add this job to the queue for processing
-            $schedule->job(new AutoBillingBySubscriptionPlans)->name('AutoBillingBySubscriptionPlansJob')->everyMinute()->withoutOverlapping();
+            $schedule->job(new AutoBillingByPricingPlans)->name('AutoBillingByPricingPlansJob')->everyMinute()->withoutOverlapping();
 
             //  Add this job to the queue for processing
-            $schedule->job(new NextAutoBillingBySubscriptionPlans)->name('NextAutoBillingBySubscriptionPlansJob')->everyMinute()->withoutOverlapping();
+            $schedule->job(new NextAutoBillingByPricingPlans)->name('NextAutoBillingByPricingPlansJob')->everyMinute()->withoutOverlapping();
 
         }
 

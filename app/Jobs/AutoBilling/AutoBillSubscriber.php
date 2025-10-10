@@ -6,7 +6,7 @@ use App\Models\Project;
 use App\Models\Subscriber;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use App\Services\BillingService;
 use App\Models\BillingTransaction;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
 
     public $project;
     public $subscriber;
-    public $subscriptionPlan;
+    public $pricingPlan;
     public $billingAttemptAt;
 
     /**
@@ -48,11 +48,11 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function __construct(Project $project, Subscriber $subscriber, SubscriptionPlan $subscriptionPlan)
+    public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan)
     {
         $this->project = $project;
         $this->subscriber = $subscriber;
-        $this->subscriptionPlan = $subscriptionPlan;
+        $this->pricingPlan = $pricingPlan;
     }
 
     /**
@@ -69,7 +69,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->subscriptionPlan->id.'-'.$this->subscriber->id;
+        return $this->pricingPlan->id.'-'.$this->subscriber->id;
     }
 
     /**
@@ -102,7 +102,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
              *
              *  @var BillingTransaction $billingTransaction
              */
-            $billingTransaction = BillingService::billUsingAirtime($this->project, $this->subscriptionPlan, $this->subscriber, CreatedUsingAutoBilling::YES);
+            $billingTransaction = BillingService::billUsingAirtime($this->project, $this->pricingPlan, $this->subscriber, CreatedUsingAutoBilling::YES);
 
             //  Set the billing attempt datetime
             $this->billingAttemptAt = $billingTransaction->created_at;
@@ -115,8 +115,8 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
             //  If the subscriber was billed successfully
             if($isSuccessful) {
 
-                //  Create a new subscription using the same subscription plan
-                $subscription = (new SubscriptionRepository($this->project))->createProjectSubscription($this->subscriber, $this->subscriptionPlan, CreatedUsingAutoBilling::YES, $billingTransaction);
+                //  Create a new subscription using the same pricing plan
+                $subscription = (new SubscriptionRepository($this->project))->createProjectSubscription($this->subscriber, $this->pricingPlan, CreatedUsingAutoBilling::YES, $billingTransaction);
 
             }else{
 
@@ -150,7 +150,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         //  Query the existing auto billing schedule
         $existingAutoBillingSchedule = DB::table('auto_billing_schedules')->where([
             'subscriber_id' => $this->subscriber->id,
-            'subscription_plan_id' => $this->subscriptionPlan->id
+            'pricing_plan_id' => $this->pricingPlan->id
         ])->first();
 
         $attempt = $existingAutoBillingSchedule->attempt + 1;
@@ -158,7 +158,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         /**
          *  @var $autoBillingEnabled Whether the auto billing is enabled for future attempts
          */
-        $autoBillingEnabled = $this->subscriptionPlan->max_auto_billing_attempts == 0 || $attempt < $this->subscriptionPlan->max_auto_billing_attempts;
+        $autoBillingEnabled = $this->pricingPlan->max_auto_billing_attempts == 0 || $attempt < $this->pricingPlan->max_auto_billing_attempts;
 
         if($autoBillingEnabled) {
             $nextAttemptDate = now()->addHour();
@@ -173,7 +173,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         //  Update the existing auto billing schedule
         DB::table('auto_billing_schedules')->where([
             'subscriber_id' => $this->subscriber->id,
-            'subscription_plan_id' => $this->subscriptionPlan->id
+            'pricing_plan_id' => $this->pricingPlan->id
         ])->update([
             'attempt' => $attempt,
             'overall_attempts' => $overallAttempts,
@@ -184,9 +184,9 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         ]);
 
         //  If auto billing has been disabled
-        if(!$autoBillingEnabled && !empty($this->subscriptionPlan->auto_billing_disabled_sms_message)) {
+        if(!$autoBillingEnabled && !empty($this->pricingPlan->auto_billing_disabled_sms_message)) {
 
-            SendAutoBillingDisabledSms::dispatch($this->project, $this->subscriber, $this->subscriptionPlan);
+            SendAutoBillingDisabledSms::dispatch($this->project, $this->subscriber, $this->pricingPlan);
 
         }
     }

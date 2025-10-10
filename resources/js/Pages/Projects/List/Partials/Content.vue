@@ -93,13 +93,13 @@
 
                     url = route('show.sms.campaigns', { project: project.id });
 
-                }else if(this.canShowLink(project, 'View subscription plans')) {
+                }else if(this.canShowLink(project, 'View pricing plans')) {
 
-                    url = route('show.subscription.plans', { project: project.id });
+                    url = route('show.pricing.plans', { project: project.id });
 
-                }else if(this.canShowLink(project, 'View auto billing subscription plans')) {
+                }else if(this.canShowLink(project, 'View auto billing pricing plans')) {
 
-                    url = route('show.auto.billing.subscription.plans', { project: project.id });
+                    url = route('show.auto.billing.pricing.plans', { project: project.id });
 
                 }
 

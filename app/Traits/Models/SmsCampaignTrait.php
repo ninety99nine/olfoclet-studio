@@ -4,7 +4,7 @@ namespace App\Traits\Models;
 
 use App\Models\Message;
 use App\Traits\Base\BaseTrait;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -304,40 +304,40 @@ trait SmsCampaignTrait
     }
 
     /**
-     *  This function helps us to capture project subscription plan descendants or self
-     *  matching the specified subscription plan ids and that do not have nested
-     *  children (Must be leaf subscription plans i.e at the tips of the tree)
+     *  This function helps us to capture project pricing plan descendants or self
+     *  matching the specified pricing plan ids and that do not have nested
+     *  children (Must be leaf pricing plans i.e at the tips of the tree)
      *
      *  @param Project $project - The project
-     *  @param array<int> $subscriptionPlanIds - The subscription plan ids
-     *  @param array<SubscriptionPlan> $selectedSubscriptionPlans - The selected subscription plans
+     *  @param array<int> $pricingPlanIds - The pricing plan ids
+     *  @param array<PricingPlan> $selectedPricingPlans - The selected pricing plans
      *
-     *  @return array<SubscriptionPlan>
+     *  @return array<PricingPlan>
      */
-    public function getSubscriptionPlanDescendantOrSelf($project, $subscriptionPlanIds, $selectedSubscriptionPlans = []) {
+    public function getPricingPlanDescendantOrSelf($project, $pricingPlanIds, $selectedPricingPlans = []) {
 
-        //  Get the last id in the cascade of subscription plan ids
-        $subscriptionPlanId = collect($subscriptionPlanIds)->last();
+        //  Get the last id in the cascade of pricing plan ids
+        $pricingPlanId = collect($pricingPlanIds)->last();
 
         /**
-         *  Check if the item already exists in the list of previously selected subscription plans.
+         *  Check if the item already exists in the list of previously selected pricing plans.
          *
-         *  On the Frontend, we know that its possible to select a subscription plan that has descendant subscription plans.
-         *  After selecting this subscription plan we could also select one of the descendant subscription plans. This would
-         *  mean we could query a subscription plan that has already been captured as a descendant of another subscription
+         *  On the Frontend, we know that its possible to select a pricing plan that has descendant pricing plans.
+         *  After selecting this pricing plan we could also select one of the descendant pricing plans. This would
+         *  mean we could query a pricing plan that has already been captured as a descendant of another subscription
          *  plan. We need to make sure this does not happen otherwise we are performing unnecessary database queries.
          */
-        $exists = collect($selectedSubscriptionPlans)->contains(function($selectedSubscriptionPlan) use ($subscriptionPlanId) {
-            return $selectedSubscriptionPlan->id == $subscriptionPlanId;
+        $exists = collect($selectedPricingPlans)->contains(function($selectedPricingPlan) use ($pricingPlanId) {
+            return $selectedPricingPlan->id == $pricingPlanId;
         });
 
-        //  If the subscription plan does not yet exist
+        //  If the pricing plan does not yet exist
         if( $exists == false ) {
 
             try {
 
-                //  Get the project subscription plan descendants or self that do not have nested children (Must be leaf subscription plans i.e at the tips of the tree)
-                $result = $project->subscriptionPlans()->active()->nonFolder()->whereDescendantOrSelf($subscriptionPlanId)->doesntHave('children')->get();
+                //  Get the project pricing plan descendants or self that do not have nested children (Must be leaf pricing plans i.e at the tips of the tree)
+                $result = $project->pricingPlans()->active()->nonFolder()->whereDescendantOrSelf($pricingPlanId)->doesntHave('children')->get();
 
                 /**
                  *  Laravel all() vs toArray()
@@ -354,8 +354,8 @@ trait SmsCampaignTrait
                 Log::error($e->getMessage());
 
                 /**
-                 *  Whenever the $subscriptionPlanId provided does not match any Subscription Plan,
-                 *  the whereDescendantOrSelf($subscriptionPlanId) will throw an error.
+                 *  Whenever the $pricingPlanId provided does not match any Pricing Plan,
+                 *  the whereDescendantOrSelf($pricingPlanId) will throw an error.
                  */
                 return [];
 

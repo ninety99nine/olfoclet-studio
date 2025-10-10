@@ -16,7 +16,7 @@ class AutoBillingScheduleController extends Controller
     public function __construct()
     {
         $this->project = Project::findOrFail(request()->route('project'));
-        $this->autoBillingSchedule = request()->route('auto_billing_schedule') ? AutoBillingSchedule::findOrFail(request()->route('auto_billing_schedule'))->load(['subscriber.latestAutoBillingTransaction', 'subscriptionPlan.autoBillingReminders']) : null;
+        $this->autoBillingSchedule = request()->route('auto_billing_schedule') ? AutoBillingSchedule::findOrFail(request()->route('auto_billing_schedule'))->load(['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders']) : null;
 
         $this->autoBillingScheduleRepository = new AutoBillingScheduleRepository($this->project, $this->autoBillingSchedule);
     }
@@ -25,7 +25,7 @@ class AutoBillingScheduleController extends Controller
     {
         // Get the auto billing schedules using the repository with the required relationships and pagination
         $autoBillingSchedules = $this->autoBillingScheduleRepository->getProjectAutoBillingSchedules(null,
-            ['subscriber.latestAutoBillingTransaction', 'subscriptionPlan.autoBillingReminders'], []
+            ['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders'], []
         );
 
         // Render the auto billing schedules view

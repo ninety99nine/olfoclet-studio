@@ -11,7 +11,7 @@ use App\Models\Pivots\SubscriberMessage;
 use App\Models\Pivots\ProjectUserAsTeamMember;
 use App\Models\Pivots\SmsCampaignSchedule;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use App\Models\Pivots\SubscriptionPlanAutoBillingReminder;
+use App\Models\Pivots\PricingPlanAutoBillingReminder;
 
 class Project extends Model
 {
@@ -27,12 +27,12 @@ class Project extends Model
         'View subscriptions', 'Manage subscriptions',
         'View sms campaigns', 'Manage sms campaigns',
         'View sms campaign schedules',
-        'View subscription plans', 'Manage subscription plans',
+        'View pricing plans', 'Manage pricing plans',
         'View subscriber messages',
         'View billing transactions', 'Manage billing transactions',
         'View auto billing schedules',
-        'View auto billing subscription plans', 'Manage auto billing subscription plans',
-        'View auto billing reminder subscription plans', 'Manage auto billing reminder subscription plans',
+        'View auto billing pricing plans', 'Manage auto billing pricing plans',
+        'View auto billing reminder pricing plans', 'Manage auto billing reminder pricing plans',
     ];
 
     /**
@@ -176,9 +176,9 @@ class Project extends Model
     /**
      * Get the subscriptions associated with the project.
      */
-    public function subscriptionPlans()
+    public function pricingPlans()
     {
-        return $this->hasMany(SubscriptionPlan::class);
+        return $this->hasMany(PricingPlan::class);
     }
 
     /**
@@ -187,7 +187,7 @@ class Project extends Model
     public function autoBillingReminders()
     {
         return $this->belongsToMany(User::class, 'subscription_plan_auto_billing_reminders', 'project_id', 'auto_billing_reminder_id')
-                    ->using(SubscriptionPlanAutoBillingReminder::class);
+                    ->using(PricingPlanAutoBillingReminder::class);
     }
 
     /**

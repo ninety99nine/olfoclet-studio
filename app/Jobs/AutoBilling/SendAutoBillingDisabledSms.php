@@ -8,7 +8,7 @@ use App\Models\Subscriber;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -24,7 +24,7 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
 
     public $project;
     public $subscriber;
-    public $subscriptionPlan;
+    public $pricingPlan;
 
     /**
      * The number of times the job may be attempted.
@@ -45,11 +45,11 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
      *
      * @return void
      */
-    public function __construct(Project $project, Subscriber $subscriber, SubscriptionPlan $subscriptionPlan)
+    public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan)
     {
         $this->project = $project;
         $this->subscriber = $subscriber;
-        $this->subscriptionPlan = $subscriptionPlan;
+        $this->pricingPlan = $pricingPlan;
     }
 
     /**
@@ -66,7 +66,7 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->subscriptionPlan->id.'-'.$this->subscriber->id;
+        return $this->pricingPlan->id.'-'.$this->subscriber->id;
     }
 
     /**
@@ -94,7 +94,7 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
     {
         try {
 
-            if(!empty($this->subscriptionPlan->auto_billing_disabled_sms_message)) {
+            if(!empty($this->pricingPlan->auto_billing_disabled_sms_message)) {
 
                 //  Set the message type
                 $messageType = MessageType::AutoBillingDisabled;
@@ -104,7 +104,7 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
                  *
                  *  @var string $messageContent
                  */
-                $messageContent = $this->subscriptionPlan->craftAutoBillingDisabledSmsMessage();
+                $messageContent = $this->pricingPlan->craftAutoBillingDisabledSmsMessage();
 
                 /**
                  *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance

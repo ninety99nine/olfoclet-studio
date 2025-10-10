@@ -7,7 +7,7 @@ use Carbon\Carbon;
 use App\Models\Project;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
-use App\Models\subscriptionPlan;
+use App\Models\pricingPlan;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
@@ -19,7 +19,7 @@ use Illuminate\Foundation\Bus\Dispatchable;
 use App\Jobs\AutoBilling\AutoBillSubscriber;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
+class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -31,11 +31,11 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
     protected $project;
 
     /**
-     *  Subscription plan
+     *  Pricing plan
      *
-     *  @var \App\Models\SubscriptionPlan
+     *  @var \App\Models\PricingPlan
      */
-    protected $subscriptionPlan;
+    protected $pricingPlan;
 
     /**
      *  Auto billing job batches count
@@ -58,26 +58,26 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->subscriptionPlan->id;
+        return $this->pricingPlan->id;
     }
 
     /**
      * Create a new job instance.
      *
      * @param App\Models\Project $project
-     * @param App\Models\SubscriptionPlan $subscriptionPlan
+     * @param App\Models\PricingPlan $pricingPlan
      * @param int $autoBillingJobBatchesCount
      *
      * @return void
      */
-    public function __construct(Project $project, SubscriptionPlan $subscriptionPlan, int $autoBillingJobBatchesCount)
+    public function __construct(Project $project, PricingPlan $pricingPlan, int $autoBillingJobBatchesCount)
     {
-        $this->subscriptionPlan = $subscriptionPlan;
+        $this->pricingPlan = $pricingPlan;
         $this->project = $project->withoutRelations();
 
         /**
          *  It appears that the eager loaded withCount('autoBillingJobBatches')
-         *  is not accessible using $subscriptionPlan->auto_billing_job_batches_count
+         *  is not accessible using $pricingPlan->auto_billing_job_batches_count
          *  within the handle() method. Therefore we will set this as its own parameter.
          */
         $this->autoBillingJobBatchesCount = $autoBillingJobBatchesCount;
@@ -182,7 +182,7 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                      */
                     $query->where('auto_billing_enabled', '1')
                         ->where('next_attempt_date', '<=', Carbon::now())
-                        ->where('subscription_plan_id', $this->subscriptionPlan->id);
+                        ->where('pricing_plan_id', $this->pricingPlan->id);
 
                 })->select('subscribers.id', 'subscribers.msisdn');
 
@@ -198,7 +198,7 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                         foreach ($chunked_subscribers as $subscriber) {
 
                             //  Create a job to bill the subscriber
-                            $jobs[] = new AutoBillSubscriber($this->project, $subscriber, $this->subscriptionPlan);
+                            $jobs[] = new AutoBillSubscriber($this->project, $subscriber, $this->pricingPlan);
 
                         }
 
@@ -208,28 +208,28 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
                     if( count($jobs) > 0 ) {
 
                         /**
-                         *  We cannot reference "$this->subscriptionPlan" within the Bus::batch() closures.
-                         *  Therefore we must create an subscriptionPlan variable that we can pass as a
+                         *  We cannot reference "$this->pricingPlan" within the Bus::batch() closures.
+                         *  Therefore we must create an pricingPlan variable that we can pass as a
                          *  parameter of the various closures.
                          */
-                        $subscriptionPlan = $this->subscriptionPlan;
+                        $pricingPlan = $this->pricingPlan;
 
                         //  Set the sprint name
                         $sprintName = 'Sprint #' . ($this->autoBillingJobBatchesCount + 1);
 
                         //  Create the batch to send
                         $batch = Bus::batch($jobs
-                            )->then(function (Batch $batch) use ($subscriptionPlan) {
+                            )->then(function (Batch $batch) use ($pricingPlan) {
 
-                            })->catch(function (Batch $batch, Throwable $e) use ($subscriptionPlan) {
+                            })->catch(function (Batch $batch, Throwable $e) use ($pricingPlan) {
 
-                            })->finally(function (Batch $batch) use ($subscriptionPlan) {
+                            })->finally(function (Batch $batch) use ($pricingPlan) {
 
                             })->name($sprintName)->allowFailures()->dispatch();
 
                         //  Create a new auto billing job batch record
                         DB::table('auto_billing_job_batches')->insert([
-                            'subscription_plan_id' => $subscriptionPlan->id,
+                            'pricing_plan_id' => $pricingPlan->id,
                             'job_batch_id' => $batch->id,
                             'created_at' => Carbon::now(),
                             'updated_at' => Carbon::now()
@@ -243,7 +243,7 @@ class AutoBillingBySubscriptionPlan implements ShouldQueue, ShouldBeUnique
 
         } catch (\Throwable $th) {
 
-            Log::error('AutoBillingBySubscriptionPlan Job Failed: '. $th->getMessage());
+            Log::error('AutoBillingByPricingPlan Job Failed: '. $th->getMessage());
 
         }
     }

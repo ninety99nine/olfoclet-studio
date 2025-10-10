@@ -86,11 +86,11 @@
 
                         <div>
 
-                            <!-- Subscription Plan -->
+                            <!-- Pricing Plan -->
                             <div class="mb-4">
-                                <jet-label for="subscription-plan" value="Subscription Plan" class="mb-1" />
-                                <el-cascader id="subscription-plan" v-model="form.subscription_plan_id" :props="getPropsForSubscriptionPlans()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
-                                <jet-input-error :message="form.errors.subscription_plan_id" class="mt-2" />
+                                <jet-label for="pricing-plan" value="Pricing Plan" class="mb-1" />
+                                <el-cascader id="pricing-plan" v-model="form.pricing_plan_id" :props="getPropsForPricingPlans()" collapse-tags collapse-tags-tooltip clearable class="w-full"/>
+                                <jet-input-error :message="form.errors.pricing_plan_id" class="mt-2" />
                             </div>
 
                         </div>
@@ -173,7 +173,7 @@
                 type: Object,
                 default: null
             },
-            subscriptionPlans: Array,
+            pricingPlans: Array,
             show: {
                 type: Boolean,
                 default: false
@@ -231,18 +231,18 @@
             wantsToDelete(){
                 return (this.hasSubscription && this.action == 'delete') ? true : false;
             },
-            subscriptionPlanOptions() {
-                return this.subscriptionPlans.map(function(subscriptionPlan){
+            pricingPlanOptions() {
+                return this.pricingPlans.map(function(pricingPlan){
                     return {
-                        'name': subscriptionPlan.name,
-                        'value': subscriptionPlan.id,
+                        'name': pricingPlan.name,
+                        'value': pricingPlan.id,
                     };
                 });
             }
         },
         methods: {
 
-            getPropsForSubscriptionPlans() {
+            getPropsForPricingPlans() {
 
                 return {
                     lazy: true,
@@ -255,27 +255,27 @@
                         //  If this is the first list of options
                         if( level === 0  ){
 
-                            var url = route('api.show.subscription.plans', { project: route().params.project });
+                            var url = route('api.show.pricing.plans', { project: route().params.project });
 
                         //  If this is the nested list of options
                         }else{
 
-                            var url = route('api.show.subscription.plan', { project: route().params.project, subscription_plan: node.data.value, type: 'children' });
+                            var url = route('api.show.pricing.plan', { project: route().params.project, pricing_plan: node.data.value, type: 'children' });
 
                         }
 
                         axios.get(url)
                             .then((response) => {
 
-                                var nodes = response.data.data.map((subscriptionPlan) => {
+                                var nodes = response.data.data.map((pricingPlan) => {
 
-                                    var isActive = subscriptionPlan.active;
-                                    var isFolder = subscriptionPlan.isFolder;
-                                    var hasChildren = subscriptionPlan.childrenCount > 0;
+                                    var isActive = pricingPlan.active;
+                                    var isFolder = pricingPlan.isFolder;
+                                    var hasChildren = pricingPlan.childrenCount > 0;
 
                                     var leaf = !hasChildren;
-                                    var value = subscriptionPlan.id;
-                                    var label = subscriptionPlan.name.length < 40 ? String (subscriptionPlan.name) : String (subscriptionPlan.name).substring(0, 40);
+                                    var value = pricingPlan.id;
+                                    var label = pricingPlan.name.length < 40 ? String (pricingPlan.name) : String (pricingPlan.name).substring(0, 40);
 
                                     return {
                                         leaf: leaf,
@@ -327,10 +327,10 @@
 
                 this.form.transform((data) => {
 
-                    if(data.subscription_plan_id.length > 0) {
+                    if(data.pricing_plan_id.length > 0) {
 
                         //  Cpature the last id on this array of subscription ids
-                        data.subscription_plan_id = data.subscription_plan_id[data.subscription_plan_id.length - 1];
+                        data.pricing_plan_id = data.pricing_plan_id[data.pricing_plan_id.length - 1];
 
                     }
 
@@ -445,7 +445,7 @@
                 this.form = this.$inertia.form({
                     cancelled_at: this.hasSubscriber ? this.subscription.cancelled_at : null,
                     msisdn: this.hasSubscriber ? (this.subscription.subscriber.msisdn ?? null) : null,
-                    subscription_plan_id: this.hasSubscription ? [this.subscription.subscription_plan_id] : []
+                    pricing_plan_id: this.hasSubscription ? [this.subscription.pricing_plan_id] : []
                 });
             },
         },

@@ -4,7 +4,7 @@ namespace App\Models\Pivots;
 
 use App\Models\Project;
 use App\Models\Subscriber;
-use App\Models\SubscriptionPlan;
+use App\Models\PricingPlan;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
@@ -44,7 +44,7 @@ class AutoBillingSchedule extends Pivot
     ];
 
     const VISIBLE_COLUMNS = [
-        'id', 'subscriber_id', 'subscription_plan_id', 'auto_billing_enabled', 'next_attempt_date',
+        'id', 'subscriber_id', 'pricing_plan_id', 'auto_billing_enabled', 'next_attempt_date',
 
         'attempt', 'overall_attempts', 'overall_failed_attempts', 'overall_successful_attempts',
 
@@ -72,11 +72,11 @@ class AutoBillingSchedule extends Pivot
     }
 
     /**
-     * Get the subscription plans associated with the auto billing schedule.
+     * Get the pricing plans associated with the auto billing schedule.
      */
-    public function subscriptionPlan()
+    public function pricingPlan()
     {
-        return $this->belongsTo(SubscriptionPlan::class);
+        return $this->belongsTo(PricingPlan::class);
     }
 
     /**

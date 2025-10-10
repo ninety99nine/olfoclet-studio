@@ -11,7 +11,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 
-class AutoBillingBySubscriptionPlans implements ShouldQueue
+class AutoBillingByPricingPlans implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
@@ -24,11 +24,11 @@ class AutoBillingBySubscriptionPlans implements ShouldQueue
     {
         try{
 
-            //  Get projects that can auto bill with their subscription plans that can also auto bill
-            $projects = Project::canAutoBill()->with(['subscriptionPlans' => function($query) {
+            //  Get projects that can auto bill with their pricing plans that can also auto bill
+            $projects = Project::canAutoBill()->with(['pricingPlans' => function($query) {
 
                 /**
-                 *  Must be active non folder subscription plans that can auto bill.
+                 *  Must be active non folder pricing plans that can auto bill.
                  *  Also count the total auto billing job batches.
                  */
                 return $query->active()->nonFolder()->canAutoBill()->withCount('autoBillingJobBatches');
@@ -38,16 +38,16 @@ class AutoBillingBySubscriptionPlans implements ShouldQueue
             // Foreach project
             foreach ($projects as $project) {
 
-                // Foreach subscription plan
-                foreach($project->subscriptionPlans as $subscriptionPlan) {
+                // Foreach pricing plan
+                foreach($project->pricingPlans as $pricingPlan) {
 
                     /**
                      *  @var int $autoBillingJobBatchesCount
                      */
-                    $autoBillingJobBatchesCount = $subscriptionPlan->auto_billing_job_batches_count;
+                    $autoBillingJobBatchesCount = $pricingPlan->auto_billing_job_batches_count;
 
                     //  Add this job to the queue for processing
-                    AutoBillingBySubscriptionPlan::dispatch($project, $subscriptionPlan, $autoBillingJobBatchesCount);
+                    AutoBillingByPricingPlan::dispatch($project, $pricingPlan, $autoBillingJobBatchesCount);
 
                 }
 
@@ -55,7 +55,7 @@ class AutoBillingBySubscriptionPlans implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::error('AutoBillingBySubscriptionPlans Job Failed: '. $th->getMessage());
+            Log::error('AutoBillingByPricingPlans Job Failed: '. $th->getMessage());
 
         }
     }

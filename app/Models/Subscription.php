@@ -27,7 +27,7 @@ class Subscription extends Model
      *
      * @var array
      */
-    protected $fillable = ['subscriber_id', 'subscription_plan_id', 'start_at', 'end_at', 'cancelled_at', 'created_using_auto_billing', 'project_id'];
+    protected $fillable = ['subscriber_id', 'pricing_plan_id', 'start_at', 'end_at', 'cancelled_at', 'created_using_auto_billing', 'project_id'];
 
     /*
     *  Scope: Return active subscriptions
@@ -78,11 +78,11 @@ class Subscription extends Model
     }
 
     /**
-     * Get the subscription plan associated with the subscription.
+     * Get the pricing plan associated with the subscription.
      */
-    public function subscriptionPlan()
+    public function pricingPlan()
     {
-        return $this->belongsTo(SubscriptionPlan::class);
+        return $this->belongsTo(PricingPlan::class);
     }
 
     /**

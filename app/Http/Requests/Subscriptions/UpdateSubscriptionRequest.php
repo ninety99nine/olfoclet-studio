@@ -11,8 +11,8 @@ class UpdateSubscriptionRequest extends FormRequest
     {
         return [
             'msisdn' => ['required', 'string', 'regex:/^267\d{8}$/'],
-            'subscription_plan_id' => ['required', 'integer', 'min:1',
-                Rule::exists('subscription_plans', 'id')->where(function ($query) {
+            'pricing_plan_id' => ['required', 'integer', 'min:1',
+                Rule::exists('pricing_plans', 'id')->where(function ($query) {
                     return $query->where('project_id', request()->route('project'));
                 })
             ],
@@ -25,10 +25,10 @@ class UpdateSubscriptionRequest extends FormRequest
             'msisdn.required' => 'The mobile number is required',
             'msisdn.string' => 'The mobile number must be a string',
             'msisdn.regex' => 'Enter a valid Botswana mobile number with the format 267XXXXXXXX (11 digits)',
-            'subscription_plan_id.required' => 'The subscription plan ID is required',
-            'subscription_plan_id.integer' => 'The subscription plan ID must be an integer',
-            'subscription_plan_id.min' => 'The subscription plan ID must be at least 1',
-            'subscription_plan_id.exists' => 'The selected subscription plan is invalid',
+            'pricing_plan_id.required' => 'The pricing plan ID is required',
+            'pricing_plan_id.integer' => 'The pricing plan ID must be an integer',
+            'pricing_plan_id.min' => 'The pricing plan ID must be at least 1',
+            'pricing_plan_id.exists' => 'The selected pricing plan is invalid',
         ];
     }
 }

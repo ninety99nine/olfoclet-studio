@@ -35,7 +35,7 @@
                                         <div class="font-bold text-violet-500">AUTO BILLING REMINDER</div>
                                     </th>
                                     <th scope="col" colspan="6" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <div class="font-bold text-teal-500">SUBSCRIPTION PLAN</div>
+                                        <div class="font-bold text-teal-500">PRICING PLAN</div>
                                     </th>
                                 </tr>
 
@@ -137,27 +137,27 @@
 
 
 
-                                    <!-- Subscription Plan Name -->
+                                    <!-- Pricing Plan Name -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Name</span>
                                     </th>
-                                    <!-- Subscription Plan Description -->
+                                    <!-- Pricing Plan Description -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Description</span>
                                     </th>
-                                    <!-- Subscription Plan Active -->
+                                    <!-- Pricing Plan Active -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Active</span>
                                     </th>
-                                    <!-- Subscription Plan Duration -->
+                                    <!-- Pricing Plan Duration -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Duration</span>
                                     </th>
-                                    <!-- Subscription Plan Price -->
+                                    <!-- Pricing Plan Price -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Price</span>
                                     </th>
-                                    <!-- Subscription Plan Created -->
+                                    <!-- Pricing Plan Created -->
                                     <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
                                         <span>Created</span>
                                     </th>
@@ -194,7 +194,7 @@
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
                                         {{ autoBillingSchedule.attempt == null ? '...' : autoBillingSchedule.attempt }}
                                             /
-                                        {{ autoBillingSchedule.subscription_plan == null ? '...' : (autoBillingSchedule.subscription_plan.max_auto_billing_attempts == 0 ? 'unlimited' : autoBillingSchedule.subscription_plan.max_auto_billing_attempts) }}
+                                        {{ autoBillingSchedule.pricing_plan == null ? '...' : (autoBillingSchedule.pricing_plan.max_auto_billing_attempts == 0 ? 'unlimited' : autoBillingSchedule.pricing_plan.max_auto_billing_attempts) }}
                                     </td>
                                     <!-- Overall Attempts -->
                                     <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
@@ -285,29 +285,29 @@
                                     </td>
 
 
-                                    <!-- Subscription Plan Name -->
+                                    <!-- Pricing Plan Name -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        <div class="text-sm text-gray-900">{{ autoBillingSchedule.subscription_plan.name }}</div>
+                                        <div class="text-sm text-gray-900">{{ autoBillingSchedule.pricing_plan.name }}</div>
                                     </td>
-                                    <!-- Subscription Plan Description -->
+                                    <!-- Pricing Plan Description -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        {{ autoBillingSchedule.subscription_plan.description == null ? '...' : autoBillingSchedule.subscription_plan.description }}
+                                        {{ autoBillingSchedule.pricing_plan.description == null ? '...' : autoBillingSchedule.pricing_plan.description }}
                                     </td>
-                                    <!-- Subscription Plan Active -->
+                                    <!-- Pricing Plan Active -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <SubscriptionPlanActiveStatusBadge :subscriptionPlan="autoBillingSchedule.subscription_plan"></SubscriptionPlanActiveStatusBadge>
+                                        <PricingPlanActiveStatusBadge :pricingPlan="autoBillingSchedule.pricing_plan"></PricingPlanActiveStatusBadge>
                                     </td>
-                                    <!-- Subscription Plan Duration -->
+                                    <!-- Pricing Plan Duration -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.subscription_plan.duration_in_words == null ? '...' : autoBillingSchedule.subscription_plan.duration_in_words }}
+                                        {{ autoBillingSchedule.pricing_plan.duration_in_words == null ? '...' : autoBillingSchedule.pricing_plan.duration_in_words }}
                                     </td>
-                                    <!-- Subscription Plan Price -->
+                                    <!-- Pricing Plan Price -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.subscription_plan.price == null ? '...' : autoBillingSchedule.subscription_plan.price.amount_with_currency }}
+                                        {{ autoBillingSchedule.pricing_plan.price == null ? '...' : autoBillingSchedule.pricing_plan.price.amount_with_currency }}
                                     </td>
-                                    <!-- Subscription Plan Created Date -->
+                                    <!-- Pricing Plan Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        {{ autoBillingSchedule.subscription_plan.created_at == null ? '...' : moment(autoBillingSchedule.subscription_plan.created_at).format('lll') }}
+                                        {{ autoBillingSchedule.pricing_plan.created_at == null ? '...' : moment(autoBillingSchedule.pricing_plan.created_at).format('lll') }}
                                     </td>
 
                                 </tr>
@@ -347,7 +347,7 @@
 <script>
     import BillingTransactionStatusBadge from './../../../BillingTransactions/List/Partials/BillingTransactionStatusBadge.vue';
     import CreatedUsingAutoBillingBadge from './../../../BillingTransactions/List/Partials/CreatedUsingAutoBillingBadge.vue';
-    import SubscriptionPlanActiveStatusBadge from './../../../SubscriptionPlans/List/Partials/ActiveStatusBadge.vue';
+    import PricingPlanActiveStatusBadge from './../../../PricingPlans/List/Partials/ActiveStatusBadge.vue';
     import RatingTypeBadge from './../../../BillingTransactions/List/Partials/RatingTypeBadge.vue';
     import AutoBillingReminderStatusBadge from './AutoBillingReminderStatusBadge.vue';
     import AutoBillingEnabledStatusBadge from './AutoBillingEnabledStatusBadge.vue';
@@ -358,7 +358,7 @@
 
     export default defineComponent({
         components: {
-            Countdown, SubscriptionPlanActiveStatusBadge, AutoBillingReminderStatusBadge, AutoBillingEnabledStatusBadge, Pagination,
+            Countdown, PricingPlanActiveStatusBadge, AutoBillingReminderStatusBadge, AutoBillingEnabledStatusBadge, Pagination,
             BillingTransactionStatusBadge, RatingTypeBadge, CreatedUsingAutoBillingBadge
         },
         props: {

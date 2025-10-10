@@ -15,7 +15,7 @@ class CreateSubscriptionsTable extends Migration
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('subscription_plan_id')->nullable();
+            $table->foreignId('pricing_plan_id')->nullable();
             $table->foreignId('subscriber_id')->nullable();
             $table->timestamp('start_at')->nullable();
             $table->timestamp('end_at')->nullable();
@@ -24,12 +24,12 @@ class CreateSubscriptionsTable extends Migration
             $table->foreignId('project_id');
             $table->timestamps();
 
-            $table->index(['subscription_plan_id']);
+            $table->index(['pricing_plan_id']);
             $table->index(['subscriber_id']);
             $table->index(['project_id']);
 
             /*  Foreign Key Constraints */
-            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->nullOnDelete();
+            $table->foreign('pricing_plan_id')->references('id')->on('pricing_plans')->nullOnDelete();
             $table->foreign('subscriber_id')->references('id')->on('subscribers')->nullOnDelete();
             $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
         });

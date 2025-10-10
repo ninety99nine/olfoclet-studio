@@ -190,7 +190,7 @@ class SmsCampaignController extends Controller
                 'bail', 'required', 'string'
             ],
             'days_of_the_week' => $isSendingNow || $isSendingLater ? ['exclude'] : ['required'],
-            'subscription_plan_ids' => ['sometimes', 'array'],
+            'pricing_plan_ids' => ['sometimes', 'array'],
             'message_to_send' => ['required', 'string'],
             'message_ids' => ['required', 'array'],
         ],
@@ -204,7 +204,7 @@ class SmsCampaignController extends Controller
             'message_ids' => 'messages',
             'start_date' => 'start date',
             'start_time' => 'start time',
-            'subscription_plan_ids' => 'subscription plans',
+            'pricing_plan_ids' => 'pricing plans',
         ])->validate();
 
         $data = array_merge($data, [
@@ -365,7 +365,7 @@ class SmsCampaignController extends Controller
                 'bail', 'required', 'string'
             ],
             'days_of_the_week' => $isSendingNow || $isSendingLater ? ['exclude'] : ['required'],
-            'subscription_plan_ids' => ['sometimes', 'array'],
+            'pricing_plan_ids' => ['sometimes', 'array'],
             'message_to_send' => ['required', 'string'],
             'message_ids' => ['required', 'array'],
         ],

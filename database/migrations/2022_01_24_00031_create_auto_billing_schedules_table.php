@@ -16,7 +16,7 @@ class CreateAutoBillingSchedulesTable extends Migration
         Schema::create('auto_billing_schedules', function (Blueprint $table) {
             $table->id();
             $table->foreignId('subscriber_id');
-            $table->foreignId('subscription_plan_id');
+            $table->foreignId('pricing_plan_id');
             $table->boolean('auto_billing_enabled')->default(1);
             $table->datetime('next_attempt_date')->nullable();
             $table->unsignedInteger('attempt')->default(0);
@@ -35,13 +35,13 @@ class CreateAutoBillingSchedulesTable extends Migration
             $table->index(['project_id']);
             $table->index(['subscriber_id']);
             $table->index(['next_attempt_date']);
-            $table->index(['subscription_plan_id']);
+            $table->index(['pricing_plan_id']);
             $table->index(['auto_billing_enabled']);
 
             /*  Foreign Key Constraints */
             $table->foreign('project_id')->references('id')->on('projects')->cascadeOnDelete();
             $table->foreign('subscriber_id')->references('id')->on('subscribers')->cascadeOnDelete();
-            $table->foreign('subscription_plan_id')->references('id')->on('subscription_plans')->cascadeOnDelete();
+            $table->foreign('pricing_plan_id')->references('id')->on('pricing_plans')->cascadeOnDelete();
         });
     }
 
