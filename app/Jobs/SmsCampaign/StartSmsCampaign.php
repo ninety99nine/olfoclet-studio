@@ -2,7 +2,6 @@
 
 namespace App\Jobs\SmsCampaign;
 
-use Exception;
 use Throwable;
 use Carbon\Carbon;
 use App\Models\Project;
@@ -10,8 +9,7 @@ use Illuminate\Bus\Batch;
 use App\Enums\MessageType;
 use App\Models\SmsCampaign;
 use Illuminate\Bus\Queueable;
-use App\Helpers\PhpCodeValidator;
-use App\Models\Subscriber;
+use App\Helpers\PhpCodeExecuter;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
@@ -175,7 +173,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         $query->where('sms_campaigns.id', $this->smsCampaign->id)
                                 ->where('next_message_date', '>', \Carbon\Carbon::now());
 
-                    })->with(['messages' => function($query) {
+                    })->with(['latestSubscription', 'messages' => function($query) {
 
                         /**
                          *  1) Limit the loaded message to the message id, subscriber id, sent sms count and the
@@ -319,13 +317,12 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                                 if (!empty($code)) {
 
-                                    [$isValid, $error] = PhpCodeValidator::validate($code);
+                                    $latestSubscription = $subscriber->latestSubscription;
 
-                                    if (!$isValid) {
-                                        continue; // Skip to the next subscriber
-                                    }
-
-                                    $canSendMessage = $this->executeValidationCode($code, $subscriber);
+                                    $canSendMessage = PhpCodeExecuter::runCode($code, [
+                                        'subscriber' => $subscriber,
+                                        'latestSubscription' => $latestSubscription
+                                    ]);
 
                                     if (!$canSendMessage) {
                                         continue; // Skip to the next subscriber
@@ -456,59 +453,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
             Log::error('StartSmsCampaign Job Failed: '. $th->getMessage());
             Log::error($th->getTraceAsString());
 
-        }
-    }
-
-    /**
-     * Execute the validation code safely.
-     *
-     * @param string $code
-     * @param Subscriber $subscriber
-     * @return bool
-     * @throws Exception
-     */
-    function executeValidationCode(string $code, Subscriber $subscriber): bool
-    {
-        // Normalize code: strip PHP tags, ensure return statement and semicolon
-        $code = trim($code, '<?php >');
-        $code = trim($code);
-
-        if (!str_starts_with($code, 'return ')) {
-            $code = 'return ' . $code;
-        }
-
-        if (!str_ends_with($code, ';')) {
-            $code .= ';';
-        }
-
-        // Basic safety check: disallow dangerous functions
-        $dangerousFunctions = ['system', 'exec', 'shell_exec', 'passthru', 'eval'];
-
-        foreach ($dangerousFunctions as $func) {
-            if (stripos($code, $func) !== false) {
-                throw new Exception("Code contains prohibited function: $func");
-            }
-        }
-
-        // Execute with subscriber data in a scoped closure
-        try {
-
-            $callable = function () use ($subscriber, $code) {
-                // phpcs:ignore Intelephense.diagnostics.undefinedVariables
-                return eval($code);
-            };
-
-            $result = $callable();
-
-            // Ensure result is boolean
-            if (!is_bool($result)) {
-                return false;
-            }
-
-            return $result;
-
-        } catch (Throwable $e) {
-            throw new Exception("Execution error: {$e->getMessage()}");
         }
     }
 }

@@ -75,45 +75,42 @@ class SubscriptionController extends Controller
         // Get the pricing plan to be used when creating this subscription
         $pricingPlan = PricingPlan::find($pricingPlanId);
 
-        $offerTrial = ($pricingPlan->trial_days > 0) && ($subscriber->subscriptions()->where('pricing_plan_id', $pricingPlanId)->count() == 0);
-
-        $isSuccessful = true;
+        $message = null;
+        $isSuccessful = false;
         $billingTransaction = null;
-        $message = 'Subscription created successfully';
 
-        if(!$offerTrial) {
+        // Check if a trial is offered for subscriptions
+        $offerTrial = $pricingPlan->billing_type == 'subscription'
+            && $pricingPlan->trial_days > 0
+            && $subscriber->subscriptions()->where('pricing_plan_id', $pricingPlanId)->count() == 0;
+
+        // Bill only if no trial is offered for subscriptions
+        if (!$offerTrial) {
 
             /**
-             *  Bill the subscriber using artime.
+             * Bill the subscriber using airtime.
              *
-             *  @var BillingTransaction $billingTransaction
+             * @var BillingTransaction $billingTransaction
              */
             $billingTransaction = BillingService::billUsingAirtime($this->project, $pricingPlan, $subscriber, CreatedUsingAutoBilling::NO);
 
-            //  Set the billing transaction status
+            // Set the billing transaction status
             $isSuccessful = $billingTransaction->is_successful;
 
-            //  If the subscriber was not billed successfully
-            if(!$isSuccessful) {
-
-                //  Failure message
-                $message = $billingTransaction->failure_reason;
-
-            }
+            // Set the message based on billing success
+            $message = $isSuccessful ? 'Subscription created successfully' : $billingTransaction->failure_reason;
 
         }
 
-        if($isSuccessful) {
-
-            // Create a new subscription using the repository
+        // Create subscription for successful billing or trial (only for subscription type)
+        if ($isSuccessful && $pricingPlan->billing_type == 'subscription') {
             $subscription = $this->subscriptionRepository->createProjectSubscription($subscriber, $pricingPlan, CreatedUsingAutoBilling::NO, $billingTransaction, $offerTrial);
-
         }
 
         // Return JSON response
         return response()->json([
             'message' => $message,
-            'on_trial' => $offerTrial,
+            'onTrial' => $offerTrial,
             'successful' => $isSuccessful,
             'subscription' => $isSuccessful ? new SubscriptionResource($subscription) : null,
             'billingTransaction' => $billingTransaction == null ? null : new BillingTransactionResource($billingTransaction),
