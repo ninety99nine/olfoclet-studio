@@ -241,7 +241,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                      *      ...
                      *  ]
                      */
-                    }])->select('subscribers.id', 'subscribers.msisdn');
+                    }])->select('subscribers.id', 'subscribers.msisdn', 'subscribers.metadata');
 
                     /**********************************
                      *  GET QUALIFYING PRICING PLANS  *
