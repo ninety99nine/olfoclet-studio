@@ -76,7 +76,6 @@ class SubscriptionController extends Controller
         $pricingPlan = PricingPlan::find($pricingPlanId);
 
         $message = null;
-        $isSuccessful = false;
         $billingTransaction = null;
 
         // Check if a trial is offered for subscriptions
@@ -97,10 +96,14 @@ class SubscriptionController extends Controller
             // Set the billing transaction status
             $isSuccessful = $billingTransaction->is_successful;
 
-            // Set the message based on billing success
-            $message = $isSuccessful ? 'Subscription created successfully' : $billingTransaction->failure_reason;
+        }else{
+
+            $isSuccessful = true;
 
         }
+
+        // Set the message based on billing success
+        $message = $isSuccessful ? 'Subscription created successfully' : $billingTransaction->failure_reason;
 
         // Create subscription for successful billing or trial (only for subscription type)
         if ($isSuccessful && $pricingPlan->billing_type == 'subscription') {
