@@ -161,7 +161,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         $autoBillingEnabled = $this->pricingPlan->max_auto_billing_attempts == 0 || $attempt < $this->pricingPlan->max_auto_billing_attempts;
 
         if($autoBillingEnabled) {
-            $nextAttemptDate = now()->addHours(6);
+            $nextAttemptDate = now()->addDay();
         }else{
             $attempt = 0;
             $nextAttemptDate = null;
