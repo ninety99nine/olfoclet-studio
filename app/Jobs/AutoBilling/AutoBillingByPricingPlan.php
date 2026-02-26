@@ -24,37 +24,44 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     *  Project instance.
+     * The name of the queue the job should be sent to.
      *
-     *  @var \App\Models\Project
+     * @var string|null
+     */
+    public $queue = 'billing';
+
+    /**
+     * Project instance.
+     *
+     * @var \App\Models\Project
      */
     protected $project;
 
     /**
-     *  Pricing plan
+     * Pricing plan
      *
-     *  @var \App\Models\PricingPlan
+     * @var \App\Models\PricingPlan
      */
     protected $pricingPlan;
 
     /**
-     *  Auto billing job batches count
+     * Auto billing job batches count
      *
-     *  @var int
+     * @var int
      */
     protected $autoBillingJobBatchesCount;
 
     /**
-     *  The unique ID of the job.
+     * The unique ID of the job.
      *
-     *  Sometimes, you may want to ensure that only one instance of a specific job is on
-     *  the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     *  interface on your job class. So the current job will not be dispatched if another
-     *  instance of the job is already on the queue and has not finished processing.
+     * Sometimes, you may want to ensure that only one instance of a specific job is on
+     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
+     * interface on your job class. So the current job will not be dispatched if another
+     * instance of the job is already on the queue and has not finished processing.
      *
-     *  Refer: https://laravel.com/docs/8.x/queues#unique-jobs
+     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
-     *  @return string
+     * @return string
      */
     public function uniqueId()
     {
@@ -76,9 +83,9 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
         $this->project = $project->withoutRelations();
 
         /**
-         *  It appears that the eager loaded withCount('autoBillingJobBatches')
-         *  is not accessible using $pricingPlan->auto_billing_job_batches_count
-         *  within the handle() method. Therefore we will set this as its own parameter.
+         * It appears that the eager loaded withCount('autoBillingJobBatches')
+         * is not accessible using $pricingPlan->auto_billing_job_batches_count
+         * within the handle() method. Therefore we will set this as its own parameter.
          */
         $this->autoBillingJobBatchesCount = $autoBillingJobBatchesCount;
     }
@@ -96,89 +103,89 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
             if($this->project->hasBillingCredentials()) {
 
                 /**
-                 *  Query the subscribers that are ready for billing.
+                 * Query the subscribers that are ready for billing.
                  *
-                 *  Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
+                 * Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
                  *
-                 *  The final query output is as follows:
+                 * The final query output is as follows:
                  *
-                 *  [
-                 *      {
-                 *          "id": 1,
-                 *          "msisdn": "26772000001"
-                 *      },
-                 *      ...
-                 *  ]
+                 * [
+                 * {
+                 * "id": 1,
+                 * "msisdn": "26772000001"
+                 * },
+                 * ...
+                 * ]
                  */
                 $subscribers = $this->project->subscribers()->whereHas('autoBillingSchedules', function (Builder $query) {
 
                     /**
-                     *  We need to limit the auto billing schedules based on the next_attempt_date.
-                     *  The next_attempt_date helps us to determine the acceptable date and time
-                     *  to qualify auto billing. We can autobill on the following conditions:
+                     * We need to limit the auto billing schedules based on the next_attempt_date.
+                     * The next_attempt_date helps us to determine the acceptable date and time
+                     * to qualify auto billing. We can autobill on the following conditions:
                      *
-                     *  1) If the next_attempt_date has been reached, that is, auto bill on the same
-                     *     date and time or sometime after.
+                     * 1) If the next_attempt_date has been reached, that is, auto bill on the same
+                     * date and time or sometime after.
                      *
-                     *  2) If the next_attempt_date is not some time more than 48 hours from the
-                     *     desired date and time.
+                     * 2) If the next_attempt_date is not some time more than 48 hours from the
+                     * desired date and time.
                      *
-                     *  Remember that the first billing attempt is expected to occur as soon as the
-                     *  subscription ends provided that we do not have any downtime or delays while
-                     *  processing other jobs. The second attempt will occur 1 hour later after
-                     *  the first, and the third attempt will occur 1 hour later after the
-                     *  second attempt.
+                     * Remember that the first billing attempt is expected to occur as soon as the
+                     * subscription ends provided that we do not have any downtime or delays while
+                     * processing other jobs. The second attempt will occur 1 hour later after
+                     * the first, and the third attempt will occur 1 hour later after the
+                     * second attempt.
                      *
-                     *  Each pricing plan can have 1 or more "maximum auto billing attempts" e.g 365.
-                     *  The following is a timeline of how the auto billing occurs based on the maximum
-                     *  auto billing attempts set on the pricing plan (max_auto_billing_attempts).
+                     * Each pricing plan can have 1 or more "maximum auto billing attempts" e.g 365.
+                     * The following is a timeline of how the auto billing occurs based on the maximum
+                     * auto billing attempts set on the pricing plan (max_auto_billing_attempts).
                      *
-                     *  ---------------------------------------------------------------------------------
-                     *  Theoretical Timeline for (1) Attempt:
+                     * ---------------------------------------------------------------------------------
+                     * Theoretical Timeline for (1) Attempt:
                      *
-                     *  1) Subscription ends                    2024-01-01 08:00:00
-                     *  2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
-                     *  ----------------------------------------------------------------------------------------
-                     *  Theoretical Timeline for (2) Attempts:
+                     * 1) Subscription ends                    2024-01-01 08:00:00
+                     * 2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
+                     * ----------------------------------------------------------------------------------------
+                     * Theoretical Timeline for (2) Attempts:
                      *
-                     *  1) Subscription ends                    2024-01-01 08:00:00
-                     *  2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
-                     *  3) Attempt #2 (1 hour later)            2024-01-01 09:00:00 (Assuming attempt #1 failed)
-                     *  ----------------------------------------------------------------------------------------
-                     *  Theoretical Timeline for (3) Attempts:
+                     * 1) Subscription ends                    2024-01-01 08:00:00
+                     * 2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
+                     * 3) Attempt #2 (1 hour later)            2024-01-01 09:00:00 (Assuming attempt #1 failed)
+                     * ----------------------------------------------------------------------------------------
+                     * Theoretical Timeline for (3) Attempts:
                      *
-                     *  1) Subscription ends                    2024-01-01 08:00:00
-                     *  2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
-                     *  3) Attempt #2 (1 hour later)            2024-01-01 09:00:00 (Assuming attempt #1 failed)
-                     *  4) Attempt #3 (1 hour later)            2024-01-01 10:00:00 (Assuming attempt #2 failed)
-                     *  ---------------------------------------------------------------------------------
-                     *  This approach continues until the maximum auto billing attempts on the
-                     *  pricing plan (max_auto_billing_attempts) are exhausted.
-                     *  ---------------------------------------------------------------------------------
+                     * 1) Subscription ends                    2024-01-01 08:00:00
+                     * 2) Attempt #1 (occurs immediately)      2024-01-01 08:00:00
+                     * 3) Attempt #2 (1 hour later)            2024-01-01 09:00:00 (Assuming attempt #1 failed)
+                     * 4) Attempt #3 (1 hour later)            2024-01-01 10:00:00 (Assuming attempt #2 failed)
+                     * ---------------------------------------------------------------------------------
+                     * This approach continues until the maximum auto billing attempts on the
+                     * pricing plan (max_auto_billing_attempts) are exhausted.
+                     * ---------------------------------------------------------------------------------
                      *
-                     *  In theory, the first attempt date is the same as the subscription end date,
-                     *  the second attempt date is then 1 hour after the first attempt date,
-                     *  the third attempt date is then 1 hour after the second attempt date.
-                     *  This is how the theoretical timeline might look like:
+                     * In theory, the first attempt date is the same as the subscription end date,
+                     * the second attempt date is then 1 hour after the first attempt date,
+                     * the third attempt date is then 1 hour after the second attempt date.
+                     * This is how the theoretical timeline might look like:
                      *
-                     *  Subscription end|          |          |
-                     *                  |          |          |
-                     *                  |< 1 hour >|< 1 hour >|
-                     *                  |          |          |
-                     *         Attempt 1| Attempt 2| Attempt 3|
+                     * Subscription end|          |          |
+                     * |          |          |
+                     * |< 1 hour >|< 1 hour >|
+                     * |          |          |
+                     * Attempt 1| Attempt 2| Attempt 3|
                      *
-                     *  In practice, we might not always be able to run any of these attempts
-                     *  exactly on their specified next_attempt_date due to various reasons e.g
-                     *  system downtime, scheduled maintenance or delays due to other jobs
-                     *  being processed etc. For simplicity, we will only take the first
-                     *  attempt delays into consideration for demonstration. This is how
-                     *  the practical timeline might look like:
+                     * In practice, we might not always be able to run any of these attempts
+                     * exactly on their specified next_attempt_date due to various reasons e.g
+                     * system downtime, scheduled maintenance or delays due to other jobs
+                     * being processed etc. For simplicity, we will only take the first
+                     * attempt delays into consideration for demonstration. This is how
+                     * the practical timeline might look like:
                      *
-                     *  Subscription end|                  |          |          |
-                     *                  |    < x hours >   |          |          |
-                     *                  | unexpected delays|< 1 hour >|< 1 hour >|
-                     *                  |                  |          |          |
-                     *                  |         Attempt 1| Attempt 2| Attempt 3|
+                     * Subscription end|                  |          |          |
+                     * |    < x hours >   |          |          |
+                     * | unexpected delays|< 1 hour >|< 1 hour >|
+                     * |                  |          |          |
+                     * |         Attempt 1| Attempt 2| Attempt 3|
                      */
                     $query->where('auto_billing_enabled', '1')
                         ->where('next_attempt_date', '<=', Carbon::now())
@@ -208,9 +215,9 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
                     if( count($jobs) > 0 ) {
 
                         /**
-                         *  We cannot reference "$this->pricingPlan" within the Bus::batch() closures.
-                         *  Therefore we must create an pricingPlan variable that we can pass as a
-                         *  parameter of the various closures.
+                         * We cannot reference "$this->pricingPlan" within the Bus::batch() closures.
+                         * Therefore we must create an pricingPlan variable that we can pass as a
+                         * parameter of the various closures.
                          */
                         $pricingPlan = $this->pricingPlan;
 

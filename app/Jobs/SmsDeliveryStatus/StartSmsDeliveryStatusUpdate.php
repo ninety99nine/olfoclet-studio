@@ -16,6 +16,13 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
+     * The name of the queue the job should be sent to.
+     *
+     * @var string|null
+     */
+    public $queue = 'high';
+
+    /**
      * Execute the job.
      *
      * @return void

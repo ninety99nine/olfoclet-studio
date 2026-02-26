@@ -24,6 +24,13 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * The name of the queue the job should be sent to.
+     *
+     * @var string|null
+     */
+    public $queue = 'billing';
+
     public $project;
     public $subscriber;
     public $pricingPlan;
@@ -56,16 +63,16 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     *  The unique ID of the job.
+     * The unique ID of the job.
      *
-     *  Sometimes, you may want to ensure that only one instance of a specific job is on
-     *  the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     *  interface on your job class. So the current job will not be dispatched if another
-     *  instance of the job is already on the queue and has not finished processing.
+     * Sometimes, you may want to ensure that only one instance of a specific job is on
+     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
+     * interface on your job class. So the current job will not be dispatched if another
+     * instance of the job is already on the queue and has not finished processing.
      *
-     *  Refer: https://laravel.com/docs/8.x/queues#unique-jobs
+     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
-     *  @return string
+     * @return string
      */
     public function uniqueId()
     {
@@ -73,15 +80,15 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     *  Get the middleware the job should pass through.
+     * Get the middleware the job should pass through.
      *
-     *  As you may have noticed in the previous examples, batched jobs should typically determine
-     *  if their corresponding batch has been cancelled before continuing execution. However, for
-     *  convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
-     *  its name indicates, this middleware will instruct Laravel to not process the job if
-     *  its corresponding batch has been cancelled:
+     * As you may have noticed in the previous examples, batched jobs should typically determine
+     * if their corresponding batch has been cancelled before continuing execution. However, for
+     * convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
+     * its name indicates, this middleware will instruct Laravel to not process the job if
+     * its corresponding batch has been cancelled:
      *
-     *  Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
+     * Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
      */
     public function middleware(): array
     {
@@ -89,18 +96,18 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     *  Execute the job.
+     * Execute the job.
      *
-     *  @return void
+     * @return void
      */
     public function handle()
     {
         try {
 
             /**
-             *  Bill the subscriber using artime.
+             * Bill the subscriber using artime.
              *
-             *  @var BillingTransaction $billingTransaction
+             * @var BillingTransaction $billingTransaction
              */
             $billingTransaction = BillingService::billUsingAirtime($this->project, $this->pricingPlan, $this->subscriber, CreatedUsingAutoBilling::YES);
 
@@ -108,7 +115,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
             $this->billingAttemptAt = $billingTransaction->created_at;
 
             /**
-             *  @var bool $isSuccessful Whether the subscriber was billed successfully
+             * @var bool $isSuccessful Whether the subscriber was billed successfully
              */
             $isSuccessful = $billingTransaction->is_successful;
 
@@ -126,9 +133,9 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
             }
 
             /**
-             *  If we return True then this event will be removed from the queue, otherwise if we
-             *  return False then this event will be added again to the queue so that we can retry
-             *  this event 3 times every 24 hours before being rejected entirely.
+             * If we return True then this event will be removed from the queue, otherwise if we
+             * return False then this event will be added again to the queue so that we can retry
+             * this event 3 times every 24 hours before being rejected entirely.
              */
 
         } catch (\Throwable $th) {
@@ -141,9 +148,9 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     *  Update the billing schedule on a unsuccessful attempt
+     * Update the billing schedule on a unsuccessful attempt
      *
-     *  @return void
+     * @return void
      */
     private function updateBillingScheduleOnUnsuccessfulAttempt()
     {
@@ -156,7 +163,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
         $attempt = $existingAutoBillingSchedule->attempt + 1;
 
         /**
-         *  @var $autoBillingEnabled Whether the auto billing is enabled for future attempts
+         * @var $autoBillingEnabled Whether the auto billing is enabled for future attempts
          */
         $autoBillingEnabled = $this->pricingPlan->max_auto_billing_attempts == 0 || $attempt < $this->pricingPlan->max_auto_billing_attempts;
 

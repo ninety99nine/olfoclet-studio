@@ -26,6 +26,13 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, SmsCampaignTrait;
 
     /**
+     * The name of the queue the job should be sent to.
+     *
+     * @var string|null
+     */
+    public $queue = 'high';
+
+    /**
      * The project instance.
      *
      * @var \App\Models\Project
@@ -47,16 +54,16 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     protected $smsCampaignBatchJobsCount;
 
     /**
-     *  The unique ID of the job.
+     * The unique ID of the job.
      *
-     *  Sometimes, you may want to ensure that only one instance of a specific job is on
-     *  the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     *  interface on your job class. So the current job will not be dispatched if another
-     *  instance of the job is already on the queue and has not finished processing.
+     * Sometimes, you may want to ensure that only one instance of a specific job is on
+     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
+     * interface on your job class. So the current job will not be dispatched if another
+     * instance of the job is already on the queue and has not finished processing.
      *
-     *  Refer: https://laravel.com/docs/8.x/queues#unique-jobs
+     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
-     *  @return string
+     * @return string
      */
     public function uniqueId()
     {
@@ -77,10 +84,10 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
         $this->project = $project->withoutRelations();
 
         /**
-         *  It appears that the eager loaded withCount('smsCampaignBatchJobs')
-         *  is not accessible using $smsCampaign->sms_campaign_batch_jobs_count
-         *  within the handle() method. Therefore we will set this as
-         *  its own parameter.
+         * It appears that the eager loaded withCount('smsCampaignBatchJobs')
+         * is not accessible using $smsCampaign->sms_campaign_batch_jobs_count
+         * within the handle() method. Therefore we will set this as
+         * its own parameter.
          */
         $this->smsCampaignBatchJobsCount = $smsCampaignBatchJobsCount;
     }
@@ -98,7 +105,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
             if( $this->project->hasSmsCredentials() && $this->smsCampaign->canStartSmsCampaign() ) {
 
                 /*******************************
-                 *  GET THE SENDABLE MESSAGES  *
+                 * GET THE SENDABLE MESSAGES  *
                  ******************************/
 
                 $messages = [];
@@ -107,32 +114,32 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                 if( is_array($this->smsCampaign->message_ids) && !empty($this->smsCampaign->message_ids) ) {
 
                     /**
-                     *  (1) Specific Message
-                     *  ---------------------
+                     * (1) Specific Message
+                     * ---------------------
                      *
-                     *  If the message_to_send is "Specific Message" then the
-                     *  message_ids will contain one array with a list of ids
-                     *  from the parent to the child message we want to send
-                     *  e.g
+                     * If the message_to_send is "Specific Message" then the
+                     * message_ids will contain one array with a list of ids
+                     * from the parent to the child message we want to send
+                     * e.g
                      *
-                     *  [ 1, 10, 20, 30 ]
+                     * [ 1, 10, 20, 30 ]
                      *
-                     *  In the case above we want the message with id of 30
-                     *  which is a descendant of message 1, 10, and 20
+                     * In the case above we want the message with id of 30
+                     * which is a descendant of message 1, 10, and 20
                      *
-                     *  (1) Any Message
-                     *  ---------------
+                     * (1) Any Message
+                     * ---------------
                      *
-                     *  If the message_to_send is "Any Message" then the
-                     *  message_ids will contain one array with a list
-                     *  of arrays of ids from the parent to the child
-                     *  message we want to send e.g
+                     * If the message_to_send is "Any Message" then the
+                     * message_ids will contain one array with a list
+                     * of arrays of ids from the parent to the child
+                     * message we want to send e.g
                      *
-                     *  [ [1, 10, 20, 30], [1, 10, 20, 35], .... , .e.t.c ]
+                     * [ [1, 10, 20, 30], [1, 10, 20, 35], .... , .e.t.c ]
                      *
-                     *  In the case above we want the message with id of 30
-                     *  and message with id 35 which are both descendants
-                     *  of message 1, 10, and 20
+                     * In the case above we want the message with id of 30
+                     * and message with id 35 which are both descendants
+                     * of message 1, 10, and 20
                      */
                     if( $this->smsCampaign->message_to_send == 'Specific Message' ) {
 
@@ -166,7 +173,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                 if( $messages->count() > 0 ) {
 
                     /**
-                     *  Query the subscribers that are ready to receive the next sms message
+                     * Query the subscribers that are ready to receive the next sms message
                      */
                     $subscribers = $this->project->subscribers()->whereDoesntHave('smsCampaigns', function (Builder $query) {
 
@@ -176,31 +183,31 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     })->with(['latestSubscription', 'messages' => function($query) {
 
                         /**
-                         *  1) Limit the loaded message to the message id, subscriber id, sent sms count and the
-                         *     last sent at datetime to consume less memory.
-                         *  2) Order by the sent sms count "ASC" so that the messages that have the lowest sent sms
-                         *     count appear at the top of this relationsip stack.
-                         *  3) For messages that have the same sent sms count, we can then order by the messages
-                         *     last sent at "ASC" so that the messages that were sent a longer time ago appear
-                         *     first before messages that were sent must more recently.
+                         * 1) Limit the loaded message to the message id, subscriber id, sent sms count and the
+                         * last sent at datetime to consume less memory.
+                         * 2) Order by the sent sms count "ASC" so that the messages that have the lowest sent sms
+                         * count appear at the top of this relationsip stack.
+                         * 3) For messages that have the same sent sms count, we can then order by the messages
+                         * last sent at "ASC" so that the messages that were sent a longer time ago appear
+                         * first before messages that were sent must more recently.
                          *
-                         *  The eager loaded "messages" will look something like this for every subscriber:
+                         * The eager loaded "messages" will look something like this for every subscriber:
                          *
-                         *  "messages": [
-                         *      {
-                         *          "message_id": 3,
-                         *          "subscriber_id": 1,
-                         *          "sent_sms_count": 1,
-                         *          "last_sent_at": "2024-01-01 08:00:00"
-                         *      },
-                         *      {
-                         *          "message_id": 2,
-                         *          "subscriber_id": 1,
-                         *          "sent_sms_count": 2,
-                         *          "last_sent_at": "2024-01-01 08:00:05"
-                         *      },
-                         *      ...
-                         *  ]
+                         * "messages": [
+                         * {
+                         * "message_id": 3,
+                         * "subscriber_id": 1,
+                         * "sent_sms_count": 1,
+                         * "last_sent_at": "2024-01-01 08:00:00"
+                         * },
+                         * {
+                         * "message_id": 2,
+                         * "subscriber_id": 1,
+                         * "sent_sms_count": 2,
+                         * "last_sent_at": "2024-01-01 08:00:05"
+                         * },
+                         * ...
+                         * ]
                          */
                         return $query->where('is_successful', '1')
                                     ->where('type', MessageType::Content->value)
@@ -214,37 +221,37 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                     ->orderBy('last_sent_at', 'ASC');
 
                     /**
-                     *  1) Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
+                     * 1) Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
                      *
-                     *  The final query output is as follows:
+                     * The final query output is as follows:
                      *
-                     *  [
-                     *      {
-                     *          "id": 1,
-                     *          "msisdn": "26772000001",
-                     *          "messages": [
-                     *              {
-                     *                  "message_id": 3,
-                     *                  "subscriber_id": 1,
-                     *                  "sent_sms_count": 1,
-                     *                  "last_sent_at": "2024-01-01 08:00:00"
-                     *              },
-                     *              {
-                     *                  "message_id": 2,
-                     *                  "subscriber_id": 1,
-                     *                  "sent_sms_count": 2,
-                     *                  "last_sent_at": "2024-01-01 08:00:05"
-                     *              },
-                     *              ...
-                     *          ]
-                     *      },
-                     *      ...
-                     *  ]
+                     * [
+                     * {
+                     * "id": 1,
+                     * "msisdn": "26772000001",
+                     * "messages": [
+                     * {
+                     * "message_id": 3,
+                     * "subscriber_id": 1,
+                     * "sent_sms_count": 1,
+                     * "last_sent_at": "2024-01-01 08:00:00"
+                     * },
+                     * {
+                     * "message_id": 2,
+                     * "subscriber_id": 1,
+                     * "sent_sms_count": 2,
+                     * "last_sent_at": "2024-01-01 08:00:05"
+                     * },
+                     * ...
+                     * ]
+                     * },
+                     * ...
+                     * ]
                      */
                     }])->select('subscribers.id', 'subscribers.msisdn', 'subscribers.metadata');
 
                     /**********************************
-                     *  GET QUALIFYING PRICING PLANS  *
+                     * GET QUALIFYING PRICING PLANS  *
                      **********************************/
 
                     $pricingPlans = [];
@@ -254,15 +261,15 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     if($hasListedPricingPlans) {
 
                         /**
-                         *  The pricing_plan_ids will contain one array with a list
-                         *  of arrays of ids from the parent to the child
-                         *  pricing plan that is qualified e.g
+                         * The pricing_plan_ids will contain one array with a list
+                         * of arrays of ids from the parent to the child
+                         * pricing plan that is qualified e.g
                          *
-                         *  [ [1, 10, 20, 30], [1, 10, 20, 35], .... , .e.t.c ]
+                         * [ [1, 10, 20, 30], [1, 10, 20, 35], .... , .e.t.c ]
                          *
-                         *  In the case above we want the pricing plan with id of 30
-                         *  and pricing plan with id 35 which are both descendants
-                         *  of pricing plan 1, 10, and 20
+                         * In the case above we want the pricing plan with id of 30
+                         * and pricing plan with id 35 which are both descendants
+                         * of pricing plan 1, 10, and 20
                          */
 
                         //  Extract the pricing plans
@@ -282,25 +289,25 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     if( count($pricingPlanIds = collect($pricingPlans)->pluck('id')->toArray()) ) {
 
                         /**
-                         *  Limit the subscribers based on the active non cancelled subscriptions
-                         *  matching the specified pricing plans.
+                         * Limit the subscribers based on the active non cancelled subscriptions
+                         * matching the specified pricing plans.
                          */
                         $subscribers = $subscribers->hasActiveNonCancelledSubscription($pricingPlanIds);
 
                     }
 
                     /**
-                     *  If this sms campaign has subscribers to send messages.
+                     * If this sms campaign has subscribers to send messages.
                      *
-                     *  Send the subscriber a message if:
+                     * Send the subscriber a message if:
                      *
-                     *  1) We have subscribers to send and we don't have any pricing plans listed on this sms campaign
-                     *  2) We have subscribers to send and we do have pricing plans listed on this sms campaign
-                     *     and those listed pricing plans have been found and actually used to qualify these
-                     *     subscribers. We want to avoid a situation where a listed pricing plan has been
-                     *     has been since deleted from the project. The "$subscribers->count() > 0" may run
-                     *     while the subscribers have not been qualified using the listed pricing plan,
-                     *     thereby qualifying everyone.
+                     * 1) We have subscribers to send and we don't have any pricing plans listed on this sms campaign
+                     * 2) We have subscribers to send and we do have pricing plans listed on this sms campaign
+                     * and those listed pricing plans have been found and actually used to qualify these
+                     * subscribers. We want to avoid a situation where a listed pricing plan has been
+                     * has been since deleted from the project. The "$subscribers->count() > 0" may run
+                     * while the subscribers have not been qualified using the listed pricing plan,
+                     * thereby qualifying everyone.
                      */
                     if( ($subscribers->count() > 0) && (!$hasListedPricingPlans || ($hasListedPricingPlans && count($pricingPlanIds) > 0))) {
 
@@ -331,20 +338,20 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                 }
 
                                 /**
-                                 *  Get the ids of the messages that have already been sent.
-                                 *  Remember that these messages where eager loaded on each
-                                 *  subscriber.
+                                 * Get the ids of the messages that have already been sent.
+                                 * Remember that these messages where eager loaded on each
+                                 * subscriber.
                                  */
                                 $sentMessageIds = collect($subscriber->messages)->pluck('message_id');
 
                                 /**
-                                 *  Check if the subscriber has received every message.
+                                 * Check if the subscriber has received every message.
                                  *
-                                 *  Just incase the subscriber has received every message, and some messages have
-                                 *  been deleted such that $sentMessageIds->count() != $messages->count(),
-                                 *  then we can use ">=" instead of just "==" to qualify odd situations
-                                 *  where the subscriber received messages are more than the project
-                                 *  messages created.
+                                 * Just incase the subscriber has received every message, and some messages have
+                                 * been deleted such that $sentMessageIds->count() != $messages->count(),
+                                 * then we can use ">=" instead of just "==" to qualify odd situations
+                                 * where the subscriber received messages are more than the project
+                                 * messages created.
                                  */
                                 $hasReceivedEveryMessage = $sentMessageIds->count() >= $messages->count();
 
@@ -352,7 +359,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                 if( $hasReceivedEveryMessage == false ) {
 
                                     /**
-                                     *  Get the first message that the subscriber has not received
+                                     * Get the first message that the subscriber has not received
                                      */
                                     $message = $messages->whereNotIn('id', $sentMessageIds->all())->first();
 
@@ -360,11 +367,11 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                 }elseif($hasReceivedEveryMessage == true && $this->smsCampaign->can_repeat_messages == true) {
 
                                     /**
-                                     *  Get the first message with the lowest "sent_sms_count"
+                                     * Get the first message with the lowest "sent_sms_count"
                                      *
-                                     *  This message has the least views since we eager loaded the subscriber
-                                     *  messages relationship with the additional orderBy('sent_sms_count')
-                                     *  method.
+                                     * This message has the least views since we eager loaded the subscriber
+                                     * messages relationship with the additional orderBy('sent_sms_count')
+                                     * method.
                                      */
                                     foreach($sentMessageIds as $sentMessageId) {
 
@@ -413,9 +420,9 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         if( count($jobs) > 0 ) {
 
                             /**
-                             *  We cannot reference "$this->smsCampaign" within the Bus::batch() closures.
-                             *  Therefore we must create an smsCampaign variable that we can pass as a
-                             *  parameter of the various closures.
+                             * We cannot reference "$this->smsCampaign" within the Bus::batch() closures.
+                             * Therefore we must create an smsCampaign variable that we can pass as a
+                             * parameter of the various closures.
                              */
                             $smsCampaign = $this->smsCampaign;
 

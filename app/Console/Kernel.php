@@ -25,33 +25,39 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         /**
-         *  IMPORTANT NOTE:
-         *  ---------------
+         * IMPORTANT NOTE:
+         * ---------------
          *
-         *  If the job queue appears to dispatch the jobs, but no jobs are being
-         *  saved on the database for processing then do the following:
+         * If the job queue appears to dispatch the jobs, but no jobs are being
+         * saved on the database for processing then do the following:
          *
-         *  Make sure you have set the "QUEUE_CONNECTION=database" in the .env file.
-         *  Remember to clear the cache after changes to the .env file. Consider
-         *  running the following commands to reset:
+         * Make sure you have set the "QUEUE_CONNECTION=database" in the .env file.
+         * Remember to clear the cache after changes to the .env file. Consider
+         * running the following commands to reset:
          *
-         *  ✅ LOCAL DEVELOPMENT:
+         * ✅ LOCAL DEVELOPMENT:
          *
-         *  stop running the php artisan queue:work
-         *  sudo php artisan config:cache
-         *  sudo php artisan config:clear
-         *  sudo php artisan cache:clear
-         *  start running the php artisan queue:work
+         * stop running the php artisan queue:work
+         * sudo php artisan config:cache
+         * sudo php artisan config:clear
+         * sudo php artisan cache:clear
+         * start running the php artisan queue:work
          *
-         *  ✅ PRODUCTION (Supervisor setup):
+         * ✅ PRODUCTION (Supervisor setup):
          *
-         *  sudo supervisorctl stop all
-         *  sudo php artisan config:cache
-         *  sudo php artisan config:clear
-         *  sudo php artisan cache:clear
-         *  sudo supervisorctl reread
-         *  sudo supervisorctl start all
+         * sudo supervisorctl stop all
+         * sudo php artisan config:cache
+         * sudo php artisan config:clear
+         * sudo php artisan cache:clear
+         * sudo supervisorctl reread
+         * sudo supervisorctl start all
          */
+
+        // ------------------------------------------------------------------
+        // NEW: PREVENT DATABASE BLOAT FROM GROWING TO HUNDREDS OF MEGABYTES
+        // ------------------------------------------------------------------
+        $schedule->command('queue:prune-batches --hours=24')->daily();
+        $schedule->command('queue:prune-failed --hours=72')->daily();
 
         //  If we can create Billing Reports
         if(config('app.CAN_CREATE_BILLING_REPORTS')) {

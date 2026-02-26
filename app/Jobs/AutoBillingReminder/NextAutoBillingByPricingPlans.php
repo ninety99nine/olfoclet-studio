@@ -20,6 +20,13 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
+     * The name of the queue the job should be sent to.
+     *
+     * @var string|null
+     */
+    public $queue = 'high';
+
+    /**
      * Execute the job.
      *
      * @return void
@@ -31,14 +38,14 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
             $pricingPlanAutoBillingReminders = PricingPlanAutoBillingReminder::whereHas('project', function($query) {
 
                 /**
-                 *  Must have a project that can auto bill.
+                 * Must have a project that can auto bill.
                  */
                 return $query->canAutoBill();
 
             })->whereHas('pricingPlan', function($query) {
 
                 /**
-                 *  Must have an active, non-folder pricing plan that can also auto bill.
+                 * Must have an active, non-folder pricing plan that can also auto bill.
                  */
                 return $query->active()->nonFolder()->canAutoBill();
 
@@ -49,9 +56,9 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
             }])->get();
 
             /**
-             *  Order the pricingPlanAutoBillingReminders by the autoBillingReminder hours
-             *  so that those with more hours appear at the top of the stack while those with
-             *  fewer hours appear at the bottom of the stack.
+             * Order the pricingPlanAutoBillingReminders by the autoBillingReminder hours
+             * so that those with more hours appear at the top of the stack while those with
+             * fewer hours appear at the bottom of the stack.
              */
             $pricingPlanAutoBillingReminders = $pricingPlanAutoBillingReminders->sortByDesc(function ($pricingPlanAutoBillingReminder) {
                 return $pricingPlanAutoBillingReminder->autoBillingReminder->hours;
@@ -61,24 +68,24 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
             foreach ($pricingPlanAutoBillingReminders as $pricingPlanAutoBillingReminder) {
 
                 /**
-                 *  @var PricingPlan $pricingPlan
+                 * @var PricingPlan $pricingPlan
                  */
                 $pricingPlan = $pricingPlanAutoBillingReminder->pricingPlan;
 
                 if(!empty($pricingPlan->next_auto_billing_reminder_sms_message)) {
 
                     /**
-                     *  @var Project $project
+                     * @var Project $project
                      */
                     $project = $pricingPlanAutoBillingReminder->project;
 
                     /**
-                     *  @var AutoBillingReminder $autoBillingReminder
+                     * @var AutoBillingReminder $autoBillingReminder
                      */
                     $autoBillingReminder = $pricingPlanAutoBillingReminder->autoBillingReminder;
 
                     /**
-                     *  @var int $autoBillingReminderJobBatchesCount
+                     * @var int $autoBillingReminderJobBatchesCount
                      */
                     $autoBillingReminderJobBatchesCount = $pricingPlan->auto_billing_reminder_job_batches_count;
 

@@ -19,6 +19,13 @@ class StartCreatingBillingReports implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
+     * The name of the queue the job should be sent to.
+     *
+     * @var string|null
+     */
+    public $queue = 'high';
+
+    /**
      * Execute the job.
      *
      * @return void
@@ -41,12 +48,12 @@ class StartCreatingBillingReports implements ShouldQueue
             }])->get();
 
             /**
-             *  @var Project $project
+             * @var Project $project
              */
             foreach ($projects as $project) {
 
                 /**
-                 *  @var int $billingTransactionsCount
+                 * @var int $billingTransactionsCount
                  */
                 $billingTransactionsCount = $project->billing_transactions_count;
 
