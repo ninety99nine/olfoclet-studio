@@ -25,44 +25,51 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     *  Project instance.
+     * The name of the queue the job should be sent to.
      *
-     *  @var \App\Models\Project
+     * @var string|null
+     */
+    public $queue = 'high';
+
+    /**
+     * Project instance.
+     *
+     * @var \App\Models\Project
      */
     protected $project;
 
     /**
-     *  Pricing plan instance.
+     * Pricing plan instance.
      *
-     *  @var \App\Models\PricingPlan
+     * @var \App\Models\PricingPlan
      */
     protected $pricingPlan;
 
     /**
-     *  Auto Billing Reminder instance.
+     * Auto Billing Reminder instance.
      *
-     *  @var \App\Models\AutoBillingReminder
+     * @var \App\Models\AutoBillingReminder
      */
     protected $autoBillingReminder;
 
     /**
-     *  Auto billing reminder job batches count
+     * Auto billing reminder job batches count
      *
-     *  @var int
+     * @var int
      */
     protected $autoBillingReminderJobBatchesCount;
 
     /**
-     *  The unique ID of the job.
+     * The unique ID of the job.
      *
-     *  Sometimes, you may want to ensure that only one instance of a specific job is on
-     *  the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     *  interface on your job class. So the current job will not be dispatched if another
-     *  instance of the job is already on the queue and has not finished processing.
+     * Sometimes, you may want to ensure that only one instance of a specific job is on
+     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
+     * interface on your job class. So the current job will not be dispatched if another
+     * instance of the job is already on the queue and has not finished processing.
      *
-     *  Refer: https://laravel.com/docs/8.x/queues#unique-jobs
+     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
-     *  @return string
+     * @return string
      */
     public function uniqueId()
     {
@@ -85,9 +92,9 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
         $this->autoBillingReminder = $autoBillingReminder->withoutRelations();
 
         /**
-         *  It appears that the eager loaded withCount('autoBillingReminderJobBatches') is not accessible using
-         *  $autoBillingReminder->auto_billing_reminder_job_batches_count within the handle() method.
-         *  Therefore we will set this as its own parameter.
+         * It appears that the eager loaded withCount('autoBillingReminderJobBatches') is not accessible using
+         * $autoBillingReminder->auto_billing_reminder_job_batches_count within the handle() method.
+         * Therefore we will set this as its own parameter.
          */
         $this->autoBillingReminderJobBatchesCount = $autoBillingReminderJobBatchesCount;
     }
@@ -104,30 +111,30 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
             if(!empty($this->pricingPlan->next_auto_billing_reminder_sms_message)) {
 
                 /**
-                 *  Query the subscribers that are soon ready for billing.
+                 * Query the subscribers that are soon ready for billing.
                  *
-                 *  Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
+                 * Limit the loaded subscriber to the subscriber id and msisdn to consume less memory.
                  *
-                 *  The final query output is as follows:
+                 * The final query output is as follows:
                  *
-                 *  [
-                 *      {
-                 *          "id": 1,
-                 *          "msisdn": "26772000001"
-                 *      },
-                 *      ...
-                 *  ]
+                 * [
+                 * {
+                 * "id": 1,
+                 * "msisdn": "26772000001"
+                 * },
+                 * ...
+                 * ]
                  */
                 $subscribers = $this->project->subscribers()->whereHas('autoBillingSchedules', function (Builder $query) {
 
                     /**
-                     *  @var int $hours
+                     * @var int $hours
                      */
                     $hours = $this->autoBillingReminder->hours;
 
                     /**
-                     *  Must have an auto billing schedule where the next_attempt_date
-                     *  is set to be exactly x hours from now or less.
+                     * Must have an auto billing schedule where the next_attempt_date
+                     * is set to be exactly x hours from now or less.
                      */
                     $query->where('auto_billing_enabled', '1')
                         ->where('next_attempt_date', '>', now())
@@ -178,9 +185,9 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
                     if( count($jobs) > 0 ) {
 
                         /**
-                         *  We cannot reference "$this->autoBillingReminder" within the Bus::batch() closures.
-                         *  Therefore we must create an autoBillingReminder variable that we can pass as a
-                         *  parameter of the various closures.
+                         * We cannot reference "$this->autoBillingReminder" within the Bus::batch() closures.
+                         * Therefore we must create an autoBillingReminder variable that we can pass as a
+                         * parameter of the various closures.
                          */
                         $autoBillingReminder = $this->autoBillingReminder;
 

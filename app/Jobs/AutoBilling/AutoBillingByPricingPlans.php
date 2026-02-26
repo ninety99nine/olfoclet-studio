@@ -16,6 +16,13 @@ class AutoBillingByPricingPlans implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
+     * The name of the queue the job should be sent to.
+     *
+     * @var string|null
+     */
+    public $queue = 'high';
+
+    /**
      * Execute the job.
      *
      * @return void
@@ -28,8 +35,8 @@ class AutoBillingByPricingPlans implements ShouldQueue
             $projects = Project::canAutoBill()->with(['pricingPlans' => function($query) {
 
                 /**
-                 *  Must be active non folder pricing plans that can auto bill.
-                 *  Also count the total auto billing job batches.
+                 * Must be active non folder pricing plans that can auto bill.
+                 * Also count the total auto billing job batches.
                  */
                 return $query->active()->nonFolder()->canAutoBill()->withCount('autoBillingJobBatches');
 
@@ -42,7 +49,7 @@ class AutoBillingByPricingPlans implements ShouldQueue
                 foreach($project->pricingPlans as $pricingPlan) {
 
                     /**
-                     *  @var int $autoBillingJobBatchesCount
+                     * @var int $autoBillingJobBatchesCount
                      */
                     $autoBillingJobBatchesCount = $pricingPlan->auto_billing_job_batches_count;
 

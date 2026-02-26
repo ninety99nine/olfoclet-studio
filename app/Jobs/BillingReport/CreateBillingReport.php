@@ -22,37 +22,44 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     *  Report date
+     * The name of the queue the job should be sent to.
      *
-     *  @var Carbon
+     * @var string|null
+     */
+    public $queue = 'low';
+
+    /**
+     * Report date
+     *
+     * @var Carbon
      */
     protected $date;
 
     /**
-     *  Project instance.
+     * Project instance.
      *
-     *  @var \App\Models\Project
+     * @var \App\Models\Project
      */
     protected $project;
 
     /**
-     *  Billing transactions count
+     * Billing transactions count
      *
-     *  @var int
+     * @var int
      */
     protected $billingTransactionsCount;
 
     /**
-     *  The unique ID of the job.
+     * The unique ID of the job.
      *
-     *  Sometimes, you may want to ensure that only one instance of a specific job is on
-     *  the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     *  interface on your job class. So the current job will not be dispatched if another
-     *  instance of the job is already on the queue and has not finished processing.
+     * Sometimes, you may want to ensure that only one instance of a specific job is on
+     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
+     * interface on your job class. So the current job will not be dispatched if another
+     * instance of the job is already on the queue and has not finished processing.
      *
-     *  Refer: https://laravel.com/docs/8.x/queues#unique-jobs
+     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
-     *  @return string
+     * @return string
      */
     public function uniqueId()
     {
@@ -73,9 +80,9 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
         $this->project = $project;
 
         /**
-         *  It appears that the eager loaded withCount('billingTransactions') is not accessible using
-         *  $project->billing_transactions_count within the handle() method.
-         *  Therefore we will set this as its own parameter.
+         * It appears that the eager loaded withCount('billingTransactions') is not accessible using
+         * $project->billing_transactions_count within the handle() method.
+         * Therefore we will set this as its own parameter.
          */
         $this->billingTransactionsCount = $billingTransactionsCount;
     }
@@ -105,12 +112,12 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
                 return [
 
                     /**
-                     *  This will run as follows:
+                     * This will run as follows:
                      *
-                     *  USAF => 2000 * 1/100
-                     *  BOCRA => 2000 * 4/100
-                     *  VAT (14%) => 2000 * 14/100
-                     *  Dealer Commission (Airtime) => 2000 * 13.5/100
+                     * USAF => 2000 * 1/100
+                     * BOCRA => 2000 * 4/100
+                     * VAT (14%) => 2000 * 14/100
+                     * Dealer Commission (Airtime) => 2000 * 13.5/100
                      */
                     $cost['name'] => $gross_revenue * $cost['percentage'] / 100
 

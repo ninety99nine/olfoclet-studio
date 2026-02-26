@@ -24,6 +24,13 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
+    /**
+     * The name of the queue the job should be sent to.
+     *
+     * @var string|null
+     */
+    public $queue = 'sms';
+
     public $project;
     public $message;
     public $subscriber;
@@ -57,16 +64,16 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     *  The unique ID of the job.
+     * The unique ID of the job.
      *
-     *  Sometimes, you may want to ensure that only one instance of a specific job is on
-     *  the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     *  interface on your job class. So the current job will not be dispatched if another
-     *  instance of the job is already on the queue and has not finished processing.
+     * Sometimes, you may want to ensure that only one instance of a specific job is on
+     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
+     * interface on your job class. So the current job will not be dispatched if another
+     * instance of the job is already on the queue and has not finished processing.
      *
-     *  Refer: https://laravel.com/docs/8.x/queues#unique-jobs
+     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
-     *  @return string
+     * @return string
      */
     public function uniqueId()
     {
@@ -74,15 +81,15 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     }
 
     /**
-     *  Get the middleware the job should pass through.
+     * Get the middleware the job should pass through.
      *
-     *  As you may have noticed in the previous examples, batched jobs should typically determine
-     *  if their corresponding batch has been cancelled before continuing execution. However, for
-     *  convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
-     *  its name indicates, this middleware will instruct Laravel to not process the job if
-     *  its corresponding batch has been cancelled:
+     * As you may have noticed in the previous examples, batched jobs should typically determine
+     * if their corresponding batch has been cancelled before continuing execution. However, for
+     * convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
+     * its name indicates, this middleware will instruct Laravel to not process the job if
+     * its corresponding batch has been cancelled:
      *
-     *  Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
+     * Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
      */
     public function middleware(): array
     {
@@ -102,7 +109,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
             $messageType = MessageType::Content;
 
             /**
-             *  @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
+             * @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
              */
             $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $this->message, $messageType);
 
@@ -110,10 +117,10 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
             $this->updateSmsCampaignSubscriber($subscriberMessage);
 
             /**
-             *  Return True or False as an indication for whether the SMS sent successfully or not.
-             *  If we return True then this event will be removed from the queue, otherwise if we
-             *  return False then this event will be added again to the queue so that we can retry
-             *  this event 3 times every 1 hour before being rejected entirely.
+             * Return True or False as an indication for whether the SMS sent successfully or not.
+             * If we return True then this event will be removed from the queue, otherwise if we
+             * return False then this event will be added again to the queue so that we can retry
+             * this event 3 times every 1 hour before being rejected entirely.
              */
             return $subscriberMessage->is_successful;
 
@@ -129,7 +136,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     /**
      * Update the sms campaign schedule record.
      *
-     *  @var SubscriberMessage $subscriberMessage
+     * @var SubscriberMessage $subscriberMessage
      *
      * @return void
      */
@@ -139,7 +146,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
         $smsSentAt = $subscriberMessage->created_at;
 
         /**
-         *  @var bool $isSuccessful Whether the sms was sent successfully
+         * @var bool $isSuccessful Whether the sms was sent successfully
          */
         $isSuccessful = $subscriberMessage->is_successful;
 
