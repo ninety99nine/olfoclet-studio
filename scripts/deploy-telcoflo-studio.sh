@@ -36,14 +36,14 @@ echo "==> 5. Starting queue workers..."
 sudo supervisorctl start all
 
 echo "==> 6. Checking services..."
-for svc in nginx mysql supervisord; do
+for svc in nginx mysql supervisord supervisor; do
   if sudo systemctl is-active --quiet "$svc" 2>/dev/null; then
     echo "  $svc: running"
   else
     echo "  $svc: not running (run: sudo systemctl status $svc)"
   fi
 done
-for f in /etc/init.d/php*-fpm 2>/dev/null; do
+for f in /etc/init.d/php*-fpm; do
   [ -e "$f" ] && echo "  $(basename "$f"): $(sudo systemctl is-active "$(basename "$f")" 2>/dev/null || echo '?')"
 done
 
