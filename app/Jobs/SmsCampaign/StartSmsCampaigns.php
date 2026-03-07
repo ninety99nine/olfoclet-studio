@@ -16,11 +16,13 @@ class StartSmsCampaigns implements ShouldQueue
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
+     * Create a new job instance.
+     * Queue is set in constructor to avoid PHP 8.2+ conflict with Queueable trait's $queue property.
      */
-    public $queue = 'high';
+    public function __construct()
+    {
+        $this->onQueue('high');
+    }
 
     /**
      * Execute the job.
