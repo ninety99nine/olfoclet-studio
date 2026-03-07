@@ -14,9 +14,9 @@ echo "==> 1. Stopping queue workers..."
 sudo supervisorctl stop all
 
 echo "==> 2. Pulling main..."
-# Ensure all users (including www-data) trust this repo (Git 2.35+ dubious ownership)
-sudo git config --system --add safe.directory "$APP_DIR" 2>/dev/null || true
-cd "$APP_DIR" && sudo -u www-data git pull origin main
+# Pull as root (script runs under sudo) so .git stays writable; fix ownership of writable dirs only
+cd "$APP_DIR" && git pull origin main
+chown -R www-data:www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache" 2>/dev/null || true
 
 echo "==> 3. Clearing caches..."
 cd "$APP_DIR" && sudo php artisan cache:clear
