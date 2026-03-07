@@ -31,6 +31,7 @@ class StartSmsCampaigns implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('StartSmsCampaigns: job started');
         try{
 
             //  Get projects that can send messages
@@ -68,8 +69,14 @@ class StartSmsCampaigns implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::error('StartSmsCampaigns Job Failed: '. $th->getMessage());
-
+            Log::error('StartSmsCampaigns Job Failed', [
+                'message' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+            throw $th;
         }
+        Log::info('StartSmsCampaigns: job completed');
     }
 }

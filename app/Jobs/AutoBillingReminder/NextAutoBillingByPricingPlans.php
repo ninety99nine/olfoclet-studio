@@ -35,6 +35,7 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('NextAutoBillingByPricingPlans: job started');
         try{
 
             $pricingPlanAutoBillingReminders = PricingPlanAutoBillingReminder::whereHas('project', function($query) {
@@ -100,8 +101,14 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::error('NextAutoBillingByPricingPlans Job Failed: '. $th->getMessage());
-
+            Log::error('NextAutoBillingByPricingPlans Job Failed', [
+                'message' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+            throw $th;
         }
+        Log::info('NextAutoBillingByPricingPlans: job completed');
     }
 }

@@ -31,6 +31,7 @@ class AutoBillingByPricingPlans implements ShouldQueue
      */
     public function handle()
     {
+        Log::info('AutoBillingByPricingPlans: job started');
         try{
 
             //  Get projects that can auto bill with their pricing plans that can also auto bill
@@ -64,8 +65,14 @@ class AutoBillingByPricingPlans implements ShouldQueue
 
         } catch (\Throwable $th) {
 
-            Log::error('AutoBillingByPricingPlans Job Failed: '. $th->getMessage());
-
+            Log::error('AutoBillingByPricingPlans Job Failed', [
+                'message' => $th->getMessage(),
+                'file' => $th->getFile(),
+                'line' => $th->getLine(),
+                'trace' => $th->getTraceAsString(),
+            ]);
+            throw $th;
         }
+        Log::info('AutoBillingByPricingPlans: job completed');
     }
 }
