@@ -36,7 +36,8 @@ echo "==> 5. Starting queue workers..."
 sudo supervisorctl start all
 
 echo "==> 6. Checking services..."
-for svc in nginx mysql supervisord supervisor; do
+# On Ubuntu the service is "supervisor" (not "supervisord")
+for svc in nginx mysql supervisor; do
   if sudo systemctl is-active --quiet "$svc" 2>/dev/null; then
     echo "  $svc: running"
   else
