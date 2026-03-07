@@ -14,8 +14,8 @@ echo "==> 1. Stopping queue workers..."
 sudo supervisorctl stop all
 
 echo "==> 2. Pulling main..."
-# Ensure www-data trusts this repo (Git 2.35+ dubious ownership check)
-sudo -u www-data git config --global --add safe.directory "$APP_DIR" 2>/dev/null || true
+# Ensure all users (including www-data) trust this repo (Git 2.35+ dubious ownership)
+sudo git config --system --add safe.directory "$APP_DIR" 2>/dev/null || true
 cd "$APP_DIR" && sudo -u www-data git pull origin main
 
 echo "==> 3. Clearing caches..."
