@@ -2,6 +2,8 @@
 
 namespace App\Jobs\SmsDeliveryStatus;
 
+use Exception;
+use Throwable;
 use App\Models\Project;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
@@ -46,19 +48,14 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
     public function __construct(Project $project, SubscriberMessage $subscriberMessage)
     {
         $this->onQueue('low');
-        $this->project = $project;
+
+        // CRITICAL: Strip relationships from BOTH models to prevent massive serialized queue payloads
+        $this->project = $project->withoutRelations();
         $this->subscriberMessage = $subscriberMessage->withoutRelations();
     }
 
     /**
      * The unique ID of the job.
-     *
-     * Sometimes, you may want to ensure that only one instance of a specific job is on
-     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     * interface on your job class. So the current job will not be dispatched if another
-     * instance of the job is already on the queue and has not finished processing.
-     *
-     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
      * @return string
      */
@@ -69,14 +66,6 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
 
     /**
      * Get the middleware the job should pass through.
-     *
-     * As you may have noticed in the previous examples, batched jobs should typically determine
-     * if their corresponding batch has been cancelled before continuing execution. However, for
-     * convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
-     * its name indicates, this middleware will instruct Laravel to not process the job if
-     * its corresponding batch has been cancelled:
-     *
-     * Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
      */
     public function middleware(): array
     {
@@ -93,23 +82,29 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
         try {
 
             /**
-             * @var SubscriberMessage $subscriberMessage
+             * Update the delivery status via the service
+             * * @var SubscriberMessage $updatedSubscriberMessage
              */
-            $subscriberMessage = SmsService::updateSmsDeliveryStatus($this->project, $this->subscriberMessage);
+            $updatedSubscriberMessage = SmsService::updateSmsDeliveryStatus($this->project, $this->subscriberMessage);
 
             /**
-             * Return True or False as an indication for whether the SMS delivery status update was successful or not.
-             * If we return True then this event will be removed from the queue, otherwise if we return False then
-             * this event will be added again to the queue so that we can retry this event 3 times every 1 hour
-             * before being rejected entirely.
+             * CRITICAL FIX: The Retry Mechanism
+             * Returning 'false' does NOT tell Laravel to retry the job. It marks it as successful and deletes it.
+             * To utilize $tries = 3 and $retryAfter = 3600, we MUST throw an exception on failure.
              */
-            return $subscriberMessage->delivery_status_update_is_successful;
+            if (!$updatedSubscriberMessage->delivery_status_update_is_successful) {
+                throw new Exception('SMS delivery status update failed or the provider API did not return a successful response.');
+            }
 
-        } catch (\Throwable $th) {
+            // Explicitly free memory for the daemon worker before it picks up the next job
+            unset($this->project, $this->subscriberMessage, $updatedSubscriberMessage);
+
+        } catch (Throwable $th) {
 
             Log::error('UpdateSmsDeliveryStatus Job Failed: '. $th->getMessage());
 
-            return false;
+            // Re-throw the exception so the queue worker registers the failure and schedules the retry
+            throw $th;
 
         }
     }

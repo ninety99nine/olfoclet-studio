@@ -2,6 +2,7 @@
 
 namespace App\Jobs\AutoBilling;
 
+use Throwable;
 use App\Models\Project;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -9,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+// use Illuminate\Contracts\Queue\ShouldBeUnique;
 
 class AutoBillingByPricingPlans implements ShouldQueue
 {
@@ -32,36 +33,43 @@ class AutoBillingByPricingPlans implements ShouldQueue
     public function handle()
     {
         Log::info('AutoBillingByPricingPlans: job started');
-        try{
 
-            //  Get projects that can auto bill with their pricing plans that can also auto bill
-            $projects = Project::canAutoBill()->with(['pricingPlans' => function($query) {
+        try {
+            /**
+             * Use chunkById instead of get().
+             * This processes 100 projects at a time, keeping RAM usage flat and predictable
+             * no matter if you have 10 projects or 100,000 projects.
+             */
+            Project::canAutoBill()
+                ->with(['pricingPlans' => function($query) {
+                    return $query->active()->nonFolder()->canAutoBill()->withCount('autoBillingJobBatches');
+                }])
+                ->chunkById(100, function ($projects) {
 
-                /**
-                 * Must be active non folder pricing plans that can auto bill.
-                 * Also count the total auto billing job batches.
-                 */
-                return $query->active()->nonFolder()->canAutoBill()->withCount('autoBillingJobBatches');
+                    // Foreach project in this specific chunk
+                    foreach ($projects as $project) {
 
-            }])->get();
+                        // Foreach pricing plan in the project
+                        foreach ($project->pricingPlans as $pricingPlan) {
 
-            // Foreach project
-            foreach ($projects as $project) {
+                            $autoBillingJobBatchesCount = $pricingPlan->auto_billing_job_batches_count ?? 0;
 
-                // Foreach pricing plan
-                foreach($project->pricingPlans as $pricingPlan) {
+                            /**
+                             * Crucial Optimization: withoutRelations()
+                             * By stripping the relations BEFORE dispatching, we prevent the Queue
+                             * from serializing massive, heavy objects. This keeps your Redis/Database
+                             * queue payload extremely small and fast to process.
+                             */
+                            AutoBillingByPricingPlan::dispatch(
+                                $project->withoutRelations(),
+                                $pricingPlan->withoutRelations(),
+                                $autoBillingJobBatchesCount
+                            );
 
-                    /**
-                     * @var int $autoBillingJobBatchesCount
-                     */
-                    $autoBillingJobBatchesCount = $pricingPlan->auto_billing_job_batches_count;
+                        }
+                    }
 
-                    //  Add this job to the queue for processing
-                    AutoBillingByPricingPlan::dispatch($project, $pricingPlan, $autoBillingJobBatchesCount);
-
-                }
-
-            }
+                });
 
         } catch (\Throwable $th) {
 
@@ -69,10 +77,12 @@ class AutoBillingByPricingPlans implements ShouldQueue
                 'message' => $th->getMessage(),
                 'file' => $th->getFile(),
                 'line' => $th->getLine(),
-                'trace' => $th->getTraceAsString(),
+                // Removed getTraceAsString() as it can heavily bloat your log files on queue errors
             ]);
+
             throw $th;
         }
+
         Log::info('AutoBillingByPricingPlans: job completed');
     }
 }

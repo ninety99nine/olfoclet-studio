@@ -2,6 +2,7 @@
 
 namespace App\Jobs\AutoBilling;
 
+use Exception;
 use App\Models\Project;
 use App\Enums\MessageType;
 use App\Models\Subscriber;
@@ -48,38 +49,25 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
     public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan)
     {
         $this->onQueue('sms');
-        $this->project = $project;
-        $this->subscriber = $subscriber;
-        $this->pricingPlan = $pricingPlan;
+
+        // Strip relationships to prevent heavy payloads in the queue
+        $this->project = $project->withoutRelations();
+        $this->subscriber = $subscriber->withoutRelations();
+        $this->pricingPlan = $pricingPlan->withoutRelations();
     }
 
     /**
      * The unique ID of the job.
      *
-     * Sometimes, you may want to ensure that only one instance of a specific job is on
-     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     * interface on your job class. So the current job will not be dispatched if another
-     * instance of the job is already on the queue and has not finished processing.
-     *
-     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
-     *
      * @return string
      */
     public function uniqueId()
     {
-        return $this->pricingPlan->id.'-'.$this->subscriber->id;
+        return $this->pricingPlan->id . '-' . $this->subscriber->id;
     }
 
     /**
      * Get the middleware the job should pass through.
-     *
-     * As you may have noticed in the previous examples, batched jobs should typically determine
-     * if their corresponding batch has been cancelled before continuing execution. However, for
-     * convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
-     * its name indicates, this middleware will instruct Laravel to not process the job if
-     * its corresponding batch has been cancelled:
-     *
-     * Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
      */
     public function middleware(): array
     {
@@ -94,44 +82,45 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
     public function handle()
     {
         try {
-
-            if(!empty($this->pricingPlan->auto_billing_disabled_sms_message)) {
-
-                //  Set the message type
-                $messageType = MessageType::AutoBillingDisabled;
-
-                /**
-                 * Set the auto billing disabled sms message
-                 *
-                 * @var string $messageContent
-                 */
-                $messageContent = $this->pricingPlan->craftAutoBillingDisabledSmsMessage();
-
-                /**
-                 * @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
-                 */
-                $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
-
-                /**
-                 * @var bool $isSuccessful Whether the sms was sent successfully
-                 */
-                $isSuccessful = $subscriberMessage->is_successful;
-
-                /**
-                 * Return True or False as an indication for whether the SMS sent successfully or not.
-                 * If we return True then this event will be removed from the queue, otherwise if we
-                 * return False then this event will be added again to the queue so that we can retry
-                 * this event 3 times every 1 hour before being rejected entirely.
-                 */
-                return $isSuccessful;
-
+            // Early exit if there is no message to send
+            if (empty($this->pricingPlan->auto_billing_disabled_sms_message)) {
+                return;
             }
+
+            // Set the message type and craft the content
+            $messageType = MessageType::AutoBillingDisabled;
+            $messageContent = $this->pricingPlan->craftAutoBillingDisabledSmsMessage();
+
+            /**
+             * Send the SMS via the service
+             *
+             * @var SubscriberMessage $subscriberMessage
+             */
+            $subscriberMessage = SmsService::sendSms(
+                $this->project,
+                $this->subscriber,
+                $messageContent,
+                $messageType
+            );
+
+            /**
+             * If the SMS was NOT sent successfully, we throw an exception.
+             * This explicitly tells Laravel the job failed, triggering your
+             * $tries = 3 and $retryAfter = 3600 logic.
+             */
+            if (!$subscriberMessage->is_successful) {
+                throw new Exception('SMS sending failed or was rejected by the provider.');
+            }
+
+            // Explicitly free memory for the daemon worker before picking up the next job
+            unset($this->project, $this->subscriber, $this->pricingPlan, $subscriberMessage);
 
         } catch (\Throwable $th) {
 
-            Log::error('SendAutoBillingDisabledSms Job Failed: '. $th->getMessage());
+            Log::error('SendAutoBillingDisabledSms Job Failed: ' . $th->getMessage());
 
-            return false;
+            // Re-throw the exception so the queue worker logs the failure and schedules the retry
+            throw $th;
 
         }
     }

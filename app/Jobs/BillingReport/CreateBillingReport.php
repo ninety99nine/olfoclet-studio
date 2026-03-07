@@ -3,6 +3,7 @@
 namespace App\Jobs\BillingReport;
 
 use Carbon\Carbon;
+use Throwable;
 use App\Models\Project;
 use App\Models\BillingReport;
 use Illuminate\Bus\Queueable;
@@ -43,14 +44,21 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     protected $billingTransactionsCount;
 
     /**
+     * The number of times the job may be attempted.
+     *
+     * @var int
+     */
+    public $tries = 3;
+
+    /**
+     * The number of seconds to wait before retrying the job.
+     *
+     * @var int
+     */
+    public $retryAfter = 600; // 10 minutes (File generation might take a while)
+
+    /**
      * The unique ID of the job.
-     *
-     * Sometimes, you may want to ensure that only one instance of a specific job is on
-     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     * interface on your job class. So the current job will not be dispatched if another
-     * instance of the job is already on the queue and has not finished processing.
-     *
-     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
      *
      * @return string
      */
@@ -62,7 +70,8 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     /**
      * Create a new job instance.
      *
-     * @param App\Models\Project $project
+     * @param \App\Models\Project $project
+     * @param Carbon $date
      * @param int $billingTransactionsCount
      *
      * @return void
@@ -71,13 +80,10 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     {
         $this->onQueue('low');
         $this->date = $date;
-        $this->project = $project;
 
-        /**
-         * It appears that the eager loaded withCount('billingTransactions') is not accessible using
-         * $project->billing_transactions_count within the handle() method.
-         * Therefore we will set this as its own parameter.
-         */
+        // CRITICAL: Prevent serializing the entire loaded project graph into the queue payload
+        $this->project = $project->withoutRelations();
+
         $this->billingTransactionsCount = $billingTransactionsCount;
     }
 
@@ -88,100 +94,90 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
-        try{
+        try {
+            Log::info("CreateBillingReport() handle started for Project ID: " . $this->project->id);
 
-            Log::info("CreateBillingReport() handle:");
-
-            $gross_revenue = $this->project->billingTransactions()->where('is_successful', '1')
-                                     ->whereMonth('created_at', $this->date->month)
-                                     ->whereYear('created_at', $this->date->year)
-                                     ->sum('amount');
+            // Execute as an aggregate query directly on the database (Highly memory efficient)
+            $gross_revenue = (float) $this->project->billingTransactions()
+                ->where('is_successful', '1')
+                ->whereMonth('created_at', $this->date->month)
+                ->whereYear('created_at', $this->date->year)
+                ->sum('amount');
 
             $cost_percentage = collect($this->project->costs)->sum('percentage') / 100;
-
             $costs = $gross_revenue * $cost_percentage;
 
-            $cost_breakdown = collect($this->project->costs)->mapWithKeys(function($cost, $key) use ($gross_revenue) {
-
+            $cost_breakdown = collect($this->project->costs)->mapWithKeys(function ($cost) use ($gross_revenue) {
                 return [
-
-                    /**
-                     * This will run as follows:
-                     *
-                     * USAF => 2000 * 1/100
-                     * BOCRA => 2000 * 4/100
-                     * VAT (14%) => 2000 * 14/100
-                     * Dealer Commission (Airtime) => 2000 * 13.5/100
-                     */
                     $cost['name'] => $gross_revenue * $cost['percentage'] / 100
-
                 ];
-
             })->all();
 
             $sharable_revenue = $gross_revenue - $costs;
-
             $name = BillingReport::getNameFromDate($this->date);
-
             $our_share = $sharable_revenue * $this->project->our_share_percentage / 100;
-
             $their_share = $sharable_revenue * $this->project->their_share_percentage / 100;
 
             $billingReport = BillingReport::create([
-                'name' => $name,
-                'costs' => $costs,
-                'our_share' => $our_share,
-                'year' => $this->date->year,
-                'month' => $this->date->month,
-                'their_share' => $their_share,
-                'gross_revenue' => $gross_revenue,
-                'project_id' => $this->project->id,
-                'cost_breakdown' => $cost_breakdown,
-                'sharable_revenue' => $sharable_revenue,
+                'name'               => $name,
+                'costs'              => $costs,
+                'our_share'          => $our_share,
+                'year'               => $this->date->year,
+                'month'              => $this->date->month,
+                'their_share'        => $their_share,
+                'gross_revenue'      => $gross_revenue,
+                'project_id'         => $this->project->id,
+                'cost_breakdown'     => $cost_breakdown,
+                'sharable_revenue'   => $sharable_revenue,
                 'total_transactions' => $this->billingTransactionsCount
             ]);
 
-            Log::info("Created database record");
+            Log::info("Created database record for report ID: " . $billingReport->id);
 
-            $overviewPdfPath = $this->project->id.'/pdf_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Overview.pdf';
+            $overviewPdfPath = $this->project->id . '/pdf_files/' . $this->date->shortMonthName . '-' . $this->date->year . '-Overview.pdf';
 
-            //  Create the monthly billing report pdf file
+            // Create the monthly billing report pdf file
             Pdf::view('pdfs/monthly-billing-report-overview', [
-                'project' => $this->project,
+                'project'       => $this->project,
                 'billingReport' => $billingReport,
             ])->disk('public_uploads')
               ->save($overviewPdfPath);
 
-            Log::info("Created pdf");
+            Log::info("Created PDF: " . $overviewPdfPath);
 
-            $successfulTransactionsCsvPath = $this->project->id.'/csv_files/'.$this->date->shortMonthName.'-'.$this->date->year.'-Transactions.csv';
+            $successfulTransactionsCsvPath = $this->project->id . '/csv_files/' . $this->date->shortMonthName . '-' . $this->date->year . '-Transactions.csv';
 
-            //  Create the monthly billing report transactions xml file
-            (new BillingReportTransactionsExport($this->project, $this->date))->store($successfulTransactionsCsvPath, 'public_uploads');
+            // Create the monthly billing report transactions csv file
+            (new BillingReportTransactionsExport($this->project, $this->date))
+                ->store($successfulTransactionsCsvPath, 'public_uploads');
 
-            Log::info("Created csv");
+            Log::info("Created CSV: " . $successfulTransactionsCsvPath);
 
             $billingReport->update([
-                'overview_pdf_path' => $overviewPdfPath,
+                'overview_pdf_path'                => $overviewPdfPath,
                 'successful_transactions_csv_path' => $successfulTransactionsCsvPath
             ]);
 
-            foreach($this->project->billing_report_email_addresses as $emailAddress) {
-
-                //  Send Monthly Billing Report Email
+            // Dispatch emails
+            $emailAddresses = $this->project->billing_report_email_addresses ?? [];
+            foreach ($emailAddresses as $emailAddress) {
                 Mail::to($emailAddress)->queue(new MonthlyBillingReport($this->project, $billingReport));
-
-                Log::info("send email:".$emailAddress);
-
+                Log::info("Queued email to: " . $emailAddress);
             }
 
-        } catch (\Throwable $th) {
+            // Explicitly free memory for the daemon worker (Crucial after heavy PDF/CSV operations)
+            unset($this->project, $billingReport);
 
-            Log::error('CreateBillingReport Job Failed: '. $th->getMessage());
+        } catch (Throwable $th) {
 
-            return false;
+            Log::error('CreateBillingReport Job Failed: ' . $th->getMessage());
 
+            /**
+             * CRITICAL FIX: The Retry Mechanism
+             * Returning false silently kills the job. Throwing the exception ensures
+             * Laravel will retry it later if it failed due to a timeout or disk issue.
+             */
+            throw $th;
         }
     }
-
 }

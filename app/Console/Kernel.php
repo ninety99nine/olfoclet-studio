@@ -2,6 +2,8 @@
 
 namespace App\Console;
 
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use App\Jobs\SmsCampaign\StartSmsCampaigns;
 use Illuminate\Console\Scheduling\Schedule;
 use App\Jobs\BillingReport\StartCreatingBillingReports;
@@ -54,43 +56,59 @@ class Kernel extends ConsoleKernel
          */
 
         // ------------------------------------------------------------------
-        // NEW: PREVENT DATABASE BLOAT FROM GROWING TO HUNDREDS OF MEGABYTES
+        // PREVENT DATABASE BLOAT FROM GROWING TO HUNDREDS OF MEGABYTES
         // ------------------------------------------------------------------
-        $schedule->command('queue:prune-batches --hours=24')->daily();
+
+        // 1. Added --unfinished flag. Without this, failed/stuck batches stay in the DB forever.
+        $schedule->command('queue:prune-batches --hours=24 --unfinished=72')->daily();
+
         $schedule->command('queue:prune-failed --hours=72')->daily();
+
+        // 2. Custom Pruning for your specific Job Batch tracking tables
+        $schedule->call(function () {
+            $cutoff = Carbon::now()->subDays(3); // Keep 3 days of history for debugging
+
+            DB::table('auto_billing_job_batches')->where('created_at', '<', $cutoff)->delete();
+            DB::table('auto_billing_reminder_job_batches')->where('created_at', '<', $cutoff)->delete();
+            DB::table('sms_campaign_job_batches')->where('created_at', '<', $cutoff)->delete();
+
+        })->daily()->name('PruneCustomJobBatches')->withoutOverlapping();
 
         //  If we can create Billing Reports
         if(config('app.CAN_CREATE_BILLING_REPORTS')) {
-
-            //  Add this job to the queue for processing
-            $schedule->job(new StartCreatingBillingReports)->name('StartCreatingBillingReports')->hourly()->between('00:00', '06:00')->withoutOverlapping();
-
+            $schedule->job(new StartCreatingBillingReports)
+                ->name('StartCreatingBillingReports')
+                ->hourly()
+                ->between('00:00', '06:00')
+                ->withoutOverlapping();
         }
 
         //  If we can run Auto Billing
         if(config('app.CAN_RUN_AUTO_BILLING')) {
+            $schedule->job(new AutoBillingByPricingPlans)
+                ->name('AutoBillingByPricingPlansJob')
+                ->everyMinute()
+                ->withoutOverlapping();
 
-            //  Add this job to the queue for processing
-            $schedule->job(new AutoBillingByPricingPlans)->name('AutoBillingByPricingPlansJob')->everyMinute()->withoutOverlapping();
-
-            //  Add this job to the queue for processing
-            $schedule->job(new NextAutoBillingByPricingPlans)->name('NextAutoBillingByPricingPlansJob')->everyMinute()->withoutOverlapping();
-
+            $schedule->job(new NextAutoBillingByPricingPlans)
+                ->name('NextAutoBillingByPricingPlansJob')
+                ->everyMinute()
+                ->withoutOverlapping();
         }
 
         //  If we can run SMS campaigns
         if(config('app.CAN_RUN_SMS_CAMPAIGNS')) {
-
-            //  Add this job to the queue for processing
-            $schedule->job(new StartSmsCampaigns)->name('StartSmsCampaignsJob')->everyMinute()->withoutOverlapping();
-
+            $schedule->job(new StartSmsCampaigns)
+                ->name('StartSmsCampaignsJob')
+                ->everyMinute()
+                ->withoutOverlapping();
         }
 
         if(config('app.CAN_RUN_AUTO_BILLING') || config('app.CAN_RUN_SMS_CAMPAIGNS')) {
-
-            //  Add this job to the queue for processing
-            $schedule->job(new StartSmsDeliveryStatusUpdate)->name('StartSmsDeliveryStatusUpdateJob')->everyMinute()->withoutOverlapping();
-
+            $schedule->job(new StartSmsDeliveryStatusUpdate)
+                ->name('StartSmsDeliveryStatusUpdateJob')
+                ->everyMinute()
+                ->withoutOverlapping();
         }
     }
 

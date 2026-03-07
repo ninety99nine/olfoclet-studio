@@ -2,6 +2,8 @@
 
 namespace App\Jobs\AutoBillingReminder;
 
+use Exception;
+use Throwable;
 use App\Models\Project;
 use App\Enums\MessageType;
 use App\Models\Subscriber;
@@ -52,39 +54,26 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
     public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan, AutoBillingReminder $autoBillingReminder)
     {
         $this->onQueue('sms');
-        $this->project = $project;
-        $this->subscriber = $subscriber;
-        $this->pricingPlan = $pricingPlan;
-        $this->autoBillingReminder = $autoBillingReminder;
+
+        // CRITICAL: Strip relationships from ALL models to prevent massive serialized queue payloads
+        $this->project = $project->withoutRelations();
+        $this->subscriber = $subscriber->withoutRelations();
+        $this->pricingPlan = $pricingPlan->withoutRelations();
+        $this->autoBillingReminder = $autoBillingReminder->withoutRelations();
     }
 
     /**
      * The unique ID of the job.
      *
-     * Sometimes, you may want to ensure that only one instance of a specific job is on
-     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     * interface on your job class. So the current job will not be dispatched if another
-     * instance of the job is already on the queue and has not finished processing.
-     *
-     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
-     *
      * @return string
      */
     public function uniqueId()
     {
-        return $this->pricingPlan->id.'-'.$this->subscriber->id;
+        return $this->pricingPlan->id . '-' . $this->subscriber->id;
     }
 
     /**
      * Get the middleware the job should pass through.
-     *
-     * As you may have noticed in the previous examples, batched jobs should typically determine
-     * if their corresponding batch has been cancelled before continuing execution. However, for
-     * convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
-     * its name indicates, this middleware will instruct Laravel to not process the job if
-     * its corresponding batch has been cancelled:
-     *
-     * Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
      */
     public function middleware(): array
     {
@@ -100,76 +89,81 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
     {
         try {
 
-            if(!empty($this->pricingPlan->next_auto_billing_reminder_sms_message)) {
+            // Early exit to keep code clean and prevent unnecessary processing
+            if (empty($this->pricingPlan->next_auto_billing_reminder_sms_message)) {
+                return;
+            }
 
-                //  Set the message type
-                $messageType = MessageType::AutoBillingReminder;
+            // Set the message type
+            $messageType = MessageType::AutoBillingReminder;
 
-                /**
-                 * @var Subscription $subscriptionWithFurthestEndAt
-                 */
-                $subscriptionWithFurthestEndAt = $this->subscriber->subscriptionWithFurthestEndAt()
-                                                    ->where('pricing_plan_id', $this->pricingPlan->id)->first();
+            /**
+             * @var Subscription $subscriptionWithFurthestEndAt
+             */
+            $subscriptionWithFurthestEndAt = $this->subscriber->subscriptionWithFurthestEndAt()
+                ->where('pricing_plan_id', $this->pricingPlan->id)
+                ->first();
 
-                /**
-                 * Set the next auto billing reminder sms message
-                 *
-                 * @var string $messageContent
-                 */
-                $messageContent = $this->pricingPlan->craftNextAutoBillingReminderSmsMessage($subscriptionWithFurthestEndAt);
+            /**
+             * Set the next auto billing reminder sms message
+             * @var string $messageContent
+             */
+            $messageContent = $this->pricingPlan->craftNextAutoBillingReminderSmsMessage($subscriptionWithFurthestEndAt);
 
-                /**
-                 * @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
-                 */
-                $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
+            /**
+             * Send the SMS via the service
+             * @var SubscriberMessage $subscriberMessage
+             */
+            $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $messageContent, $messageType);
 
-                /**
-                 * @var bool $isSuccessful Whether the sms was sent successfully
-                 */
-                $isSuccessful = $subscriberMessage->is_successful;
+            // If the SMS was successfully sent
+            if ($subscriberMessage->is_successful) {
 
-                if($isSuccessful) {
+                $hours = $this->autoBillingReminder->hours;
+                $data = [];
 
-                    /**
-                     * @var int $hours
-                     */
-                    $hours = $this->autoBillingReminder->hours;
+                if ($hours == 1) {
+                    $data = ['reminded_one_hour_before_at' => $subscriberMessage->created_at];
+                } else if ($hours == 6) {
+                    $data = ['reminded_six_hours_before_at' => $subscriberMessage->created_at];
+                } else if ($hours == 12) {
+                    $data = ['reminded_twelve_hours_before_at' => $subscriberMessage->created_at];
+                } else if ($hours == 24) {
+                    $data = ['reminded_twenty_four_hours_before_at' => $subscriberMessage->created_at];
+                } else if ($hours == 48) {
+                    $data = ['reminded_forty_eight_hours_before_at' => $subscriberMessage->created_at];
+                } else if ($hours == 72) {
+                    $data = ['reminded_seventy_two_hours_before_at' => $subscriberMessage->created_at];
+                }
 
-                    if($hours == 1) {
-                        $data = ['reminded_one_hour_before_at' => $subscriberMessage->created_at];
-                    }else if($hours == 6) {
-                        $data = ['reminded_six_hours_before_at' => $subscriberMessage->created_at];
-                    }else if($hours == 12) {
-                        $data = ['reminded_twelve_hours_before_at' => $subscriberMessage->created_at];
-                    }else if($hours == 24) {
-                        $data = ['reminded_twenty_four_hours_before_at' => $subscriberMessage->created_at];
-                    }else if($hours == 48) {
-                        $data = ['reminded_forty_eight_hours_before_at' => $subscriberMessage->created_at];
-                    }else if($hours == 72) {
-                        $data = ['reminded_seventy_two_hours_before_at' => $subscriberMessage->created_at];
-                    }
-
+                // Only update if $data was actually populated
+                if (!empty($data)) {
                     DB::table('auto_billing_schedules')
                         ->where('subscriber_id', $this->subscriber->id)
                         ->where('pricing_plan_id', $this->pricingPlan->id)
                         ->update($data);
                 }
 
+            } else {
+
                 /**
-                 * Return True or False as an indication for whether the SMS sent successfully or not.
-                 * If we return True then this event will be removed from the queue, otherwise if we
-                 * return False then this event will be added again to the queue so that we can retry
-                 * this event 3 times every 1 hour before being rejected entirely.
+                 * CRITICAL FIX: The Retry Mechanism
+                 * Throwing an exception guarantees Laravel will use your $tries = 3
+                 * and $retryAfter = 3600 configuration.
                  */
-                return $isSuccessful;
+                throw new Exception('Auto Billing Reminder SMS failed to send or was rejected by the provider.');
 
             }
 
-        } catch (\Throwable $th) {
+            // Explicitly free memory for the daemon worker before it picks up the next job
+            unset($this->project, $this->subscriber, $this->pricingPlan, $this->autoBillingReminder, $subscriberMessage, $subscriptionWithFurthestEndAt);
 
-            Log::error('SendAutoBillingReminderSms Job Failed: '. $th->getMessage());
+        } catch (Throwable $th) {
 
-            return false;
+            Log::error('SendAutoBillingReminderSms Job Failed: ' . $th->getMessage());
+
+            // Re-throw the exception so the queue worker registers the failure and schedules the retry
+            throw $th;
 
         }
     }

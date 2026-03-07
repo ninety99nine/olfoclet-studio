@@ -2,6 +2,8 @@
 
 namespace App\Jobs\SmsCampaign;
 
+use Exception;
+use Throwable;
 use App\Models\Message;
 use App\Models\Project;
 use App\Enums\MessageType;
@@ -51,39 +53,26 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     public function __construct(Project $project, Subscriber $subscriber, Message $message, SmsCampaign $smsCampaign)
     {
         $this->onQueue('sms');
-        $this->project = $project;
-        $this->message = $message;
-        $this->smsCampaign = $smsCampaign;
+
+        // Strip relationships from ALL models to prevent massive serialized queue payloads
+        $this->project = $project->withoutRelations();
+        $this->message = $message->withoutRelations();
+        $this->smsCampaign = $smsCampaign->withoutRelations();
         $this->subscriber = $subscriber->withoutRelations();
     }
 
     /**
      * The unique ID of the job.
      *
-     * Sometimes, you may want to ensure that only one instance of a specific job is on
-     * the queue at any point in time. You may do so by implementing the ShouldBeUnique
-     * interface on your job class. So the current job will not be dispatched if another
-     * instance of the job is already on the queue and has not finished processing.
-     *
-     * Refer: https://laravel.com/docs/8.x/queues#unique-jobs
-     *
      * @return string
      */
     public function uniqueId()
     {
-        return $this->smsCampaign->id.'-'.$this->subscriber->id;
+        return $this->smsCampaign->id . '-' . $this->subscriber->id;
     }
 
     /**
      * Get the middleware the job should pass through.
-     *
-     * As you may have noticed in the previous examples, batched jobs should typically determine
-     * if their corresponding batch has been cancelled before continuing execution. However, for
-     * convenience, you may assign the SkipIfBatchCancelled middleware to the job instead. As
-     * its name indicates, this middleware will instruct Laravel to not process the job if
-     * its corresponding batch has been cancelled:
-     *
-     * Reference: https://laravel.com/docs/10.x/queues#cancelling-batches
      */
     public function middleware(): array
     {
@@ -99,30 +88,41 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     {
         try {
 
-            //  Set the message type
+            // Set the message type
             $messageType = MessageType::Content;
 
             /**
-             * @var SubscriberMessage $subscriberMessage The SubscriberMessage instance
+             * Send the SMS
+             * @var SubscriberMessage $subscriberMessage
              */
-            $subscriberMessage = SmsService::sendSms($this->project, $this->subscriber, $this->message, $messageType);
+            $subscriberMessage = SmsService::sendSms(
+                $this->project,
+                $this->subscriber,
+                $this->message,
+                $messageType
+            );
 
-            //  Update the sms campaign schedule
+            // Update the sms campaign schedule
             $this->updateSmsCampaignSubscriber($subscriberMessage);
 
             /**
-             * Return True or False as an indication for whether the SMS sent successfully or not.
-             * If we return True then this event will be removed from the queue, otherwise if we
-             * return False then this event will be added again to the queue so that we can retry
-             * this event 3 times every 1 hour before being rejected entirely.
+             * CRITICAL FIX:
+             * Returning 'false' does NOT trigger Laravel's retry mechanism. It assumes success and deletes the job.
+             * To utilize $tries = 3 and $retryAfter = 3600, we MUST throw an exception when it fails.
              */
-            return $subscriberMessage->is_successful;
+            if (!$subscriberMessage->is_successful) {
+                throw new Exception('SMS Campaign Message sending failed or was rejected by the provider.');
+            }
 
-        } catch (\Throwable $th) {
+            // Explicitly free memory for the daemon worker before it picks up the next job
+            unset($this->project, $this->subscriber, $this->message, $this->smsCampaign, $subscriberMessage);
 
-            Log::error('SendSmsCampaignMessage Job Failed: '. $th->getMessage());
+        } catch (Throwable $th) {
 
-            return false;
+            Log::error('SendSmsCampaignMessage Job Failed: ' . $th->getMessage());
+
+            // Re-throw the exception so the queue worker knows it crashed and schedules the retry
+            throw $th;
 
         }
     }
@@ -130,82 +130,70 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     /**
      * Update the sms campaign schedule record.
      *
-     * @var SubscriberMessage $subscriberMessage
-     *
+     * @param SubscriberMessage $subscriberMessage
      * @return void
      */
     private function updateSmsCampaignSubscriber($subscriberMessage)
     {
-        //  Set the smsSentAt datetime
+        // Set the smsSentAt datetime
         $smsSentAt = $subscriberMessage->created_at;
 
-        /**
-         * @var bool $isSuccessful Whether the sms was sent successfully
-         */
+        // Determine success state
         $isSuccessful = $subscriberMessage->is_successful;
 
-        //  Find a matching sms campaign schedule
-        $existingSmsCampaignSchedule = DB::table('sms_campaign_schedules')->where([
-            'subscriber_id' => $this->subscriber->id,
-            'sms_campaign_id' => $this->smsCampaign->id
-        ])->first();
+        /**
+         * Select ONLY the columns we actually need to calculate the updates.
+         * Grabbing the entire row into memory for thousands of jobs creates memory bloat.
+         */
+        $existingSchedule = DB::table('sms_campaign_schedules')
+            ->select('attempts', 'total_successful_attempts', 'total_failed_attempts')
+            ->where([
+                'subscriber_id' => $this->subscriber->id,
+                'sms_campaign_id' => $this->smsCampaign->id
+            ])->first();
 
-        //  Calculate the next sms campaign message date
-        $nextSmsCampaignMessageDate = $this->smsCampaign->nextSmsCampaignMessageDate();
+        // Calculate the next sms campaign message date
+        $nextMessageDate = $this->smsCampaign->nextSmsCampaignMessageDate();
 
-        //  If the matching sms campaign schedule exists
-        if( $existingSmsCampaignSchedule ) {
+        // If the matching sms campaign schedule exists
+        if ($existingSchedule) {
 
-            $attempts = ((int) $existingSmsCampaignSchedule->attempts) + 1;
+            $attempts = $existingSchedule->attempts + 1;
 
-            if($isSuccessful) {
-
-                $totalSuccessfulAttempts = $existingSmsCampaignSchedule->total_successful_attempts + 1;
-                $totalFailedAttempts = $existingSmsCampaignSchedule->total_failed_attempts;
-
-            }else{
-
-                $totalSuccessfulAttempts = $existingSmsCampaignSchedule->total_successful_attempts;
-                $totalFailedAttempts = $existingSmsCampaignSchedule->total_failed_attempts + 1;
-
+            if ($isSuccessful) {
+                $totalSuccessfulAttempts = $existingSchedule->total_successful_attempts + 1;
+                $totalFailedAttempts = $existingSchedule->total_failed_attempts;
+            } else {
+                $totalSuccessfulAttempts = $existingSchedule->total_successful_attempts;
+                $totalFailedAttempts = $existingSchedule->total_failed_attempts + 1;
             }
 
-            //  Update the matching sms campaign schedule
+            // Update the matching sms campaign schedule
             DB::table('sms_campaign_schedules')->where([
                 'subscriber_id' => $this->subscriber->id,
                 'sms_campaign_id' => $this->smsCampaign->id
             ])->update([
+                'attempts'                  => $attempts,
                 'total_successful_attempts' => $totalSuccessfulAttempts,
-                'next_message_date' => $nextSmsCampaignMessageDate,
-                'total_failed_attempts' => $totalFailedAttempts,
-                'updated_at' => $smsSentAt,
-                'attempts' => $attempts,
+                'total_failed_attempts'     => $totalFailedAttempts,
+                'next_message_date'         => $nextMessageDate,
+                'updated_at'                => $smsSentAt,
             ]);
 
-        //  If the matching sms campaign schedule does not exist
-        }else{
+        // If the matching sms campaign schedule does not exist
+        } else {
 
-            $attempts = 1;
-
-            if($isSuccessful) {
-                $totalSuccessfulAttempts = 1;
-                $totalFailedAttempts = 0;
-            }else{
-                $totalSuccessfulAttempts = 0;
-                $totalFailedAttempts = 1;
-            }
-
-            //  Create the sms campaign schedule record
+            // Create the sms campaign schedule record
             DB::table('sms_campaign_schedules')->insert([
-                'total_successful_attempts' => $totalSuccessfulAttempts,
-                'next_message_date' => $nextSmsCampaignMessageDate,
-                'total_failed_attempts' => $totalFailedAttempts,
-                'sms_campaign_id' => $this->smsCampaign->id,
-                'project_id' => $this->message->project_id,
-                'subscriber_id' => $this->subscriber->id,
-                'created_at' => $smsSentAt,
-                'updated_at' => $smsSentAt,
-                'attempts' => $attempts
+                'project_id'                => $this->message->project_id,
+                'sms_campaign_id'           => $this->smsCampaign->id,
+                'subscriber_id'             => $this->subscriber->id,
+                'attempts'                  => 1,
+                'total_successful_attempts' => $isSuccessful ? 1 : 0,
+                'total_failed_attempts'     => $isSuccessful ? 0 : 1,
+                'next_message_date'         => $nextMessageDate,
+                'created_at'                => $smsSentAt,
+                'updated_at'                => $smsSentAt,
             ]);
 
         }

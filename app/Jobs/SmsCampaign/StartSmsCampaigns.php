@@ -2,6 +2,7 @@
 
 namespace App\Jobs\SmsCampaign;
 
+use Throwable;
 use App\Models\Project;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -9,7 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
+// use Illuminate\Contracts\Queue\ShouldBeUnique; // Removed as it wasn't implemented
 
 class StartSmsCampaigns implements ShouldQueue
 {
@@ -32,51 +33,66 @@ class StartSmsCampaigns implements ShouldQueue
     public function handle()
     {
         Log::info('StartSmsCampaigns: job started');
-        try{
 
-            //  Get projects that can send messages
-            $projects = Project::canSendMessages()->whereHas('smsCampaigns', function ($query) {
+        try {
+            /**
+             * 1. Replaced ->get() with ->chunkById(100) to keep memory usage flat.
+             * 2. Added ->canSendMessages() inside the 'with' closure to prevent pulling
+             * and dispatching inactive/completed campaigns.
+             */
+            Project::canSendMessages()
+                ->whereHas('smsCampaigns', function ($query) {
+                    $query->canSendMessages();
+                })
+                ->with(['smsCampaigns' => function($query) {
+                    // CRITICAL FIX: Actually scope the eager loaded models!
+                    return $query->canSendMessages()->withCount('smsCampaignBatchJobs');
+                }])
+                ->chunkById(100, function ($projects) {
 
-                //  Make sure that the sms campaigns can send messages
-                $query->canSendMessages();
+                    // Foreach project in the current chunk of 100
+                    foreach ($projects as $project) {
 
-            })->with(['smsCampaigns' => function($query) {
+                        // If this project has the sms credentials then continue
+                        if ($project->hasSmsCredentials()) {
 
-                //  Get sms campaigns that can send messages with their total batch jobs
-                return $query->withCount('smsCampaignBatchJobs');
+                            // Foreach active sms campaign
+                            foreach ($project->smsCampaigns as $smsCampaign) {
 
-            }])->get();
+                                // Safely handle potential null counts
+                                $batchJobsCount = $smsCampaign->sms_campaign_batch_jobs_count ?? 0;
 
-            // Foreach project
-            foreach ($projects as $project) {
+                                /**
+                                 * Strip the heavy relationships before sending to Redis/Database.
+                                 * If you do not do this, the Project object serializes ALL of its
+                                 * eager-loaded smsCampaigns into the payload of every single child job.
+                                 */
+                                StartSmsCampaign::dispatch(
+                                    $project->withoutRelations(),
+                                    $smsCampaign->withoutRelations(),
+                                    $batchJobsCount
+                                );
 
-                // If this project has the sms credentials then continue
-                if ($project->hasSmsCredentials()) {
+                            }
 
-                    /**
-                     * Foreach sms campaign
-                     * @var SmsCampaign $smsCampaign
-                     */
-                    foreach ($project->smsCampaigns as $smsCampaign) {
-
-                        //  Add this sms campaign to the queue for processing
-                        StartSmsCampaign::dispatch($project, $smsCampaign, $smsCampaign->sms_campaign_batch_jobs_count);
-
+                        }
                     }
 
-                }
-            }
+                });
 
-        } catch (\Throwable $th) {
+        } catch (Throwable $th) {
 
             Log::error('StartSmsCampaigns Job Failed', [
                 'message' => $th->getMessage(),
-                'file' => $th->getFile(),
-                'line' => $th->getLine(),
-                'trace' => $th->getTraceAsString(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+                // Removed getTraceAsString() to prevent massive log file bloat during a crash
             ]);
+
+            // Re-throw so the queue knows the Master Job failed
             throw $th;
         }
+
         Log::info('StartSmsCampaigns: job completed');
     }
 }

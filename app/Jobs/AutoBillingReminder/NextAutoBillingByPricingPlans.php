@@ -2,6 +2,7 @@
 
 namespace App\Jobs\AutoBillingReminder;
 
+use Throwable;
 use App\Models\Project;
 use Illuminate\Bus\Queueable;
 use App\Models\PricingPlan;
@@ -11,7 +12,6 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 use App\Models\Pivots\PricingPlanAutoBillingReminder;
 use App\Jobs\AutoBillingReminder\NextAutoBillingByPricingPlan;
 
@@ -36,79 +36,82 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
     public function handle()
     {
         Log::info('NextAutoBillingByPricingPlans: job started');
-        try{
 
-            $pricingPlanAutoBillingReminders = PricingPlanAutoBillingReminder::whereHas('project', function($query) {
-
-                /**
-                 * Must have a project that can auto bill.
-                 */
-                return $query->canAutoBill();
-
-            })->whereHas('pricingPlan', function($query) {
-
-                /**
-                 * Must have an active, non-folder pricing plan that can also auto bill.
-                 */
-                return $query->active()->nonFolder()->canAutoBill();
-
-            })->with(['project', 'autoBillingReminder', 'pricingPlan' => function($query) {
-
-                $query->withCount('autoBillingReminderJobBatches');
-
-            }])->get();
+        try {
+            /**
+             * 1. REPLACED PHP SORTING WITH SQL JOIN & ORDER BY
+             * Instead of fetching everything and sorting in PHP RAM, we join the
+             * auto_billing_reminders table and let the database sort it instantly.
+             */
+            $query = PricingPlanAutoBillingReminder::select('pricing_plan_auto_billing_reminders.*')
+                ->join('auto_billing_reminders', 'auto_billing_reminders.id', '=', 'pricing_plan_auto_billing_reminders.auto_billing_reminder_id')
+                ->whereHas('project', function($query) {
+                    return $query->canAutoBill();
+                })
+                ->whereHas('pricingPlan', function($query) {
+                    return $query->active()->nonFolder()->canAutoBill();
+                })
+                ->with(['project', 'autoBillingReminder', 'pricingPlan' => function($query) {
+                    $query->withCount('autoBillingReminderJobBatches');
+                }])
+                ->orderBy('auto_billing_reminders.hours', 'desc');
 
             /**
-             * Order the pricingPlanAutoBillingReminders by the autoBillingReminder hours
-             * so that those with more hours appear at the top of the stack while those with
-             * fewer hours appear at the bottom of the stack.
+             * 2. REPLACED ->get() with ->chunk(100)
+             * We use chunk() here because we are enforcing a strict custom ORDER BY
+             * from a joined table, which chunkById() cannot easily do. Since this is
+             * a settings/mapping table, it is small enough that OFFSET chunking is perfectly safe.
              */
-            $pricingPlanAutoBillingReminders = $pricingPlanAutoBillingReminders->sortByDesc(function ($pricingPlanAutoBillingReminder) {
-                return $pricingPlanAutoBillingReminder->autoBillingReminder->hours;
-            })->all();
+            $query->chunk(100, function ($pricingPlanAutoBillingReminders) {
 
-            // Foreach project
-            foreach ($pricingPlanAutoBillingReminders as $pricingPlanAutoBillingReminder) {
+                // Foreach chunked reminder setting
+                foreach ($pricingPlanAutoBillingReminders as $pricingPlanAutoBillingReminder) {
 
-                /**
-                 * @var PricingPlan $pricingPlan
-                 */
-                $pricingPlan = $pricingPlanAutoBillingReminder->pricingPlan;
+                    $pricingPlan = $pricingPlanAutoBillingReminder->pricingPlan;
 
-                if(!empty($pricingPlan->next_auto_billing_reminder_sms_message)) {
+                    // Only process if there is a reminder message set
+                    if (!empty($pricingPlan->next_auto_billing_reminder_sms_message)) {
 
-                    /**
-                     * @var Project $project
-                     */
-                    $project = $pricingPlanAutoBillingReminder->project;
+                        $project = $pricingPlanAutoBillingReminder->project;
+                        $autoBillingReminder = $pricingPlanAutoBillingReminder->autoBillingReminder;
+                        $batchesCount = $pricingPlan->auto_billing_reminder_job_batches_count ?? 0;
 
-                    /**
-                     * @var AutoBillingReminder $autoBillingReminder
-                     */
-                    $autoBillingReminder = $pricingPlanAutoBillingReminder->autoBillingReminder;
+                        /**
+                         * 3. CRITICAL FIX: withoutRelations()
+                         * Strip the heavy eager-loaded relationships BEFORE dispatching
+                         * to keep the Redis/Database queue payload tiny.
+                         */
+                        NextAutoBillingByPricingPlan::dispatch(
+                            $project->withoutRelations(),
+                            $pricingPlan->withoutRelations(),
+                            $autoBillingReminder->withoutRelations(),
+                            $batchesCount
+                        );
 
-                    /**
-                     * @var int $autoBillingReminderJobBatchesCount
-                     */
-                    $autoBillingReminderJobBatchesCount = $pricingPlan->auto_billing_reminder_job_batches_count;
-
-                    //  Add this job to the queue for processing
-                    NextAutoBillingByPricingPlan::dispatch($project, $pricingPlan, $autoBillingReminder, $autoBillingReminderJobBatchesCount);
-
+                    }
                 }
 
-            }
+                // 4. Free up memory for the daemon worker before pulling the next 100 rows
+                unset($pricingPlanAutoBillingReminders);
 
-        } catch (\Throwable $th) {
+            });
+
+        } catch (Throwable $th) {
 
             Log::error('NextAutoBillingByPricingPlans Job Failed', [
                 'message' => $th->getMessage(),
-                'file' => $th->getFile(),
-                'line' => $th->getLine(),
-                'trace' => $th->getTraceAsString(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+                // Removed getTraceAsString() to prevent log bloat
             ]);
+
+            /**
+             * 5. The Error Trap: Throw the exception so Laravel registers the failure
+             * and can trigger any retry or failed-job protocols.
+             */
             throw $th;
         }
+
         Log::info('NextAutoBillingByPricingPlans: job completed');
     }
 }

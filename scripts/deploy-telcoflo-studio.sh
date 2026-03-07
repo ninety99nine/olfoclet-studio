@@ -32,7 +32,8 @@ sudo php artisan route:cache
 sudo php artisan view:cache
 sudo php artisan optimize
 
-echo "==> 5. Starting queue workers..."
+echo "==> 5. Reloading Supervisor and starting queue workers..."
+sudo supervisorctl reread
 sudo supervisorctl start all
 
 echo "==> 6. Checking services..."

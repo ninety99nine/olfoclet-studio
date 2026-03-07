@@ -2,6 +2,7 @@
 
 namespace App\Jobs\SmsDeliveryStatus;
 
+use Throwable;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
@@ -9,7 +10,6 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Models\Pivots\SubscriberMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
-use Illuminate\Contracts\Queue\ShouldBeUnique;
 
 class StartSmsDeliveryStatusUpdate implements ShouldQueue
 {
@@ -32,43 +32,67 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
     public function handle()
     {
         Log::info('StartSmsDeliveryStatusUpdate: job started');
-        try{
 
-            //  Get projects that can send messages
-            $subscriberMessages = SubscriberMessage::messageWaiting()->with(['project' => function($query) {
+        try {
 
-                //  Get sms campaigns that can send messages with their total batch jobs
-                return $query->select('id', 'settings');
+            /**
+             * Build the query for subscriber messages that are waiting.
+             * * Note: oldest() has been removed because chunkById() inherently orders
+             * by the ID column ascending, which achieves the exact same chronological
+             * result but with vastly superior database performance.
+             */
+            $query = SubscriberMessage::messageWaiting()
+                ->with(['project' => function($query) {
+                    return $query->select('id', 'settings');
+                }])
+                ->select('id', 'project_id');
 
-            }])->select('id', 'project_id')->oldest();
+            /**
+             * 1. Replaced chunk() with chunkById() to prevent massive OFFSET queries that
+             * freeze the database when dealing with millions of subscriber messages.
+             */
+            $query->chunkById(1000, function ($chunkedSubscriberMessages) {
 
-            //  Only query 1000 subscriber messages at a time (This helps us save memory)
-            $subscriberMessages->chunk(1000, function ($chunkedSubscriberMessages) {
+                // Foreach chunked subscriber messages
+                foreach ($chunkedSubscriberMessages as $subscriberMessage) {
 
-                //  Foreach chunked subscriber messages
-                foreach($chunkedSubscriberMessages as $subscriberMessage) {
+                    // Ensure the project exists and has credentials
+                    if ($subscriberMessage->project && $subscriberMessage->project->hasSmsCredentials()) {
 
-                    if( $subscriberMessage->project->hasSmsCredentials() ) {
-
-                        //  Create a job to update the sms delivery status
-                        UpdateSmsDeliveryStatus::dispatch($subscriberMessage->project, $subscriberMessage);
+                        /**
+                         * 2. CRITICAL FIX: withoutRelations()
+                         * Since you eager-loaded 'project' onto the $subscriberMessage, passing the
+                         * raw $subscriberMessage into the child job will serialize the Project
+                         * model inside it. Passing the $project explicitly means it gets serialized TWICE.
+                         * * Stripping relationships keeps the Redis/DB queue payload tiny.
+                         */
+                        UpdateSmsDeliveryStatus::dispatch(
+                            $subscriberMessage->project->withoutRelations(),
+                            $subscriberMessage->withoutRelations()
+                        );
 
                     }
 
                 }
 
-            });
+                // 3. Explicitly free memory for the daemon worker before fetching the next 1000 records
+                unset($chunkedSubscriberMessages);
 
-        } catch (\Throwable $th) {
+            }, 'id');
+
+        } catch (Throwable $th) {
 
             Log::error('StartSmsDeliveryStatusUpdate Job Failed', [
                 'message' => $th->getMessage(),
-                'file' => $th->getFile(),
-                'line' => $th->getLine(),
-                'trace' => $th->getTraceAsString(),
+                'file'    => $th->getFile(),
+                'line'    => $th->getLine(),
+                // Removed getTraceAsString() to prevent log file bloat
             ]);
+
+            // Re-throw so the queue worker registers the failure
             throw $th;
         }
+
         Log::info('StartSmsDeliveryStatusUpdate: job completed');
     }
 }
