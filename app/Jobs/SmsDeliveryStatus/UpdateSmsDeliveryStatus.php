@@ -19,13 +19,6 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'low';
-
     public $project;
     public $subscriberMessage;
 
@@ -52,6 +45,7 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, SubscriberMessage $subscriberMessage)
     {
+        $this->onQueue('low');
         $this->project = $project;
         $this->subscriberMessage = $subscriberMessage->withoutRelations();
     }

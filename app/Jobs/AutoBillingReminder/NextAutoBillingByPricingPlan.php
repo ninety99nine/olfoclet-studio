@@ -25,13 +25,6 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'high';
-
-    /**
      * Project instance.
      *
      * @var \App\Models\Project
@@ -87,6 +80,7 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, PricingPlan $pricingPlan, AutoBillingReminder $autoBillingReminder, int $autoBillingReminderJobBatchesCount)
     {
+        $this->onQueue('high');
         $this->project = $project;
         $this->pricingPlan = $pricingPlan;
         $this->autoBillingReminder = $autoBillingReminder->withoutRelations();

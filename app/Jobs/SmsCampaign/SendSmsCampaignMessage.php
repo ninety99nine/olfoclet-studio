@@ -24,13 +24,6 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'sms';
-
     public $project;
     public $message;
     public $subscriber;
@@ -57,6 +50,7 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, Subscriber $subscriber, Message $message, SmsCampaign $smsCampaign)
     {
+        $this->onQueue('sms');
         $this->project = $project;
         $this->message = $message;
         $this->smsCampaign = $smsCampaign;

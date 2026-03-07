@@ -22,13 +22,6 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'low';
-
-    /**
      * Report date
      *
      * @var Carbon
@@ -76,6 +69,7 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, Carbon $date, int $billingTransactionsCount)
     {
+        $this->onQueue('low');
         $this->date = $date;
         $this->project = $project;
 

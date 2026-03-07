@@ -24,13 +24,6 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'billing';
-
     public $project;
     public $subscriber;
     public $pricingPlan;
@@ -57,6 +50,7 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan)
     {
+        $this->onQueue('billing');
         $this->project = $project;
         $this->subscriber = $subscriber;
         $this->pricingPlan = $pricingPlan;

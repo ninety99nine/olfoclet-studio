@@ -26,13 +26,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, SmsCampaignTrait;
 
     /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'high';
-
-    /**
      * The project instance.
      *
      * @var \App\Models\Project
@@ -80,6 +73,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, SmsCampaign $smsCampaign, int $smsCampaignBatchJobsCount)
     {
+        $this->onQueue('high');
         $this->smsCampaign = $smsCampaign;
         $this->project = $project->withoutRelations();
 

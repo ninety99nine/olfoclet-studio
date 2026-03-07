@@ -24,13 +24,6 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
     /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'billing';
-
-    /**
      * Project instance.
      *
      * @var \App\Models\Project
@@ -79,6 +72,7 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, PricingPlan $pricingPlan, int $autoBillingJobBatchesCount)
     {
+        $this->onQueue('billing');
         $this->pricingPlan = $pricingPlan;
         $this->project = $project->withoutRelations();
 

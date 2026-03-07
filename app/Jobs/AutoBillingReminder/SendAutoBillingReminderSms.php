@@ -25,13 +25,6 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
 {
     use Batchable, Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * The name of the queue the job should be sent to.
-     *
-     * @var string|null
-     */
-    public $queue = 'sms';
-
     public $project;
     public $subscriber;
     public $pricingPlan;
@@ -58,6 +51,7 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
      */
     public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan, AutoBillingReminder $autoBillingReminder)
     {
+        $this->onQueue('sms');
         $this->project = $project;
         $this->subscriber = $subscriber;
         $this->pricingPlan = $pricingPlan;
