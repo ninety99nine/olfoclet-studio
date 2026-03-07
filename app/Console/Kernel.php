@@ -15,7 +15,7 @@ use App\Jobs\AutoBillingReminder\NextAutoBillingByPricingPlans;
 class Kernel extends ConsoleKernel
 {
     protected $commands = [
-        Commands\HandleServerErrors::class
+        Commands\HandleServerErrors::class,
     ];
 
     /**

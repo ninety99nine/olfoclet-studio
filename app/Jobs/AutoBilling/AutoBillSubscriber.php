@@ -117,8 +117,9 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
 
             }
 
-            // Explicitly free memory for the daemon worker before it picks up the next job
-            unset($this->project, $this->subscriber, $this->pricingPlan, $billingTransaction);
+            // Only unset local var; do NOT unset $this->project, $this->subscriber, $this->pricingPlan
+            // because Laravel calls uniqueId() again after handle() returns to release the unique lock.
+            unset($billingTransaction);
 
         } catch (\Throwable $th) {
 
