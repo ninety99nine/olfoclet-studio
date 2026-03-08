@@ -17,8 +17,8 @@ echo "==> 1. Stopping queue workers..."
 supervisorctl stop all
 
 echo "==> 2. Pulling main..."
-# Run git pull as the original user to prevent the .git folder from becoming root-owned
-cd "$APP_DIR" && sudo -u "$ORIGINAL_USER" git pull origin main
+# Run git pull as root so it can always write to .git (avoids "cannot open .git/FETCH_HEAD: Permission denied")
+cd "$APP_DIR" && git pull origin main
 
 echo "==> 3. Clearing caches..."
 cd "$APP_DIR"
@@ -53,7 +53,7 @@ for svc in nginx mysql supervisor; do
   if systemctl is-active --quiet "$svc" 2>/dev/null; then
     echo "  $svc: running"
   else
-    echo "  $svc: not running (run: sudo systemctl status $svc)"
+    echo "  $svc: not running (run: systemctl status $svc)"
   fi
 done
 
@@ -65,9 +65,12 @@ echo "==> 9. Verifying scheduler (no fatal error)..."
 # Run as the original user to accurately test if the Cron permissions are correct
 sudo -u "$ORIGINAL_USER" php artisan schedule:run
 
+echo "==> 10. Applying Logrotate Configuration..."
+# Copy the config and enforce strict root permissions so Linux doesn't reject it
+cp "$APP_DIR/config/logrotate-telcoflo.conf" /etc/logrotate.d/telcoflo
+chown root:root /etc/logrotate.d/telcoflo
+chmod 644 /etc/logrotate.d/telcoflo
+
 echo ""
 echo "Deploy finished. Check the site: http://105.235.242.227"
-echo ""
-echo "One-time: To cap Laravel logs at 100MB and keep 3 rotations, install logrotate:"
-echo "  sudo cp $APP_DIR/config/logrotate-telcoflo.conf /etc/logrotate.d/telcoflo"
-echo "On the server .env set LOG_LEVEL=error (or warning) for production."
+echo "Note: Ensure LOG_LEVEL=error (or warning) is set in your server's .env file."
