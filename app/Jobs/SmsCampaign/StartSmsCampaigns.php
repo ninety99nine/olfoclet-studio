@@ -4,6 +4,7 @@ namespace App\Jobs\SmsCampaign;
 
 use Throwable;
 use App\Models\Project;
+use App\Services\QueueBackpressure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
@@ -32,6 +33,13 @@ class StartSmsCampaigns implements ShouldQueue
      */
     public function handle()
     {
+        if (! QueueBackpressure::canDispatch()) {
+            Log::warning('StartSmsCampaigns: skipped (queue backpressure)', [
+                'pending' => QueueBackpressure::getPendingCount(),
+            ]);
+            return;
+        }
+
         Log::info('StartSmsCampaigns: job started');
 
         try {

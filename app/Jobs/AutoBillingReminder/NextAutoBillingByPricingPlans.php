@@ -4,6 +4,7 @@ namespace App\Jobs\AutoBillingReminder;
 
 use Throwable;
 use App\Models\Project;
+use App\Services\QueueBackpressure;
 use Illuminate\Bus\Queueable;
 use App\Models\PricingPlan;
 use App\Models\AutoBillingReminder;
@@ -35,6 +36,13 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
      */
     public function handle()
     {
+        if (! QueueBackpressure::canDispatch()) {
+            Log::warning('NextAutoBillingByPricingPlans: skipped (queue backpressure)', [
+                'pending' => QueueBackpressure::getPendingCount(),
+            ]);
+            return;
+        }
+
         Log::info('NextAutoBillingByPricingPlans: job started');
 
         try {

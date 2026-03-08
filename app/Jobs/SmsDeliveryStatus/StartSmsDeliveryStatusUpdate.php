@@ -3,6 +3,7 @@
 namespace App\Jobs\SmsDeliveryStatus;
 
 use Throwable;
+use App\Services\QueueBackpressure;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
@@ -31,6 +32,13 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
      */
     public function handle()
     {
+        if (! QueueBackpressure::canDispatch()) {
+            Log::warning('StartSmsDeliveryStatusUpdate: skipped (queue backpressure)', [
+                'pending' => QueueBackpressure::getPendingCount(),
+            ]);
+            return;
+        }
+
         Log::info('StartSmsDeliveryStatusUpdate: job started');
 
         try {

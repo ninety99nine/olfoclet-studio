@@ -5,6 +5,7 @@ namespace App\Jobs\BillingReport;
 use Throwable;
 use Carbon\Carbon;
 use App\Models\Project;
+use App\Services\QueueBackpressure;
 use Illuminate\Bus\Queueable;
 use App\Models\BillingReport;
 use Illuminate\Support\Facades\Log;
@@ -34,6 +35,13 @@ class StartCreatingBillingReports implements ShouldQueue
      */
     public function handle()
     {
+        if (! QueueBackpressure::canDispatch()) {
+            Log::warning('StartCreatingBillingReports: skipped (queue backpressure)', [
+                'pending' => QueueBackpressure::getPendingCount(),
+            ]);
+            return;
+        }
+
         Log::info('StartCreatingBillingReports: job started');
 
         try {

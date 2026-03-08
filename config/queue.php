@@ -90,4 +90,20 @@ return [
         'table' => 'failed_jobs',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Queue Backpressure (prevent unbounded job growth)
+    |--------------------------------------------------------------------------
+    |
+    | When pending jobs exceed max_pending, starter jobs skip their run until
+    | pending drops below resume_below. Uses cache key queue_backpressure_paused.
+    | Set to 0 to disable. Only applies when using database/redis queue.
+    |
+    */
+
+    'backpressure' => [
+        'max_pending' => (int) env('QUEUE_BACKPRESSURE_MAX_PENDING', 100_000),
+        'resume_below' => (int) env('QUEUE_BACKPRESSURE_RESUME_BELOW', 50_000),
+    ],
+
 ];
