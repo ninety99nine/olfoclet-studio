@@ -68,7 +68,10 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->smsCampaign->id . '-' . $this->subscriber->id;
+        $campaignId = (isset($this->smsCampaign) && $this->smsCampaign) ? $this->smsCampaign->id : '0';
+        $subscriberId = (isset($this->subscriber) && $this->subscriber) ? $this->subscriber->id : '0';
+
+        return $campaignId . '-' . $subscriberId;
     }
 
     /**
