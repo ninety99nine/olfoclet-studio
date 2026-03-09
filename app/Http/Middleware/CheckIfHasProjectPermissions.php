@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Project;
 use Closure;
 use Exception;
 use Illuminate\Http\Request;
@@ -18,37 +19,25 @@ class CheckIfHasProjectPermissions
      */
     public function handle(Request $request, Closure $next, $permission)
     {
-        //  If we have the project via the request
-        if( $request->project ) {
+        $project = $request->project
+            ?? $request->route('project')
+            ?? (isset($request->product) ? $request->product->project : null);
 
-            $project = $request->project;
-
-        //  If we have the product via the request
-        }elseif( $request->product ) {
-
-            //  Get the product project
-            $project = $request->product->project;
-
-        }else{
-
-            $project = null;
-
+        if ($project instanceof Project) {
+            if ($request->user()->hasProjectPermissionTo($project, $permission)) {
+                return $next($request);
+            }
+            throw new AccessDeniedHttpException;
         }
 
-
-        if( $project ){
-
-            if( request()->user()->hasProjectPermissionTo($project, $permission) ) {
-
+        if ($project !== null) {
+            $project = Project::find($project);
+            if ($project && $request->user()->hasProjectPermissionTo($project, $permission)) {
                 return $next($request);
-
             }
-
             throw new AccessDeniedHttpException;
-
         }
 
         throw new Exception('This route does not contain the project id required to check permissions.', 400);
-
     }
 }
