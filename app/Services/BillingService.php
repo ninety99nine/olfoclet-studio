@@ -469,16 +469,15 @@ class BillingService
                 // Set the request endpoint
                 $endpoint = config('app.ORANGE_BILLING_ENDPOINT') . '/token';
 
-                // Set the request options
+                // Set the request options (Basic Auth for token — required by new AAS gateway)
                 $options = [
                     'headers' => [
-                        'Content-type' => 'application/x-www-form-urlencoded',
+                        'Content-Type' => 'application/x-www-form-urlencoded',
                         'Accept' => 'application/json',
                     ],
+                    'auth' => [trim($clientId), trim($clientSecret)],
                     'form_params' => [
-                        "client_id" => trim($clientId),
-                        "grant_type" => "client_credentials",
-                        "client_secret" => trim($clientSecret),
+                        'grant_type' => 'client_credentials',
                     ],
                     'verify' => false,
                 ];

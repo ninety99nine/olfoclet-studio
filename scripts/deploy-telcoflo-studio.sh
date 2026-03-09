@@ -20,7 +20,11 @@ echo "==> 2. Pulling main..."
 # Run git pull as root so it can always write to .git (avoids "cannot open .git/FETCH_HEAD: Permission denied")
 cd "$APP_DIR" && git pull origin main
 
-echo "==> 3. Clearing caches..."
+echo "==> 3. Running migrations..."
+cd "$APP_DIR"
+php artisan migrate --force
+
+echo "==> 4. Clearing caches..."
 cd "$APP_DIR"
 php artisan cache:clear
 php artisan config:clear
@@ -28,27 +32,31 @@ php artisan event:clear
 php artisan route:clear
 php artisan view:clear
 
-echo "==> 4. Rebuilding caches..."
+echo "==> 5. Rebuilding caches..."
 # 'optimize' automatically runs config:cache, route:cache, view:cache, and event:cache.
 php artisan optimize
 
-echo "==> 5. Fixing storage & bootstrap/cache permissions..."
+echo "==> 6. Fixing storage & bootstrap/cache permissions..."
 # CRITICAL FIX: This MUST happen AFTER the cache commands so the newly
 # generated files are handed back to the web server and cron user!
 chown -R "$ORIGINAL_USER":www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 
-echo "==> 6. Pruning failed and stuck jobs..."
+echo "==> 7. Pruning failed and stuck jobs..."
 # Run as the original user so artisan doesn't accidentally spawn root-owned log/cache files
 sudo -u "$ORIGINAL_USER" php artisan queue:prune-failed --hours=72
 sudo -u "$ORIGINAL_USER" php artisan queue:prune-batches --hours=24 --unfinished=72
 
-echo "==> 7. Reloading Supervisor and starting queue workers..."
+echo "==> 8. Restarting queue workers (so they load new code and avoid class/property mismatches)..."
+cd "$APP_DIR"
+sudo -u "$ORIGINAL_USER" php artisan queue:restart
+
+echo "==> 9. Reloading Supervisor and starting queue workers..."
 supervisorctl reread
 supervisorctl update  # Added update to actually apply any new config changes
 supervisorctl start all
 
-echo "==> 8. Checking services..."
+echo "==> 10. Checking services..."
 for svc in nginx mysql supervisor; do
   if systemctl is-active --quiet "$svc" 2>/dev/null; then
     echo "  $svc: running"
@@ -61,11 +69,11 @@ for f in /etc/init.d/php*-fpm; do
   [ -e "$f" ] && echo "  $(basename "$f"): $(systemctl is-active "$(basename "$f")" 2>/dev/null || echo '?')"
 done
 
-echo "==> 9. Verifying scheduler (no fatal error)..."
+echo "==> 11. Verifying scheduler (no fatal error)..."
 # Run as the original user to accurately test if the Cron permissions are correct
 sudo -u "$ORIGINAL_USER" php artisan schedule:run
 
-echo "==> 10. Applying Logrotate Configuration..."
+echo "==> 12. Applying Logrotate Configuration..."
 # Copy the config and enforce strict root permissions so Linux doesn't reject it
 cp "$APP_DIR/config/logrotate-telcoflo.conf" /etc/logrotate.d/telcoflo
 chown root:root /etc/logrotate.d/telcoflo

@@ -65,7 +65,14 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->pricingPlan->id . '-' . $this->subscriber->id;
+        $planId = isset($this->pricingPlan) && $this->pricingPlan !== null
+            ? $this->pricingPlan->id
+            : 'unknown-plan';
+        $subscriberId = isset($this->subscriber) && $this->subscriber !== null
+            ? $this->subscriber->id
+            : 'unknown-subscriber';
+
+        return $planId . '-' . $subscriberId;
     }
 
     /**
