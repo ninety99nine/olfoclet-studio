@@ -91,7 +91,8 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
                     $query->where('auto_billing_enabled', '1')
                         ->where('next_attempt_date', '<=', Carbon::now())
                         ->where('pricing_plan_id', $this->pricingPlan->id);
-                });
+                })
+                ->orderBy('subscribers.id');
 
             /**
              * Extract properties to local variables to prevent binding the entire
@@ -103,10 +104,10 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
             $batchIndex = 0;
 
             /**
-             * Use chunkById for performance on large tables. It uses indexed WHERE clauses
-             * rather than heavy OFFSET queries.
+             * Use chunk() (not chunkById) because chunkById can abort with "column does not exist
+             * or was modified during chunking" when the query uses whereHas (subquery).
              */
-            $subscribersQuery->chunkById(1000, function ($chunked_subscribers) use ($project, $pricingPlan, &$batchIndex, $batchCount) {
+            $subscribersQuery->chunk(1000, function ($chunked_subscribers) use ($project, $pricingPlan, &$batchIndex, $batchCount) {
 
                 $chunkJobs = [];
 
@@ -141,7 +142,7 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
                 // Explicitly free the memory used by this chunk's jobs
                 unset($chunkJobs);
 
-            }, 'subscribers.id');
+            });
 
         } catch (\Throwable $th) {
 

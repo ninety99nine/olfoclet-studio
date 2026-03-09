@@ -61,15 +61,14 @@ class StartCreatingBillingReports implements ShouldQueue
                     $query->where('is_successful', '1')
                           ->whereYear('created_at', $date->year)
                           ->whereMonth('created_at', $date->month);
-                }]);
+                }])
+                ->orderBy('id');
 
             /**
-             * 1. Replaced ->get() with ->chunkById(100)
-             * This ensures that no matter how many projects you have, only 100 are loaded
-             * into RAM at any given time. It uses an indexed WHERE id > X clause, making
-             * it incredibly fast and lightweight.
+             * Use chunk() (not chunkById) because chunkById can abort when the query
+             * uses whereDoesntHave/withCount (subqueries). Chunk keeps memory flat.
              */
-            $projectsQuery->chunkById(100, function ($projects) use ($date) {
+            $projectsQuery->chunk(100, function ($projects) use ($date) {
 
                 foreach ($projects as $project) {
 

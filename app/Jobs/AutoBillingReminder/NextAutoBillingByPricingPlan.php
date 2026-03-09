@@ -129,7 +129,8 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
                         $query->whereNull('reminded_seventy_two_hours_before_at');
                     }
 
-                });
+                })
+                ->orderBy('subscribers.id');
 
             /**
              * Extracting variables to pass to the closure to prevent memory leaks
@@ -142,10 +143,10 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
             $batchIndex = 0;
 
             /**
-             * Use chunkById instead of chunk. It uses an indexed WHERE id > X clause,
-             * making it extremely fast and light.
+             * Use chunk() (not chunkById) because chunkById can abort with "column does not exist
+             * or was modified during chunking" when the query uses whereHas (subquery).
              */
-            $subscribersQuery->chunkById(1000, function ($chunked_subscribers) use ($project, $pricingPlan, $autoBillingReminder, &$batchIndex, $batchCount) {
+            $subscribersQuery->chunk(1000, function ($chunked_subscribers) use ($project, $pricingPlan, $autoBillingReminder, &$batchIndex, $batchCount) {
 
                 $chunkJobs = [];
 
@@ -180,7 +181,7 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
                 // Explicitly free memory for the garbage collector
                 unset($chunkJobs);
 
-            }, 'subscribers.id');
+            });
 
         } catch (Throwable $th) {
 

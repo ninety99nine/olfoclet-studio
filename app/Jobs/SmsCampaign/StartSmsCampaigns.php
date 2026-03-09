@@ -44,9 +44,8 @@ class StartSmsCampaigns implements ShouldQueue
 
         try {
             /**
-             * 1. Replaced ->get() with ->chunkById(100) to keep memory usage flat.
-             * 2. Added ->canSendMessages() inside the 'with' closure to prevent pulling
-             * and dispatching inactive/completed campaigns.
+             * Use chunk() (not chunkById) because chunkById can abort when the query
+             * uses whereHas. canSendMessages() in with prevents pulling inactive campaigns.
              */
             Project::canSendMessages()
                 ->whereHas('smsCampaigns', function ($query) {
@@ -56,7 +55,8 @@ class StartSmsCampaigns implements ShouldQueue
                     // CRITICAL FIX: Actually scope the eager loaded models!
                     return $query->canSendMessages()->withCount('smsCampaignBatchJobs');
                 }])
-                ->chunkById(100, function ($projects) {
+                ->orderBy('id')
+                ->chunk(100, function ($projects) {
 
                     // Foreach project in the current chunk of 100
                     foreach ($projects as $project) {

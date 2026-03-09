@@ -100,7 +100,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                         ->groupBy('subscriber_messages.message_id', 'subscriber_messages.subscriber_id')
                         ->orderBy('sent_sms_count', 'ASC')
                         ->orderBy('last_sent_at', 'ASC');
-                }]);
+                }])
+                ->orderBy('subscribers.id');
 
             /**********************************
              * APPLY PRICING PLAN FILTERS     *
@@ -137,8 +138,11 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
             $batchCount = $this->smsCampaignBatchJobsCount;
             $batchIndex = 0;
 
-            // Use chunkById for extreme database performance, avoiding OFFSET slowdowns
-            $subscribersQuery->chunkById(1000, function ($chunked_subscribers) use ($project, $smsCampaign, $messages, &$batchIndex, $batchCount) {
+            /**
+             * Use chunk() (not chunkById) because chunkById can abort when the query
+             * uses whereDoesntHave or scope-based subqueries (e.g. hasActiveNonCancelledSubscription).
+             */
+            $subscribersQuery->chunk(1000, function ($chunked_subscribers) use ($project, $smsCampaign, $messages, &$batchIndex, $batchCount) {
 
                 $chunkJobs = [];
 
@@ -208,7 +212,7 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                 // Explicitly free memory for the next chunk
                 unset($chunkJobs);
 
-            }, 'subscribers.id');
+            });
 
         } catch (Throwable $th) {
 
