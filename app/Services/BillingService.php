@@ -31,6 +31,7 @@ class BillingService
     {
         $msisdn = $subscriber->msisdn;
         $referenceCode = Str::uuid();
+        $traceRef = (string) $referenceCode;
         $clientCorrelator = Str::uuid();
         $amount = $pricingPlan->price->amount;
         $description = $pricingPlan->description;
@@ -56,7 +57,7 @@ class BillingService
 
         Log::info('AirtimeBilling trace', [
             'stage' => 'transaction_created',
-            'reference_code' => $referenceCode,
+            'reference_code' => $traceRef,
             'billing_transaction_id' => $billingTransaction->id,
             'subscriber_id' => $subscriber->id,
             'pricing_plan_id' => $pricingPlan->id,
@@ -64,7 +65,7 @@ class BillingService
 
         try {
 
-            Log::info('AirtimeBilling trace', ['stage' => 'token_request', 'reference_code' => $referenceCode]);
+            Log::info('AirtimeBilling trace', ['stage' => 'token_request', 'reference_code' => $traceRef]);
 
             $ratingType = null;
             $failureType = null;
@@ -100,11 +101,11 @@ class BillingService
              *      ]
              *  ]
              */
-            $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret, $referenceCode);
+            $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret, $traceRef);
 
             Log::info('AirtimeBilling trace', [
                 'stage' => 'token_result',
-                'reference_code' => $referenceCode,
+                'reference_code' => $traceRef,
                 'status' => $response['status'] ? 'ok' : 'fail',
             ]);
 
@@ -112,7 +113,7 @@ class BillingService
 
                 $accessToken = $response['body']['access_token'];
 
-                Log::info('AirtimeBilling trace', ['stage' => 'product_inventory_request', 'reference_code' => $referenceCode]);
+                Log::info('AirtimeBilling trace', ['stage' => 'product_inventory_request', 'reference_code' => $traceRef]);
 
                 /**
                  *  -----------------------------
@@ -149,11 +150,11 @@ class BillingService
                  *      ]
                  *  ]
                  */
-                $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken, $referenceCode);
+                $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken, $traceRef);
 
                 Log::info('AirtimeBilling trace', [
                     'stage' => 'product_inventory_result',
-                    'reference_code' => $referenceCode,
+                    'reference_code' => $traceRef,
                     'status' => $response['status'] ? 'ok' : 'fail',
                 ]);
 
@@ -234,12 +235,12 @@ class BillingService
                              *      ]
                              *  ]
                              */
-                            Log::info('AirtimeBilling trace', ['stage' => 'usage_consumption_request', 'reference_code' => $referenceCode]);
-                            $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken, $referenceCode);
+                            Log::info('AirtimeBilling trace', ['stage' => 'usage_consumption_request', 'reference_code' => $traceRef]);
+                            $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken, $traceRef);
 
                             Log::info('AirtimeBilling trace', [
                                 'stage' => 'usage_consumption_result',
-                                'reference_code' => $referenceCode,
+                                'reference_code' => $traceRef,
                                 'status' => $response['status'] ? 'ok' : 'fail',
                             ]);
 
@@ -365,12 +366,12 @@ class BillingService
                              *      ]
                              *  ]
                              */
-                            Log::info('AirtimeBilling trace', ['stage' => 'deduct_fee_request', 'reference_code' => $referenceCode]);
+                            Log::info('AirtimeBilling trace', ['stage' => 'deduct_fee_request', 'reference_code' => $traceRef]);
                             $response = self::requestAirtimeBillingDeductFee($msisdn, $amount, $onBehalfOf, $productId, $purchaseCategoryCode, $description, $accessToken, $clientCorrelator, $referenceCode);
 
                             Log::info('AirtimeBilling trace', [
                                 'stage' => 'deduct_fee_result',
-                                'reference_code' => $referenceCode,
+                                'reference_code' => $traceRef,
                                 'status' => $response['status'] ? 'ok' : 'fail',
                             ]);
 
@@ -410,7 +411,7 @@ class BillingService
 
             Log::info('AirtimeBilling trace', [
                 'stage' => 'complete',
-                'reference_code' => $referenceCode,
+                'reference_code' => $traceRef,
                 'is_successful' => $status,
                 'failure_type' => $failureType?->value,
             ]);
@@ -436,7 +437,7 @@ class BillingService
 
             Log::error('Airtime Billing Fatal Error', [
                 'stage' => 'billUsingAirtime_catch',
-                'reference_code' => $referenceCode,
+                'reference_code' => $traceRef,
                 'code' => $e->getCode(),
                 'message' => $e->getMessage(),
                 'msisdn' => $msisdn,
