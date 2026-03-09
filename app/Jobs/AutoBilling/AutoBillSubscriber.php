@@ -90,6 +90,19 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
+        $batchId = $this->batchId ?? null;
+        $subscriberId = $this->subscriber?->id ?? 'unknown';
+        $pricingPlanId = $this->pricingPlan?->id ?? 'unknown';
+        $projectId = $this->project?->id ?? 'unknown';
+
+        Log::info('AirtimeBilling trace', [
+            'stage' => 'job_started',
+            'batch_id' => $batchId,
+            'subscriber_id' => $subscriberId,
+            'pricing_plan_id' => $pricingPlanId,
+            'project_id' => $projectId,
+        ]);
+
         try {
             /**
              * Bill the subscriber using airtime.
@@ -124,12 +137,29 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
 
             }
 
+            Log::info('AirtimeBilling trace', [
+                'stage' => 'job_completed',
+                'reference_code' => $billingTransaction->reference_code,
+                'is_successful' => $billingTransaction->is_successful,
+                'batch_id' => $batchId,
+                'subscriber_id' => $subscriberId,
+                'pricing_plan_id' => $pricingPlanId,
+            ]);
+
             // Only unset local var; do NOT unset $this->project, $this->subscriber, $this->pricingPlan
             // because Laravel calls uniqueId() again after handle() returns to release the unique lock.
             unset($billingTransaction);
 
         } catch (\Throwable $th) {
 
+            Log::error('AirtimeBilling trace', [
+                'stage' => 'job_failed',
+                'batch_id' => $batchId,
+                'subscriber_id' => $subscriberId,
+                'pricing_plan_id' => $pricingPlanId,
+                'project_id' => $projectId,
+                'exception' => $th->getMessage(),
+            ]);
             Log::error('AutoBillSubscriber Job Failed: ' . $th->getMessage());
 
             /**
