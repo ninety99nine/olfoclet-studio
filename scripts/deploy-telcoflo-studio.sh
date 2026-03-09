@@ -10,8 +10,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 APP_DIR="${APP_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 
-# Capture the original user who ran the sudo command (e.g., 'sysop')
-ORIGINAL_USER="${SUDO_USER:-$(whoami)}"
+# User that runs queue workers, cron, and owns storage (must match Supervisor/cron)
+APP_USER="www-data"
 
 echo "==> 1. Stopping queue workers..."
 supervisorctl stop all
@@ -37,19 +37,17 @@ echo "==> 5. Rebuilding caches..."
 php artisan optimize
 
 echo "==> 6. Fixing storage & bootstrap/cache permissions..."
-# CRITICAL FIX: This MUST happen AFTER the cache commands so the newly
-# generated files are handed back to the web server and cron user!
-chown -R "$ORIGINAL_USER":www-data "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
+# CRITICAL: After cache commands, hand ownership to APP_USER so workers/cron can write
+chown -R "$APP_USER":"$APP_USER" "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 
 echo "==> 7. Pruning failed and stuck jobs..."
-# Run as the original user so artisan doesn't accidentally spawn root-owned log/cache files
-sudo -u "$ORIGINAL_USER" php artisan queue:prune-failed --hours=72
-sudo -u "$ORIGINAL_USER" php artisan queue:prune-batches --hours=24 --unfinished=72
+sudo -u "$APP_USER" php artisan queue:prune-failed --hours=72
+sudo -u "$APP_USER" php artisan queue:prune-batches --hours=24 --unfinished=72
 
 echo "==> 8. Restarting queue workers (so they load new code and avoid class/property mismatches)..."
 cd "$APP_DIR"
-sudo -u "$ORIGINAL_USER" php artisan queue:restart
+sudo -u "$APP_USER" php artisan queue:restart
 
 echo "==> 9. Reloading Supervisor and starting queue workers..."
 supervisorctl reread
@@ -70,8 +68,7 @@ for f in /etc/init.d/php*-fpm; do
 done
 
 echo "==> 11. Verifying scheduler (no fatal error)..."
-# Run as the original user to accurately test if the Cron permissions are correct
-sudo -u "$ORIGINAL_USER" php artisan schedule:run
+sudo -u "$APP_USER" php artisan schedule:run
 
 echo "==> 12. Applying Logrotate Configuration..."
 # Copy the config and enforce strict root permissions so Linux doesn't reject it
