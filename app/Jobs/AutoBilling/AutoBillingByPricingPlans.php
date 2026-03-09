@@ -34,9 +34,6 @@ class AutoBillingByPricingPlans implements ShouldQueue
     public function handle()
     {
         if (! QueueBackpressure::canDispatch()) {
-            Log::warning('AutoBillingByPricingPlans: skipped (queue backpressure)', [
-                'pending' => QueueBackpressure::getPendingCount(),
-            ]);
             return;
         }
 

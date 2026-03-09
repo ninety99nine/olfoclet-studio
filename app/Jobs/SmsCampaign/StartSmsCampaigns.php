@@ -34,9 +34,6 @@ class StartSmsCampaigns implements ShouldQueue
     public function handle()
     {
         if (! QueueBackpressure::canDispatch()) {
-            Log::warning('StartSmsCampaigns: skipped (queue backpressure)', [
-                'pending' => QueueBackpressure::getPendingCount(),
-            ]);
             return;
         }
 

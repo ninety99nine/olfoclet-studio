@@ -33,9 +33,6 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
     public function handle()
     {
         if (! QueueBackpressure::canDispatch()) {
-            Log::warning('StartSmsDeliveryStatusUpdate: skipped (queue backpressure)', [
-                'pending' => QueueBackpressure::getPendingCount(),
-            ]);
             return;
         }
 

@@ -61,7 +61,12 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
      */
     public function uniqueId()
     {
-        return $this->subscriberMessage->id;
+        if (isset($this->subscriberMessage) && $this->subscriberMessage !== null) {
+            return (string) $this->subscriberMessage->id;
+        }
+
+        // Fallback for legacy/corrupt payloads so the unique lock can be released without error
+        return 'legacy-'.spl_object_id($this);
     }
 
     /**
@@ -79,6 +84,12 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
      */
     public function handle()
     {
+        if (! isset($this->project, $this->subscriberMessage) || $this->project === null || $this->subscriberMessage === null) {
+            Log::warning('UpdateSmsDeliveryStatus: skipping job with missing project or subscriberMessage (legacy or corrupt payload)');
+
+            return;
+        }
+
         try {
 
             /**
