@@ -61,4 +61,16 @@ class AutoBillingScheduleController extends Controller
             'autoBillingSchedule' => $this->autoBillingSchedule
         ]);
     }
+
+    /**
+     * Return auto billing progress as JSON for real-time polling.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function progress()
+    {
+        $repo = $this->autoBillingScheduleRepository ?? new AutoBillingScheduleRepository($this->project, null);
+
+        return response()->json($repo->getAutoBillingProgress());
+    }
 }

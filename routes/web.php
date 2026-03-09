@@ -155,6 +155,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::prefix('auto-billing-schedules')
                 ->middleware(['project.permission:View auto billing schedules'])->group(function () {
                 Route::get('/', [AutoBillingScheduleController::class, 'showAutoBillingSchedules'])->name('show.auto.billing.schedules');
+                Route::get('/progress', [AutoBillingScheduleController::class, 'progress'])->name('auto.billing.schedules.progress');
 
                 Route::prefix('{auto_billing_schedule}')->group(function () {
                     Route::get('/', [AutoBillingScheduleController::class, 'showAutoBillingSchedule']);

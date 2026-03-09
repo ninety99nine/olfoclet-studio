@@ -21,7 +21,8 @@
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Auto billing progress</span>
                     <span class="text-sm font-semibold text-slate-700 tabular-nums">
-                        {{ (autoBillingProgress?.processed ?? 0).toLocaleString() }} of {{ progressDenominator.toLocaleString() }} subscribers processed
+                        {{ (effectiveProgress?.processed ?? 0).toLocaleString() }} of {{ progressDenominator.toLocaleString() }} subscribers processed
+                        <span class="text-indigo-600 font-bold ml-1">{{ progressPercent }}%</span>
                     </span>
                 </div>
                 <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -176,7 +177,7 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, ref, onMounted, onBeforeUnmount } from 'vue';
 import Pagination from '@/Partials/Pagination.vue';
 import { router } from '@inertiajs/vue3';
 import moment from 'moment';
@@ -208,18 +209,45 @@ export default defineComponent({
     },
     setup(props) {
         const payload = computed(() => props.autoBillingSchedulesPayload || { data: [], current_page: 1, last_page: 1, total: 0, links: [] });
+        const liveProgress = ref(null);
+        const effectiveProgress = computed(() => liveProgress.value ?? props.autoBillingProgress ?? { total_due: 0, processed: 0, total_in_batches: 0 });
         const progressDenominator = computed(() => {
-            const totalInBatches = props.autoBillingProgress?.total_in_batches ?? 0;
-            const totalDue = props.autoBillingProgress?.total_due ?? 0;
+            const totalInBatches = effectiveProgress.value?.total_in_batches ?? 0;
+            const totalDue = effectiveProgress.value?.total_due ?? 0;
             return totalInBatches > 0 ? totalInBatches : totalDue;
         });
         const progressPercent = computed(() => {
             const denom = progressDenominator.value;
             if (denom <= 0) return 0;
-            const processed = props.autoBillingProgress?.processed ?? 0;
+            const processed = effectiveProgress.value?.processed ?? 0;
             return Math.min(100, Math.round((processed / denom) * 100));
         });
-        return { payload, progressDenominator, progressPercent };
+
+        const POLL_INTERVAL_MS = 5000;
+        let progressPollTimer = null;
+
+        function fetchProgress() {
+            const project = route().params?.project;
+            if (!project) return;
+            const url = route('auto.billing.schedules.progress', { project });
+            window.axios.get(url).then(({ data }) => {
+                liveProgress.value = data;
+            }).catch(() => {});
+        }
+
+        onMounted(() => {
+            fetchProgress();
+            progressPollTimer = setInterval(fetchProgress, POLL_INTERVAL_MS);
+        });
+
+        onBeforeUnmount(() => {
+            if (progressPollTimer) {
+                clearInterval(progressPollTimer);
+                progressPollTimer = null;
+            }
+        });
+
+        return { payload, effectiveProgress, progressDenominator, progressPercent };
     },
     data() {
         return { moment, loading: false, initialLoadComplete: false };
