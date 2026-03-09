@@ -270,7 +270,7 @@
                                 <td class="px-6 py-4">
                                     <span class="text-sm font-semibold text-slate-800 tabular-nums">{{ formatMoney(row.total_spend_amount ?? 0) }}</span>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <template v-if="row.next_auto_billing">
                                         <p class="text-xs font-semibold text-indigo-800">{{ formatScheduleDate(row.next_auto_billing.at) }}</p>
                                         <p v-if="row.next_auto_billing.pricing_plan_name" class="text-[10px] text-indigo-600 mt-0.5">{{ row.next_auto_billing.pricing_plan_name }}</p>
@@ -280,7 +280,7 @@
                                     </template>
                                     <span v-else class="text-[10px] text-slate-300">—</span>
                                 </td>
-                                <td class="px-6 py-4">
+                                <td class="px-6 py-4 whitespace-nowrap">
                                     <template v-if="row.next_sms">
                                         <p class="text-xs font-semibold text-violet-800">{{ formatScheduleDate(row.next_sms.at) }}</p>
                                         <p v-if="row.next_sms.sms_campaign_name" class="text-[10px] text-violet-600 mt-0.5">{{ row.next_sms.sms_campaign_name }}</p>
