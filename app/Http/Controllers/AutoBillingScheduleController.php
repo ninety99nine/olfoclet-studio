@@ -23,14 +23,29 @@ class AutoBillingScheduleController extends Controller
 
     public function showAutoBillingSchedules()
     {
-        // Get the auto billing schedules using the repository with the required relationships and pagination
-        $autoBillingSchedules = $this->autoBillingScheduleRepository->getProjectAutoBillingSchedules(null,
-            ['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders'], []
-        );
+        $isInertiaRequest = request()->header('X-Inertia');
 
-        // Render the auto billing schedules view
+        if ($isInertiaRequest) {
+            $autoBillingSchedules = $this->autoBillingScheduleRepository->getProjectAutoBillingSchedules(null,
+                ['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders'], []
+            );
+            $autoBillingProgress = $this->autoBillingScheduleRepository->getAutoBillingProgress();
+
+            return Inertia::render('AutoBillingSchedules/List/Main', [
+                'deferredSchedules'           => false,
+                'autoBillingSchedulesPayload' => $autoBillingSchedules,
+                'autoBillingProgress'         => $autoBillingProgress,
+            ]);
+        }
+
+        // Full page load (e.g. browser refresh): defer heavy data to avoid 502 (timeout/OOM).
+        // Frontend will request these props via partial reload once the page has loaded.
         return Inertia::render('AutoBillingSchedules/List/Main', [
-            'autoBillingSchedulesPayload' => $autoBillingSchedules
+            'deferredSchedules'           => true,
+            'autoBillingSchedulesPayload' => Inertia::lazy(fn () => $this->autoBillingScheduleRepository->getProjectAutoBillingSchedules(null,
+                ['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders'], []
+            )),
+            'autoBillingProgress' => Inertia::lazy(fn () => $this->autoBillingScheduleRepository->getAutoBillingProgress()),
         ]);
     }
 
