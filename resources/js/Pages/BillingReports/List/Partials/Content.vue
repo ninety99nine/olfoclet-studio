@@ -1,280 +1,581 @@
 <template>
+    <div class="bg-slate-50/50 p-4 lg:p-8 font-sans antialiased text-slate-700">
+        <div class="max-w-[1600px] mx-auto mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h1 class="text-2xl font-black tracking-tight text-indigo-950">Billing Reports</h1>
 
-    <div>
-
-        <div class="grid grid-cols-12 gap-8">
-
-            <div class="col-span-6">
-                <div class="bg-gray-50 border-b px-6 py-4 rounded-t text-gray-500 text-sm mb-4">
-                    <div class="text-2xl font-semibold leading-6 text-gray-500">Billing Reports</div>
-                </div>
-            </div>
-
-            <div class="col-span-6">
-
-                <!-- Search -->
-                <div class="mb-4">
-                    <jet-input id="search" type="text" class="w-full mt-1 block" v-model="form.search" placeholder = "26772000001" />
-                    <jet-input-error :message="form.errors.search" class="mt-2" />
-                </div>
-
-            </div>
-
-        </div>
-
-        <div class="bg-white shadow-xl sm:rounded-lg">
-
-            <!-- Table -->
-            <div class="flex flex-col overflow-y-auto">
-                <div class="align-middle inline-block min-w-full">
-                    <div class="shadow border-b border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
-
-                                    </th>
-                                    <th scope="col" colspan="6" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        <div class="font-bold text-teal-500">BREAKDOWN</div>
-                                    </th>
-                                    <th scope="col" colspan="3" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50 border-r border-dotted border-r-fuchsia-300">
-                                        <div class="font-bold text-fuchsia-500">DOCUMENTS</div>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
-
-                                    </th>
-                                </tr>
-
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
-                                        <span>Name</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Gross Revenue</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Costs (31.5%)</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Sharable Revenue</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Our Share (60%)</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Their Share (40%)</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        <span>Total Transactions</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Overview</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Transactions</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50 border-r border-dotted border-r-fuchsia-300">
-                                        <span>Invoice</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        <span>Created</span>
-                                    </th>
-                                </tr>
-
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-
-                                <tr v-for="billingReport in billingReportsPayload.data" :key="billingReport.id">
-
-                                    <!-- Name -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 border-r border-dotted border-r-teal-300">
-
-                                        <div class="flex space-x-2">
-                                            <div class="text-sm text-gray-900">{{ billingReport.name }}</div>
-
-                                            <el-popover :width="400">
-                                                <template #reference>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                                                    </svg>
-                                                </template>
-                                                <template #default>
-                                                    <p>
-                                                        This report outlines the performance of the <strong>{{ projectPayload.name }}</strong> service for <strong>{{ billingReport.name }}</strong>.
-                                                        It indicates a total of <strong>{{ billingReport.total_transactions }} {{ billingReport.total_transactions == 1 ? 'transaction' : 'transactions'}}</strong>,
-                                                        generating a gross revenue of <strong>{{ billingReport.gross_revenue.amount_with_currency }}</strong>. After deducting costs amounting to <strong>{{ billingReport.costs.amount_with_currency }}</strong>,
-                                                        the sharable revenue is calculated to be <strong>{{ billingReport.sharable_revenue.amount_with_currency }}</strong>. Their share, at <strong>40%</strong>, is <strong>{{ billingReport.their_share.amount_with_currency }}</strong>,
-                                                        while our share, at <strong>60%</strong>, is <strong>{{ billingReport.our_share.amount_with_currency }}</strong>. The cost breakdown reveals that expenses include USAF, BOCRA, VAT, and dealer commission, totaling <strong>{{ billingReport.costs.amount_with_currency }}</strong>.
-                                                    </p>
-                                                </template>
-                                            </el-popover>
-                                        </div>
-                                    </td>
-
-
-
-                                    <!-- Gross Revenue -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-left bg-teal-50">
-                                        <span>{{ billingReport.gross_revenue.amount_with_currency }}</span>
-                                    </td>
-
-                                    <!-- Costs -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-left bg-teal-50">
-
-                                        <div class="flex space-x-2 items-center">
-                                            <span>{{ billingReport.costs.amount_with_currency }}</span>
-
-                                            <el-popover :width="400">
-                                                <template #reference>
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                                                    </svg>
-                                                </template>
-                                                <template #default>
-                                                    <p class="text-lg font-bold mb-4 pl-2">Cost Breakdown</p>
-                                                    <table class="w-full">
-                                                        <thead>
-                                                            <tr class="bg-gray-100">
-                                                                <th class="py-2 pl-2">Cost</th>
-                                                                <th class="py-2">Amount</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            <tr v-for="(costAmount, costName) in billingReport.cost_breakdown" :key="costName">
-                                                                <td class="pl-2">{{ costName }}</td>
-                                                                <td>{{ costAmount.amount_with_currency }}</td>
-                                                            </tr>
-                                                            <tr class="bg-gray-100">
-                                                                <td class="py-2 pl-2"><strong>Total</strong></td>
-                                                                <td class="py-2"><strong>{{ billingReport.costs.amount_with_currency }}</strong></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </template>
-                                            </el-popover>
-                                        </div>
-                                    </td>
-
-                                    <!-- Sharable Revenue -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-left bg-teal-50">
-                                        <span>{{ billingReport.sharable_revenue.amount_with_currency }}</span>
-                                    </td>
-
-                                    <!-- Our Share -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-left font-bold bg-teal-50">
-                                        <span>{{ billingReport.our_share.amount_with_currency }}</span>
-                                    </td>
-
-                                    <!-- Their Share -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-left bg-teal-50">
-                                        <span>{{ billingReport.their_share.amount_with_currency }}</span>
-                                    </td>
-
-                                    <!-- Total Transactions -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-center bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        <span>{{ billingReport.total_transactions }}</span>
-                                    </td>
-
-                                    <!-- Overview -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-center bg-fuchsia-50">
-                                        <span v-if="billingReport.overview_pdf_path == null">...</span>
-                                        <a v-else :href="billingReport.overview_pdf_path" class="mx-auto" download>
-                                            <img src="/images/pdf.png" class="w-8 mx-auto"/>
-                                        </a>
-                                    </td>
-
-                                    <!-- Transactions -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-center bg-fuchsia-50">
-                                        <span v-if="billingReport.successful_transactions_csv_path == null">...</span>
-                                        <a v-else :href="billingReport.successful_transactions_csv_path" class="mx-auto" download>
-                                            <img src="/images/csv.png" class="w-8 mx-auto"/>
-                                        </a>
-                                    </td>
-
-                                    <!-- Invoice -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-center bg-fuchsia-50 border-r border-dotted border-r-fuchsia-300">
-                                        <span v-if="billingReport.invoice_pdf_path == null">...</span>
-                                        <a v-else :href="billingReport.invoice_pdf_path" class="mx-auto" download>
-                                            <img src="/images/pdf.png" class="w-8 mx-auto"/>
-                                        </a>
-                                    </td>
-
-                                    <!-- Created Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                        {{ billingReport.created_at == null ? '...' : moment(billingReport.created_at).format('lll') }}
-                                    </td>
-
-                                </tr>
-
-                                <tr v-if="billingReportsPayload.data.length == 0">
-
-                                    <!-- Content -->
-                                    <td :colspan="11" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No billing reports</div>
-                                    </td>
-
-                                </tr>
-
-                            </tbody>
-                        </table>
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-0.5">Total</span>
+                        <span class="text-xl font-bold text-indigo-900 tabular-nums leading-none">
+                            {{ (billingReportsPayload.total ?? 0).toLocaleString() }}
+                        </span>
                     </div>
                 </div>
             </div>
-
-            <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="billingReportsPayload" :updateData="['billingReportsPayload']" />
-
         </div>
 
+        <div class="max-w-[1600px] mx-auto space-y-4">
+            <div class="flex flex-col xl:flex-row items-center justify-between gap-4">
+                <div class="flex-grow w-full xl:w-auto flex items-center gap-2">
+                    <div class="relative flex-grow max-w-md group">
+                        <Search :size="18" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-indigo-500 transition-colors" />
+                        <input
+                            v-model="searchQuery"
+                            type="search"
+                            placeholder="Report name..."
+                            class="w-full bg-white border border-slate-200 rounded-xl pl-11 pr-4 py-3 text-sm font-medium focus:ring-2 focus:ring-indigo-500/10 focus:border-indigo-300 transition-all placeholder:text-slate-300 text-slate-700"
+                            @input="debouncedSearch"
+                        />
+                    </div>
+
+                    <button @click="showDateModal" class="h-11 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-[10px] font-black flex items-center justify-center gap-2 transition-all uppercase tracking-widest">
+                        <Calendar :size="16" class="text-indigo-500" />
+                        <span class="hidden lg:inline">{{ selectedDateLabel }}</span>
+                    </button>
+
+                    <button @click="showSortModal" class="h-11 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-[10px] font-black flex items-center justify-center gap-2 transition-all uppercase tracking-widest">
+                        <ArrowDownWideNarrow :size="16" class="text-indigo-500" />
+                        <span class="hidden lg:inline">Sort</span>
+                        <div v-if="selectedSortOptions.length" class="bg-indigo-600 text-white text-[9px] h-4 w-4 rounded-full flex items-center justify-center">
+                            {{ selectedSortOptions.length }}
+                        </div>
+                    </button>
+
+                    <button
+                        @click="refresh"
+                        class="h-11 w-11 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-indigo-500 hover:text-indigo-700 hover:border-indigo-200 transition-all shadow-sm"
+                        title="Refresh"
+                    >
+                        <span class="inline-flex items-center justify-center w-5 h-5">
+                            <RefreshCw :size="18" class="text-base block" :class="{'animate-spin-smooth': loading}" />
+                        </span>
+                    </button>
+
+                    <button
+                        v-if="hasActiveFilters"
+                        @click="clearAll"
+                        class="text-[10px] font-black text-rose-500 hover:text-rose-600 px-2 uppercase tracking-widest transition-colors flex items-center gap-1"
+                    >
+                        <X :size="10" />
+                        Reset
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1">
+                    <button
+                        v-for="(link, index) in filteredPagination"
+                        :key="index"
+                        :disabled="!link.page"
+                        @click="link.page && changePage(link.page)"
+                        class="h-9 min-w-[36px] flex items-center justify-center rounded-lg transition-all font-bold text-[10px]"
+                        :class="[
+                            link.active
+                                ? 'bg-indigo-600 text-white shadow-sm px-3'
+                                : link.label === '...' ? 'text-slate-300 cursor-default' : 'bg-transparent text-slate-500 hover:bg-slate-100',
+                            !link.page && link.label !== '...' ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
+                        ]"
+                    >
+                        <ChevronLeft v-if="link.label === 'prev'" :size="16" />
+                        <ChevronRight v-else-if="link.label === 'next'" :size="16" />
+                        <span v-else>{{ link.label }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div v-if="selectedDateOption?.value !== 'all' || selectedSortOptions.length > 0" class="flex flex-wrap items-center gap-2">
+                <span
+                    v-if="selectedDateOption?.value !== 'all'"
+                    class="inline-flex items-center px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded-full"
+                >
+                    <template v-if="selectedDateOption?.value === 'custom' && (filters.date_from || filters.date_to)">
+                        {{ moment(filters.date_from).format('MMM D') }} – {{ moment(filters.date_to).format('MMM D') }}
+                    </template>
+                    <template v-else>{{ selectedDateOption?.label }}</template>
+                    <button type="button" aria-label="Remove date" @click="selectedDateOption = { value: 'all', label: 'All Time' }; filters.date_from = ''; filters.date_to = ''; fetchBillingReports(1)" class="ml-2 text-indigo-500 hover:text-indigo-700 font-bold leading-none">×</button>
+                </span>
+                <span
+                    v-for="sort in selectedSortOptions"
+                    :key="sort.value"
+                    class="inline-flex items-center px-3 py-1.5 bg-amber-50 text-amber-800 text-xs font-semibold rounded-full"
+                >
+                    {{ sort.label }}
+                    <button type="button" aria-label="Remove sort" @click="removeSort(sort)" class="ml-2 text-amber-600 hover:text-amber-800 font-bold leading-none">×</button>
+                </span>
+                <button type="button" @click="clearAll" class="text-xs font-bold text-slate-500 hover:text-slate-700 underline underline-offset-2">
+                    Clear all
+                </button>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <Transition name="content-switch" mode="out-in">
+                    <div v-if="loading" key="loading" class="py-24 px-8 flex flex-col items-center justify-center text-center">
+                        <span class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 mb-6">
+                            <RefreshCw :size="24" class="text-indigo-500 animate-spin-smooth" />
+                        </span>
+                        <p class="text-sm font-medium text-slate-500">Loading billing reports...</p>
+                    </div>
+                    <div v-else-if="billingReportsPayload.data.length > 0" key="table-wrapper" class="overflow-x-auto">
+                        <table class="w-full min-w-[1200px] border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Name</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Transactions</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left whitespace-nowrap">Gross Revenue</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left whitespace-nowrap">Costs</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left whitespace-nowrap">Sharable Revenue</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left whitespace-nowrap">Our Share</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left whitespace-nowrap">Their Share</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Created</th>
+                                <th class="px-8 py-5"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr
+                                    v-for="billingReport in billingReportsPayload.data"
+                                    :key="billingReport.id"
+                                    class="group hover:bg-indigo-50/20 transition-colors cursor-pointer"
+                                    @click="openReportDetail(billingReport)"
+                                >
+                                    <td class="px-8 py-4 whitespace-nowrap">
+                                        <span class="text-sm font-bold text-indigo-950">{{ billingReport.name }}</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-700 tabular-nums">{{ billingReport.total_transactions ?? 0 }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-700">{{ formatMoney(billingReport.gross_revenue) }}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm text-slate-700">{{ formatMoney(billingReport.costs) }}</span>
+                                            <span
+                                                v-if="billingReport.cost_breakdown && Object.keys(billingReport.cost_breakdown).length"
+                                                v-tooltip="{
+                                                    value: getCostBreakdownTooltipHtml(billingReport),
+                                                    escape: false,
+                                                    class: 'billing-report-detail-tooltip'
+                                                }"
+                                                class="inline-flex cursor-pointer text-slate-400 hover:text-indigo-500 transition-colors p-0.5"
+                                                @click.stop
+                                            >
+                                                <Info :size="16" />
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-slate-700">{{ formatMoney(billingReport.sharable_revenue) }}</td>
+                                    <td class="px-6 py-4 text-sm font-bold text-slate-800">{{ formatMoney(billingReport.our_share) }}</td>
+                                    <td class="px-6 py-4 text-sm text-slate-700">{{ formatMoney(billingReport.their_share) }}</td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span class="text-xs font-bold text-slate-600">{{ billingReport.created_at ? moment(billingReport.created_at).format('MMM YYYY, hh:mm A') : '—' }}</span>
+                                    </td>
+                                    <td class="px-8 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                            <button type="button" @click.stop="openReportDetail(billingReport)" class="h-8 px-3 flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-indigo-500 hover:border-indigo-200 transition-all text-xs font-bold">
+                                                View
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                        </tbody>
+                        </table>
+                    </div>
+
+                    <div v-else key="empty" class="py-24 px-8 flex flex-col items-center justify-center text-center">
+                        <div class="h-20 w-20 rounded-3xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 mb-6">
+                            <FileText :size="40" class="text-slate-500" />
+                        </div>
+                        <h3 class="text-lg font-bold text-indigo-950 mb-1">No billing reports found</h3>
+                        <p class="text-sm text-slate-400 max-w-xs">We couldn't find any records matching your current criteria.</p>
+                        <button v-if="hasActiveFilters" @click="clearAll" class="mt-6 text-xs font-black text-indigo-600 uppercase tracking-widest hover:text-indigo-700 underline underline-offset-4">
+                            Clear all filters
+                        </button>
+                    </div>
+                </Transition>
+                <Pagination
+                    :pagination-payload="billingReportsPayload"
+                    :api-mode="true"
+                    @page-change="fetchBillingReports"
+                />
+            </div>
+        </div>
+
+        <Dialog v-model:visible="dateModalVisible" header="Timeline" :modal="true" :dismissableMask="true" :draggable="false" :style="{ width: '400px' }"
+            :pt="{
+                root: { class: 'rounded-3xl border-none shadow-2xl overflow-hidden' },
+                header: { class: 'bg-white px-6 pt-6 border-none text-indigo-900 font-black uppercase text-sm tracking-widest' },
+                pcCloseButton: { root: { class: 'h-8 w-8 bg-slate-50 text-slate-400 hover:text-rose-500 transition-all !border-0 !border-none shadow-none' } }
+            }">
+            <div class="pb-8 pt-5 space-y-5">
+                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-2 rounded-2xl border border-slate-100">
+                    <button v-for="opt in dateFilterOptions" :key="opt.value" @click="applyDateOption(opt)"
+                        :class="['py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all', selectedDateOption?.value === opt.value ? 'bg-white text-indigo-600 shadow-sm border border-slate-100' : 'text-slate-400 hover:text-slate-600']">
+                        {{ opt.label }}
+                    </button>
+                </div>
+                <div v-if="selectedDateOption?.value === 'custom'" class="space-y-3 pt-2">
+                    <DatePicker v-model="customDateFrom" class="w-full" placeholder="Start Date" />
+                    <DatePicker v-model="customDateTo" class="w-full" placeholder="End Date" />
+                    <button @click="applyCustomDateAndClose" class="w-full py-3.5 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-100">Apply Timeline</button>
+                </div>
+            </div>
+        </Dialog>
+
+        <Dialog v-model:visible="sortModalVisible" header="Sort by" :modal="true" :dismissableMask="true" :draggable="false" :style="{ width: '380px' }"
+            :pt="{
+                root: { class: 'rounded-3xl border-none shadow-2xl overflow-hidden' },
+                header: { class: 'bg-white px-6 pt-5 pb-0 border-none text-indigo-900 font-black uppercase text-xs tracking-widest' },
+                pcCloseButton: { root: { class: 'h-8 w-8 bg-slate-50 text-slate-400 hover:text-rose-500 transition-all !border-0 !border-none shadow-none' } }
+            }">
+            <div class="pt-4 pb-6 space-y-1">
+                <button
+                    v-for="option in sortOptions"
+                    :key="option.value"
+                    type="button"
+                    @click="toggleSort(option)"
+                    :class="[
+                        'w-full px-4 py-3 rounded-xl text-left text-sm font-medium transition-all flex items-center justify-between',
+                        isSortActive(option) ? 'bg-indigo-50 text-indigo-700' : 'hover:bg-slate-50 text-slate-700'
+                    ]"
+                >
+                    <span>{{ option.label }}</span>
+                    <Check v-if="isSortActive(option)" :size="18" class="text-indigo-600 shrink-0" />
+                </button>
+            </div>
+            <template v-if="selectedSortOptions.length" #footer>
+                <div class="flex gap-2 pt-2">
+                    <button type="button" @click="clearSorts" class="flex-1 py-3.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-black text-xs uppercase tracking-widest transition-all">Clear sort</button>
+                    <button type="button" @click="hideSortModal" class="flex-1 py-3.5 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-all">Done</button>
+                </div>
+            </template>
+        </Dialog>
     </div>
-
 </template>
+
 <script>
+import { defineComponent } from 'vue';
+import Dialog from 'primevue/dialog';
+import DatePicker from 'primevue/datepicker';
+import Tooltip from 'primevue/tooltip';
+import debounce from 'lodash/debounce';
+import moment from 'moment';
+import { formatMoney } from '@/utils/formatMoney';
+import { Search, Calendar, RefreshCw, X, ChevronLeft, ChevronRight, ArrowDownWideNarrow, Check, Info, FileText } from 'lucide-vue-next';
+import Pagination from '@/Partials/Pagination.vue';
 
-    import Pagination from '../../../../Partials/Pagination.vue';
-    import JetInputError from '@/Components/InputError.vue';
-    import JetInput from '@/Components/TextInput.vue';
-    import { defineComponent } from 'vue';
-    import moment from "moment";
-
-    export default defineComponent({
-        components: {
-            Pagination, JetInputError, JetInput
+export default defineComponent({
+    directives: { Tooltip },
+    components: {
+        Dialog,
+        Pagination,
+        DatePicker,
+        Search,
+        Calendar,
+        RefreshCw,
+        X,
+        ChevronLeft,
+        ChevronRight,
+        ArrowDownWideNarrow,
+        Check,
+        Info,
+        FileText,
+    },
+    props: {
+        projectPayload: { type: Object, default: null },
+        refetchTrigger: { type: Number, default: 0 },
+    },
+    data() {
+        return {
+            moment,
+            loading: false,
+            fetchRequestId: 0,
+            billingReportsPayload: { data: [], current_page: 1, last_page: 1, total: 0, links: [] },
+            searchQuery: '',
+            filters: { date_from: '', date_to: '' },
+            dateModalVisible: false,
+            sortModalVisible: false,
+            selectedDateOption: { value: 'all', label: 'All Time' },
+            selectedSortOptions: [],
+            sortOptions: [
+                { label: 'Newest first', value: 'created_at:desc', group: 'date' },
+                { label: 'Oldest first', value: 'created_at:asc', group: 'date' },
+                { label: 'Most revenue', value: 'gross_revenue:desc', group: 'revenue' },
+                { label: 'Least revenue', value: 'gross_revenue:asc', group: 'revenue' },
+                { label: 'Most transactions', value: 'total_transactions:desc', group: 'transactions' },
+                { label: 'Fewest transactions', value: 'total_transactions:asc', group: 'transactions' },
+            ],
+            customDateFrom: null,
+            customDateTo: null,
+            dateFilterOptions: [
+                { value: 'all', label: 'All Time' },
+                { value: 'today', label: 'Today' },
+                { value: 'this_week', label: 'Week' },
+                { value: 'this_month', label: 'Month' },
+                { value: 'this_year', label: 'Year' },
+                { value: 'custom', label: 'Custom' },
+            ],
+            initialLoadComplete: false,
+        };
+    },
+    watch: {
+        refetchTrigger() {
+            this.fetchBillingReports(this.billingReportsPayload.current_page || 1);
         },
-        props: {
-            projectPayload: Object,
-            billingReportsPayload: Object
+        loading(val) {
+            if (!val && (this.billingReportsPayload?.data?.length ?? 0) > 0) this.initialLoadComplete = true;
         },
-        data() {
-            return {
-                moment: moment,
-                refreshContentInterval: null,
-                form: this.$inertia.form({
-                    search: ''
-                }),
-            }
-        },
-        methods: {
-            refreshContent()
-            {
-                this.$inertia.reload();
+        'billingReportsPayload.data': {
+            handler(data) {
+                if (!this.loading && data && data.length > 0) this.initialLoadComplete = true;
             },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
+            deep: true,
+        },
+    },
+    computed: {
+        hasActiveFilters() {
+            const hasTextSearch = this.searchQuery.trim().length > 0;
+            const hasDateFilter = this.selectedDateOption?.value !== 'all';
+            const hasSort = this.selectedSortOptions.length > 0;
+            return hasTextSearch || hasDateFilter || hasSort;
+        },
+        selectedDateLabel() {
+            if (this.selectedDateOption?.value === 'custom' && (this.filters.date_from || this.filters.date_to)) {
+                return `${moment(this.filters.date_from).format('MMM D')} - ${moment(this.filters.date_to).format('MMM D')}`;
+            }
+            return this.selectedDateOption?.label ?? 'All Time';
+        },
+        filteredPagination() {
+            const current = this.billingReportsPayload.current_page;
+            const last = this.billingReportsPayload.last_page;
+            if (last <= 1) return [];
+            const pages = [];
+            pages.push({ label: 'prev', page: current > 1 ? current - 1 : null });
+            pages.push({ label: '1', active: current === 1, page: 1 });
+            if (current > 3) pages.push({ label: '...', active: false, page: null });
+            const start = Math.max(2, current - 1);
+            const end = Math.min(last - 1, current + 1);
+            for (let i = start; i <= end; i++) if (i !== 1 && i !== last) pages.push({ label: i.toString(), active: current === i, page: i });
+            if (current < last - 2) pages.push({ label: '...', active: false, page: null });
+            if (last > 1) pages.push({ label: last.toString(), active: current === last, page: last });
+            pages.push({ label: 'next', page: current < last ? current + 1 : null });
+            return pages;
+        },
+    },
+    methods: {
+        formatMoney,
+        fetchBillingReports(page = 1) {
+            this.fetchRequestId += 1;
+            const requestId = this.fetchRequestId;
+            const hadData = (this.billingReportsPayload?.data?.length ?? 0) > 0;
+            const minSpinMs = hadData ? 0 : 400;
+            const startedAt = Date.now();
+            this.loading = true;
+            const url = route('show.billing.reports', { project: route().params.project });
+            const sortParam = this.selectedSortOptions.length > 0 ? this.selectedSortOptions[0].value : undefined;
+            const params = {
+                page,
+                per_page: 15,
+                search: this.searchQuery.trim() || undefined,
+                date_from: this.filters.date_from || undefined,
+                date_to: this.filters.date_to || undefined,
+                ...(sortParam ? { sort: sortParam } : {}),
+            };
+            const stopSpinner = () => {
+                if (requestId !== this.fetchRequestId) return;
+                const elapsed = Date.now() - startedAt;
+                const delay = Math.max(0, minSpinMs - elapsed);
+                if (delay > 0) setTimeout(() => { if (requestId === this.fetchRequestId) this.loading = false; }, delay);
+                else this.loading = false;
+            };
+            window.axios.get(url, { params }).then(({ data }) => {
+                if (requestId !== this.fetchRequestId) return;
+                this.billingReportsPayload = data.billingReportsPayload ?? { data: [], current_page: 1, last_page: 1, total: 0, links: [] };
+            }).catch(() => {
+                if (requestId !== this.fetchRequestId) return;
+                this.billingReportsPayload = { data: [], current_page: 1, last_page: 1, total: 0, links: [] };
+            }).finally(stopSpinner);
+        },
+        refresh() {
+            this.fetchBillingReports(this.billingReportsPayload.current_page || 1);
+        },
+        clearAll() {
+            this.selectedDateOption = { value: 'all', label: 'All Time' };
+            this.filters = { date_from: '', date_to: '' };
+            this.selectedSortOptions = [];
+            this.searchQuery = '';
+            this.fetchBillingReports(1);
+        },
+        changePage(page) {
+            this.fetchBillingReports(page);
+        },
+        showDateModal() {
+            this.dateModalVisible = true;
+        },
+        showSortModal() {
+            this.sortModalVisible = true;
+        },
+        hideSortModal() {
+            this.sortModalVisible = false;
+        },
+        isSortActive(option) {
+            return this.selectedSortOptions.some(s => s.label === option.label);
+        },
+        toggleSort(option) {
+            const existingInGroupIndex = this.selectedSortOptions.findIndex(s => s.group === option.group);
+            if (existingInGroupIndex !== -1) {
+                const existing = this.selectedSortOptions[existingInGroupIndex];
+                if (existing.label === option.label) {
+                    this.selectedSortOptions.splice(existingInGroupIndex, 1);
+                } else {
+                    this.selectedSortOptions.splice(existingInGroupIndex, 1, { ...option });
+                }
+            } else {
+                this.selectedSortOptions.push({ ...option });
+            }
+            this.fetchBillingReports(1);
+        },
+        removeSort(sort) {
+            this.selectedSortOptions = this.selectedSortOptions.filter(s => s.label !== sort.label);
+            this.fetchBillingReports(1);
+        },
+        clearSorts() {
+            this.selectedSortOptions = [];
+            this.hideSortModal();
+            this.fetchBillingReports(1);
+        },
+        applyDateOption(opt) {
+            this.selectedDateOption = opt;
+            if (opt.value === 'all') {
+                this.filters.date_from = '';
+                this.filters.date_to = '';
+                this.dateModalVisible = false;
+                this.fetchBillingReports(1);
+            } else if (opt.value !== 'custom') {
+                const range = this.getDateRangeForPreset(opt.value);
+                this.filters.date_from = range.start;
+                this.filters.date_to = range.end;
+                this.dateModalVisible = false;
+                this.fetchBillingReports(1);
             }
         },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
+        getDateRangeForPreset(p) {
+            const m = moment();
+            if (p === 'today') return { start: m.format('YYYY-MM-DD'), end: m.format('YYYY-MM-DD') };
+            if (p === 'this_week') return { start: m.startOf('week').format('YYYY-MM-DD'), end: m.endOf('week').format('YYYY-MM-DD') };
+            if (p === 'this_month') return { start: m.startOf('month').format('YYYY-MM-DD'), end: m.endOf('month').format('YYYY-MM-DD') };
+            if (p === 'this_year') return { start: m.startOf('year').format('YYYY-MM-DD'), end: m.endOf('year').format('YYYY-MM-DD') };
+            return { start: '', end: '' };
         },
-        unmounted() {
-            this.cleanUp()
-        }
-    })
+        applyCustomDateAndClose() {
+            if (this.customDateFrom) this.filters.date_from = moment(this.customDateFrom).format('YYYY-MM-DD');
+            if (this.customDateTo) this.filters.date_to = moment(this.customDateTo).format('YYYY-MM-DD');
+            this.dateModalVisible = false;
+            this.fetchBillingReports(1);
+        },
+        getCostBreakdownTooltipHtml(report) {
+            if (!report || !report.cost_breakdown || !Object.keys(report.cost_breakdown).length) return '';
+            const total = this.formatMoney(report.costs);
+            let html = `<div class="detail-tooltip__title">Cost Breakdown</div><div class="detail-tooltip__body">`;
+            for (const [costName, costAmount] of Object.entries(report.cost_breakdown)) {
+                const amount = this.formatMoney(costAmount);
+                html += `<div class="detail-tooltip__row"><span class="detail-tooltip__label">${this.escapeHtml(costName)}</span><span class="detail-tooltip__value">${this.escapeHtml(amount)}</span></div>`;
+            }
+            html += `<div class="detail-tooltip__row" style="margin-top:8px;padding-top:8px;border-top:1px solid #e2e8f0;font-weight:700;"><span class="detail-tooltip__label">Total</span><span class="detail-tooltip__value">${this.escapeHtml(total)}</span></div>`;
+            html += '</div>';
+            return html;
+        },
+        escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        },
+        openReportDetail(billingReport) {
+            if (!billingReport?.id || !this.projectPayload?.id) return;
+            this.$inertia.visit(route('show.billing.report', {
+                project: this.projectPayload.id,
+                billing_report: billingReport.id,
+            }));
+        },
+    },
+    created() {
+        this.debouncedSearch = debounce(() => this.fetchBillingReports(1), 400);
+        this.fetchBillingReports(1);
+    },
+});
 </script>
+
+<style scoped>
+.content-switch-leave-active,
+.content-switch-enter-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.content-switch-leave-from,
+.content-switch-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+.content-switch-leave-to,
+.content-switch-enter-from {
+    opacity: 0;
+    transform: translateY(-6px);
+}
+</style>
+
+<!-- Unscoped: Detail tooltips (report summary & cost breakdown) match subscribers/subscriptions/transactions -->
+<style>
+.billing-report-detail-tooltip {
+    max-width: 380px;
+    min-width: 260px;
+    padding: 0;
+    border-radius: 12px;
+    background: #fff !important;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+.billing-report-detail-tooltip .p-tooltip-arrow {
+    display: none;
+}
+.billing-report-detail-tooltip .p-tooltip-text {
+    padding: 14px 16px;
+    overflow: hidden;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-align: left;
+}
+.billing-report-detail-tooltip .detail-tooltip__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #1e293b;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.billing-report-detail-tooltip .detail-tooltip__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+.billing-report-detail-tooltip .detail-tooltip__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.6875rem;
+}
+.billing-report-detail-tooltip .detail-tooltip__label {
+    flex-shrink: 0;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.billing-report-detail-tooltip .detail-tooltip__value {
+    color: #334155;
+    font-weight: 500;
+    word-break: break-word;
+    text-align: right;
+}
+</style>

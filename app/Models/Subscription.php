@@ -86,6 +86,22 @@ class Subscription extends Model
     }
 
     /**
+     * Get the billing transactions associated with the subscription.
+     */
+    public function billingTransactions()
+    {
+        return $this->hasMany(BillingTransaction::class);
+    }
+
+    /**
+     * Get the latest billing transaction associated with the subscription.
+     */
+    public function latestBillingTransaction()
+    {
+        return $this->hasOne(BillingTransaction::class)->latestOfMany('created_at');
+    }
+
+    /**
      *  ATTRIBUTES
      */
     protected $appends = [

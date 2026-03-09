@@ -136,7 +136,7 @@
             </div>
 
             <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="pricingPlanAutoBillingJobBatchesPayload" :updateData="['pricingPlanAutoBillingJobBatchesPayload']" />
+            <Pagination class="mt-6" :pagination-payload="pricingPlanAutoBillingJobBatchesPayload" :update-data="['pricingPlanAutoBillingJobBatchesPayload']" />
 
         </div>
 
@@ -145,7 +145,7 @@
 </template>
 <script>
 
-    import Pagination from '../../../../../../Partials/Pagination.vue'
+    import Pagination from '@/Partials/Pagination.vue';
     import JetSecondaryButton from '@/Components/SecondaryButton.vue'
     import AutoBillingStatusBadge from './AutoBillingStatusBadge.vue'
     import { defineComponent } from 'vue'
@@ -161,7 +161,6 @@
         },
         data() {
             return {
-                refreshContentInterval: null,
                 moment: moment
             }
         },
@@ -208,8 +207,7 @@
             },
         },
         methods: {
-            refreshContent()
-            {
+            refreshContent() {
                 this.$inertia.reload();
             },
             nagivateToPricingPlan(pricingPlan = null) {
@@ -223,24 +221,9 @@
 
                 }
             },
-            goBackToPreviousPage(){
+            goBackToPreviousPage() {
                 window.history.back();
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
             }
-        },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
-        },
-        unmounted() {
-            this.cleanUp()
         }
     })
 </script>

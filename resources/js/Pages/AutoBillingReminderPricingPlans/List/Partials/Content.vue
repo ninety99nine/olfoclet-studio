@@ -132,7 +132,7 @@
             </div>
 
             <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="autoBillingReminderPricingPlansPayload" :updateData="['autoBillingReminderPricingPlansPayload']" />
+            <Pagination class="mt-6" :pagination-payload="autoBillingReminderPricingPlansPayload" :update-data="['autoBillingReminderPricingPlansPayload']" />
 
         </div>
 
@@ -142,7 +142,7 @@
 <script>
     import PricingPlanCanAutoBillBadge from '../JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue';
     import AutoBillingReminderStatusBadge from '../JobBatches/List/Partials/AutoBillingReminderStatusBadge.vue';
-    import Pagination from '../../../../Partials/Pagination.vue';
+    import Pagination from '@/Partials/Pagination.vue';
     import { defineComponent } from 'vue';
     import moment from "moment";
 
@@ -156,14 +156,12 @@
         },
         data() {
             return {
-                refreshContentInterval: null,
                 pricingPlan: null,
                 moment: moment
             }
         },
         methods: {
-            refreshContent()
-            {
+            refreshContent() {
                 this.$inertia.reload();
             },
             getLatestPricingPlanBatchJob(pricingPlan)
@@ -172,22 +170,7 @@
                     return pricingPlan.latest_auto_billing_reminder_job_batch[0];
                 }
                 return {};
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
             }
-        },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
-        },
-        unmounted() {
-            this.cleanUp()
         }
     })
 </script>

@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AnalyticsController;
 use App\Http\Controllers\Api\TopicController;
 use App\Http\Controllers\Api\MessageController;
 use App\Http\Controllers\Api\SubscriberController;
@@ -78,6 +79,18 @@ Route::middleware('verify.api.bearer.token')->prefix('/projects')->name('api.')-
             Route::prefix('{pricing_plan}')->group(function () {
                 Route::get('/{type?}', [PricingPlanController::class, 'showPricingPlan'])->name('show.pricing.plan');
             });
+        });
+
+        //  Analytics
+        Route::prefix('analytics')->name('analytics.')->group(function () {
+            Route::get('/overview', [AnalyticsController::class, 'overview'])->name('overview');
+            Route::get('/subscribers-over-time', [AnalyticsController::class, 'subscribersOverTime'])->name('subscribers-over-time');
+            Route::get('/transactions-over-time', [AnalyticsController::class, 'transactionsOverTime'])->name('transactions-over-time');
+            Route::get('/messages-over-time', [AnalyticsController::class, 'messagesOverTime'])->name('messages-over-time');
+            Route::get('/subscription-mix', [AnalyticsController::class, 'subscriptionMix'])->name('subscription-mix');
+            Route::get('/subscriptions-by-plan', [AnalyticsController::class, 'subscriptionsByPlan'])->name('subscriptions-by-plan');
+            Route::get('/revenue-over-time', [AnalyticsController::class, 'revenueOverTime'])->name('revenue-over-time');
+            Route::get('/subscriptions-over-time', [AnalyticsController::class, 'subscriptionsOverTime'])->name('subscriptions-over-time');
         });
 
     });

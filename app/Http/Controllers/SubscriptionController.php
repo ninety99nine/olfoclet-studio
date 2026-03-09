@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Project;
 use App\Models\PricingPlan;
@@ -11,6 +12,7 @@ use App\Repositories\SubscriberRepository;
 use App\Repositories\SubscriptionRepository;
 use App\Repositories\PricingPlanRepository;
 use App\Http\Requests\Subscriptions\CreateSubscriptionRequest;
+use App\Http\Requests\Subscriptions\ListSubscriptionsRequest;
 use App\Http\Requests\Subscriptions\UpdateSubscriptionRequest;
 
 class SubscriptionController extends Controller
@@ -25,18 +27,14 @@ class SubscriptionController extends Controller
     {
         $this->project = Project::findOrFail(request()->route('project'));
 
-        if(request()->routeIs('api.show.subscription')) {
+        $subscriptionId = request()->route('subscription');
 
-            $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->with(['pricingPlan'])->first();
-
-        }else{
-
-            if(!empty(request()->subscription)) {
-
-                $this->subscription = $this->project->subscriptions()->where('id', request()->subscription)->firstOrFail();
-
-            }
-
+        if (request()->routeIs('api.show.subscription')) {
+            $this->subscription = $subscriptionId
+                ? $this->project->subscriptions()->where('id', $subscriptionId)->with(['pricingPlan'])->first()
+                : null;
+        } elseif (!empty($subscriptionId)) {
+            $this->subscription = $this->project->subscriptions()->where('id', $subscriptionId)->firstOrFail();
         }
 
         $this->subscriberRepository = new SubscriberRepository($this->project, null);
@@ -44,22 +42,73 @@ class SubscriptionController extends Controller
         $this->subscriptionRepository = new SubscriptionRepository($this->project, $this->subscription);
     }
 
-    public function showSubscriptions()
+    /**
+     * Build filters array from validated request (for JSON and list).
+     *
+     * @param array<string, mixed> $validated
+     * @return array<string, mixed>
+     */
+    private function buildFilters(array $validated): array
     {
-        //  Get the total subscribers
+        return [
+            'msisdn' => $validated['msisdn'] ?? null,
+            'status' => $validated['status'] ?? null,
+            'pricing_plan_id' => $validated['pricing_plan_id'] ?? null,
+            'date_from' => $validated['date_from'] ?? null,
+            'date_to' => $validated['date_to'] ?? null,
+            'per_page' => $validated['per_page'] ?? null,
+            'sort' => $validated['sort'] ?? null,
+        ];
+    }
+
+    public function showSubscriptions(Request $request)
+    {
         $totalSubscribers = $this->subscriberRepository->countProjectSubscribers();
 
-        // Fetch the pricing plans using the repository with the required relationships and pagination
+        // JSON request (e.g. from Axios): validate and return paginated list
+        if ($request->expectsJson()) {
+            $validated = $request->validate((new ListSubscriptionsRequest())->rules());
+            $filters = $this->buildFilters($validated);
+            $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(
+                $filters,
+                ['subscriber:id,msisdn', 'pricingPlan', 'latestBillingTransaction'],
+                []
+            );
+
+            return response()->json([
+                'subscriptionsPayload' => $subscriptions,
+                'totalSubscribers' => $totalSubscribers,
+            ]);
+        }
+
+        // Inertia: render shell only; frontend fetches list via Axios
         $pricingPlans = $this->pricingPlanRepository->queryProjectPricingPlans()->get();
 
-        // Fetch the subscriptions using the repository with the required relationships and pagination
-        $subscriptions = $this->subscriptionRepository->getProjectSubscriptions(['subscriber:id,msisdn', 'pricingPlan']);
-
-        // Render the subscriptions view
         return Inertia::render('Subscriptions/List/Main', [
             'totalSubscribers' => $totalSubscribers,
-            'subscriptionsPayload' => $subscriptions,
-            'pricingPlans' => $pricingPlans
+            'pricingPlans' => $pricingPlans,
+        ]);
+    }
+
+    /**
+     * Show a single subscription with details and relationships.
+     */
+    public function showSubscription()
+    {
+        $subscription = $this->subscription;
+        if ($subscription === null) {
+            abort(404, 'Subscription not found.');
+        }
+
+        $subscription->load([
+            'subscriber:id,msisdn,project_id',
+            'pricingPlan:id,name,project_id',
+            'latestBillingTransaction',
+        ]);
+
+        return Inertia::render('Subscriptions/Show/Main', [
+            'subscription' => $subscription,
+            'project' => $this->project,
         ]);
     }
 

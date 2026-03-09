@@ -132,7 +132,7 @@
             </div>
 
             <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="autoBillingPricingPlansPayload" :updateData="['autoBillingPricingPlansPayload']" />
+            <Pagination class="mt-6" :pagination-payload="autoBillingPricingPlansPayload" :update-data="['autoBillingPricingPlansPayload']" />
 
         </div>
 
@@ -142,7 +142,7 @@
 <script>
     import PricingPlanCanAutoBillBadge from '../JobBatches/List/Partials/PricingPlanCanAutoBillBadge.vue'
     import AutoBillingStatusBadge from '../JobBatches/List/Partials/AutoBillingStatusBadge.vue'
-    import Pagination from '../../../../Partials/Pagination.vue'
+    import Pagination from '@/Partials/Pagination.vue';
     import { defineComponent } from 'vue'
     import moment from "moment";
 
@@ -156,38 +156,20 @@
         },
         data() {
             return {
-                refreshContentInterval: null,
                 pricingPlan: null,
                 moment: moment
             }
         },
         methods: {
-            refreshContent()
-            {
+            refreshContent() {
                 this.$inertia.reload();
             },
-            getLatestPricingPlanBatchJob(pricingPlan)
-            {
-                if( pricingPlan.latest_auto_billing_job_batch.length ) {
+            getLatestPricingPlanBatchJob(pricingPlan) {
+                if (pricingPlan.latest_auto_billing_job_batch.length) {
                     return pricingPlan.latest_auto_billing_job_batch[0];
                 }
                 return {};
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
             }
-        },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
-        },
-        unmounted() {
-            this.cleanUp()
         }
     })
 </script>

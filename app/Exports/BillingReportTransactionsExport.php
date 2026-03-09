@@ -46,6 +46,7 @@ class BillingReportTransactionsExport implements FromQuery, WithProperties, With
     public function query()
     {
         return BillingTransaction::query()
+                ->where('project_id', $this->project->id)
                 ->where('is_successful', '1')
                 ->whereYear('created_at', $this->date->year)
                 ->whereMonth('created_at', $this->date->month)

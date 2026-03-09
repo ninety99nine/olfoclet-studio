@@ -59,6 +59,10 @@ class HandleInertiaRequests extends Middleware
             ],
             'project' => $projectData,
             'projectPermissions' => $projectPermissions,
+            'flash' => [
+                'error' => fn () => $request->session()->get('error'),
+                'success' => fn () => $request->session()->get('success'),
+            ],
         ]);
     }
 }

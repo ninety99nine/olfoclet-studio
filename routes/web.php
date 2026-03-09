@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\AutoBillingReminderPricingPlanController;
 use App\Http\Controllers\AutoBillingPricingPlanController;
 use App\Http\Controllers\AutoBillingScheduleController;
@@ -71,15 +72,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/', [ProjectController::class, 'showProjectAbout'])->name('show.project.about');
             });
 
+            //  Analytics
+            Route::get('/analytics', [AnalyticsController::class, 'showAnalytics'])->name('show.analytics');
+
             //  Users
             Route::prefix('show-users')->group(function () {
                 Route::get('/', [UserController::class, 'showUsers'])->middleware(['project.permission:View users'])->name('show.users');
                 Route::post('/', [UserController::class, 'createUser'])->middleware(['project.permission:Manage users'])->name('create.user');
 
-                Route::prefix('{user}')->middleware(['project.permission:Manage users'])->group(function () {
-                    //  Route::get('/', [UserController::class, 'showUser'])->name('show.user');
-                    Route::put('/', [UserController::class, 'updateUser'])->name('update.user');
-                    Route::delete('/', [UserController::class, 'deleteUser'])->name('delete.user');
+                Route::prefix('{user}')->group(function () {
+                    Route::get('/', [UserController::class, 'showUser'])
+                        ->middleware(['project.permission:View users'])
+                        ->name('show.user');
+                    Route::put('/', [UserController::class, 'updateUser'])->middleware(['project.permission:Manage users'])->name('update.user');
+                    Route::delete('/', [UserController::class, 'deleteUser'])->middleware(['project.permission:Manage users'])->name('delete.user');
                 });
             });
 
@@ -118,9 +124,20 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/', [SubscriberController::class, 'showSubscribers'])->middleware(['project.permission:View subscribers'])->name('show.subscribers');
                 Route::post('/', [SubscriberController::class, 'createSubscriber'])->middleware(['project.permission:Manage subscribers'])->name('create.subscriber');
 
-                Route::prefix('{subscriber}')->middleware(['project.permission:Manage subscribers'])->group(function () {
-                    Route::put('/', [SubscriberController::class, 'updateSubscriber'])->name('update.subscriber');
-                    Route::delete('/', [SubscriberController::class, 'deleteSubscriber'])->name('delete.subscriber');
+                Route::prefix('{subscriber}')->group(function () {
+                    Route::get('/', [SubscriberController::class, 'showSubscriber'])->middleware(['project.permission:View subscribers'])->name('show.subscriber');
+                    Route::get('/subscriptions', [SubscriberController::class, 'subscriberSubscriptions'])->middleware(['project.permission:View subscribers'])->name('subscriber.subscriptions');
+                    Route::get('/messages', [SubscriberController::class, 'subscriberMessages'])->middleware(['project.permission:View subscribers'])->name('subscriber.messages');
+                    Route::get('/billing-transactions', [SubscriberController::class, 'subscriberBillingTransactions'])->middleware(['project.permission:View subscribers'])->name('subscriber.billing.transactions');
+                    Route::get('/topics', [SubscriberController::class, 'subscriberTopics'])->middleware(['project.permission:View subscribers'])->name('subscriber.topics');
+                    Route::get('/auto-billing-schedules', [SubscriberController::class, 'subscriberAutoBillingSchedules'])->middleware(['project.permission:View subscribers'])->name('subscriber.auto.billing.schedules');
+                    Route::get('/sms-campaigns', [SubscriberController::class, 'subscriberSmsCampaigns'])->middleware(['project.permission:View subscribers'])->name('subscriber.sms.campaigns');
+
+                    Route::middleware(['project.permission:Manage subscribers'])->group(function () {
+                        Route::put('/', [SubscriberController::class, 'updateSubscriber'])->name('update.subscriber');
+                        Route::patch('wipe-metadata', [SubscriberController::class, 'wipeSubscriberMetadata'])->name('wipe.subscriber.metadata');
+                        Route::delete('/', [SubscriberController::class, 'deleteSubscriber'])->name('delete.subscriber');
+                    });
                 });
             });
 
@@ -130,7 +147,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/', [SubscriberMessageController::class, 'showSubscriberMessages'])->name('show.subscriber.messages');
 
                 Route::prefix('{subscriber_message}')->group(function () {
-                    Route::get('/', [SubscriberMessageController::class, 'showSubscriberMessage']);
+                    Route::get('/', [SubscriberMessageController::class, 'showSubscriberMessage'])->name('show.subscriber.message');
                 });
             });
 
@@ -144,13 +161,13 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 });
             });
 
-            //  Billing Transactions
-            Route::prefix('billing-transactions')
+            //  Transactions
+            Route::prefix('transactions')
                 ->middleware(['project.permission:View billing transactions'])->group(function () {
-                Route::get('/', [BillingTransactionController::class, 'showBillingTransactions'])->name('show.billing.transactions');
+                Route::get('/', [BillingTransactionController::class, 'showTransactions'])->name('show.transactions');
 
                 Route::prefix('{billing_transaction}')->group(function () {
-                    Route::get('/', [BillingTransactionController::class, 'showBillingTransaction']);
+                    Route::get('/', [BillingTransactionController::class, 'showTransaction'])->name('show.transaction');
                 });
             });
 
@@ -160,7 +177,14 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/', [BillingReportController::class, 'showBillingReports'])->name('show.billing.reports');
 
                 Route::prefix('{billing_report}')->group(function () {
-                    Route::get('/', [BillingReportController::class, 'showBillingReport']);
+                    Route::get('/', [BillingReportController::class, 'showBillingReport'])->name('show.billing.report');
+                    Route::get('/pdf', [BillingReportController::class, 'downloadDetailedPdf'])->name('billing.report.download.pdf');
+                    Route::get('/print-report', [BillingReportController::class, 'showReportPrintView'])->name('billing.report.print.report');
+                    Route::get('/invoice/pdf', [BillingReportController::class, 'downloadInvoicePdf'])->name('billing.report.download.invoice.pdf');
+                    Route::get('/invoice/print', [BillingReportController::class, 'showInvoicePrintView'])->name('billing.report.print.invoice');
+                    Route::get('/transactions', [BillingReportController::class, 'transactionsForReport'])->name('billing.report.transactions');
+                    Route::get('/transactions/csv', [BillingReportController::class, 'downloadTransactionsCsv'])->name('billing.report.transactions.csv');
+                    Route::get('/transactions/excel', [BillingReportController::class, 'downloadTransactionsExcel'])->name('billing.report.transactions.excel');
                 });
             });
 
@@ -168,6 +192,7 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
             Route::prefix('subscriptions')->group(function () {
                 Route::get('/', [SubscriptionController::class, 'showSubscriptions'])->middleware(['project.permission:View subscriptions'])->name('show.subscriptions');
                 Route::post('/', [SubscriptionController::class, 'createSubscription'])->middleware(['project.permission:Manage subscriptions'])->name('create.subscription');
+                Route::get('/{subscription}', [SubscriptionController::class, 'showSubscription'])->middleware(['project.permission:View subscriptions'])->name('show.subscription');
 
                 Route::prefix('{subscription}')->middleware(['project.permission:Manage subscriptions'])->group(function () {
                     Route::put('/', [SubscriptionController::class, 'updateSubscription'])->name('update.subscription');

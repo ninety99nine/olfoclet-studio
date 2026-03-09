@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\Models\Project;
 use App\Models\BillingReport;
 use Illuminate\Database\Eloquent\Builder;
-use \Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class BillingReportRepository
@@ -16,7 +16,7 @@ class BillingReportRepository
     protected Project $project;
 
     /**
-     *  @var BillingReport|null The BillingReport message instance associated with the repository.
+     *  @var BillingReport|null The BillingReport instance associated with the repository.
      */
     protected ?BillingReport $billingReport;
 
@@ -33,43 +33,79 @@ class BillingReportRepository
     }
 
     /**
-     *  Query the project billing reports with optional relationships
+     *  Query the project billing reports with optional relationships.
      *
      *  @param array $relationships The relationships to eager load on the billing reports.
      *  @param array $countableRelationships The relationships to count on the billing reports.
      *  @return HasMany
      */
-    public function queryProjectBillingReports($relationships = [], $countableRelationships = []): hasMany
+    public function queryProjectBillingReports(array $relationships = [], array $countableRelationships = []): HasMany
     {
-        $query = $this->project->billingReports()->with($relationships)->withCount($countableRelationships);
-
-        return empty($msisdn) ? $query : $query->whereHas('subscriber', function (Builder $query) use ($msisdn) {
-            return $query->where('msisdn', $msisdn);
-         });
+        return $this->project->billingReports()->with($relationships)->withCount($countableRelationships);
     }
 
     /**
-     *  Get the project billing reports with optional relationships
+     *  Get the project billing reports with optional filters, relationships and pagination.
+     *
+     *  @param array|null $filters Optional filters (search, date_from, date_to, per_page, sort).
+     *  @param array $relationships The relationships to eager load on the billing reports.
+     *  @param array $countableRelationships The relationships to count on the billing reports.
+     *  @return LengthAwarePaginator The paginated list of project billing reports.
+     */
+    public function getProjectBillingReportsWithFilters(?array $filters = null, array $relationships = [], array $countableRelationships = []): LengthAwarePaginator
+    {
+        $query = $this->queryProjectBillingReports($relationships, $countableRelationships);
+
+        if ($filters) {
+            if (!empty($filters['search'])) {
+                $query->where('name', 'like', '%' . $filters['search'] . '%');
+            }
+
+            if (!empty($filters['date_from'])) {
+                $query->where('created_at', '>=', \Carbon\Carbon::parse($filters['date_from'])->startOfDay());
+            }
+            if (!empty($filters['date_to'])) {
+                $query->where('created_at', '<=', \Carbon\Carbon::parse($filters['date_to'])->endOfDay());
+            }
+
+            if (!empty($filters['sort']) && preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'], $m)) {
+                $column = $m[1];
+                $direction = $m[2];
+                $allowed = ['created_at', 'id', 'name', 'total_transactions', 'month', 'year', 'gross_revenue'];
+                if (in_array($column, $allowed, true)) {
+                    $query->orderBy($column, $direction);
+                }
+            }
+        }
+
+        $perPage = (is_array($filters) && isset($filters['per_page'])) ? (int) $filters['per_page'] : 15;
+
+        if (empty($filters['sort']) || !preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'] ?? '', $m) || !in_array($m[1], ['created_at', 'id', 'name', 'total_transactions', 'month', 'year', 'gross_revenue'], true)) {
+            $query->latest('created_at');
+        }
+
+        return $query->paginate($perPage);
+    }
+
+    /**
+     *  Get the project billing reports with optional relationships (no filters).
      *
      *  @param array $relationships The relationships to eager load on the billing reports.
      *  @param array $countableRelationships The relationships to count on the billing reports.
      *  @return LengthAwarePaginator The paginated list of project billing reports.
      */
-    public function getProjectBillingReports($relationships = [], $countableRelationships = []): LengthAwarePaginator
+    public function getProjectBillingReports(array $relationships = [], array $countableRelationships = []): LengthAwarePaginator
     {
-        return $this->queryProjectBillingReports($relationships, $countableRelationships)->latest()->paginate();
+        return $this->queryProjectBillingReports($relationships, $countableRelationships)->latest('billing_reports.created_at')->paginate(15);
     }
 
     /**
-     *  Count the project billing reports
+     *  Count the project billing reports.
      *
-     *  @param array $relationships The relationships to eager load on the billing reports.
-     *  @param array $countableRelationships The relationships to count on the billing reports.
      *  @return int The total project billing reports.
      */
-    public function countProjectBillingReports($msisdn = null): int
+    public function countProjectBillingReports(): int
     {
-        return $this->queryProjectBillingReports($msisdn)->count();
+        return $this->queryProjectBillingReports()->count();
     }
-
 }

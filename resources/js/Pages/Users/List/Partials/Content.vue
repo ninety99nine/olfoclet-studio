@@ -1,160 +1,166 @@
 <template>
-
-    <div>
-
-        <create-user-modal
-            v-model="isShowingModal" :action="modalAction"
-            :user="user" :availablePermissions="availablePermissions"
+    <div class="min-h-screen bg-slate-50/50 p-4 lg:p-8 font-sans antialiased text-slate-700">
+        <ManageUserModal
+            v-model="isShowingModal"
+            :action="modalAction"
+            :user="user"
+            :available-permissions="availablePermissions"
+            :show-addbutton="false"
             @onDeleted="onDeleted"
         />
 
-        <div class="bg-white shadow-xl sm:rounded-lg">
+        <div class="max-w-[1600px] mx-auto mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h1 class="text-2xl font-black tracking-tight text-indigo-950">Users</h1>
 
-            <!-- Table -->
-            <div class="flex flex-col overflow-y-auto">
-                <div class="align-middle inline-block min-w-full">
-                    <div class="shadow border-b border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Name</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Email</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Permissions</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Created</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Actions</span>
-                                </th>
-                            </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="user in usersPayload.data" :key="user.id">
-                                    <!-- Name -->
-                                    <td class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ user.name }}</div>
-                                    </td>
-                                    <!-- Email -->
-                                    <td class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ user.email }}</div>
-                                    </td>
-                                    <!-- Permissions -->
-                                    <td class="px-6 py-3 whitespace-nowrap">
-                                        <el-popover
-                                            placement="right"
-                                            width="200"
-                                            trigger="hover">
-                                            <template v-slot:reference>
-                                                <div class="text-center">
-                                                    <span class="text-lg text-green-600">{{ user.pivot.permissions.length }}</span>
-                                                    <span class="text-gray-400 mx-2">/</span>
-                                                    <span class="text-sm text-gray-400">{{ availablePermissions.length }}</span>
-                                                </div>
-                                            </template>
-
-                                            <div>
-                                                <div v-for="(availablePermission, index) in availablePermissions" :key="index" class="flex items-center">
-                                                    <svg v-if="user.pivot.permissions.includes(availablePermission)" xmlns="http://www.w3.org/2000/svg" class="text-green-600 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                    <svg v-else xmlns="http://www.w3.org/2000/svg" class="text-gray-300 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                                                        <path fill-rule="evenodd" d="M13.477 14.89A6 6 0 015.11 6.524l8.367 8.368zm1.414-1.414L6.524 5.11a6 6 0 018.367 8.367zM18 10a8 8 0 11-16 0 8 8 0 0116 0z" clip-rule="evenodd" />
-                                                    </svg>
-                                                    <span class="ml-3 block text-sm font-medium text-gray-700">{{ availablePermission }}</span>
-                                                </div>
-                                            </div>
-
-                                        </el-popover>
-                                    </td>
-                                    <!-- Created Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                        {{ user.created_at == null ? '...' : moment(user.created_at).format('lll') }}
-                                    </td>
-                                    <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                        <a v-if="$inertia.page.props.projectPermissions.includes('Manage users')" href="#" @click.prevent="showModal(user, 'update')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                                        <a v-if="$inertia.page.props.projectPermissions.includes('Manage users')" href="#" @click.prevent="showModal(user, 'delete')" class="text-red-600 hover:text-red-900">Delete</a>
-                                    </td>
-                                </tr>
-
-                                <tr v-if="usersPayload.data.length == 0">
-                                    <!-- Content -->
-                                    <td :colspan="5" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No users</div>
-                                    </td>
-                                </tr>
-
-                            </tbody>
-                        </table>
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-0.5">Total</span>
+                        <span class="text-xl font-bold text-indigo-900 tabular-nums leading-none">
+                            {{ (usersPayload.total ?? 0).toLocaleString() }}
+                        </span>
                     </div>
+
+                    <button
+                        v-if="projectPermissions.includes('Manage users')"
+                        @click="showModal(null, 'create')"
+                        class="h-10 px-5 flex items-center gap-2 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
+                    >
+                        <Plus :size="14" class="text-xs" />
+                        <span class="text-xs">Add User</span>
+                    </button>
                 </div>
             </div>
-
-            <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="usersPayload" :updateData="['usersPayload']" />
-
         </div>
 
+        <div class="max-w-[1600px] mx-auto">
+            <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50/50 border-b border-slate-100">
+                            <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Name</th>
+                            <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Email</th>
+                            <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Permissions</th>
+                            <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Created</th>
+                            <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr
+                            v-for="u in usersPayload.data"
+                            :key="u.id"
+                            class="group hover:bg-indigo-50/20 transition-colors cursor-pointer"
+                            @click="goToUser(u.id)"
+                        >
+                            <td class="px-8 py-4" @click.stop="goToUser(u.id)">
+                                <div class="flex items-center gap-3">
+                                    <div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-all shrink-0">
+                                        <User :size="14" class="text-xs" />
+                                    </div>
+                                    <div>
+                                        <div class="text-sm font-bold text-indigo-950">{{ u.name }}</div>
+                                        <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">#{{ u.id }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="text-sm text-slate-700">{{ u.email }}</div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-bold text-indigo-900">{{ permissionsCount(u) }}</span>
+                                    <span class="text-slate-400 text-xs">/ {{ availablePermissions.length }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 text-sm text-slate-600">
+                                {{ u.created_at ? moment(u.created_at).format('DD MMM YYYY') : '—' }}
+                            </td>
+                            <td class="px-8 py-4 text-right" @click.stop>
+                                <div class="flex items-center justify-end gap-2">
+                                    <button
+                                        v-if="projectPermissions.includes('Manage users')"
+                                        type="button"
+                                        @click="showModal(u, 'update')"
+                                        class="h-8 px-3 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 hover:text-indigo-700 transition-all"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button
+                                        v-if="projectPermissions.includes('Manage users')"
+                                        type="button"
+                                        @click="showModal(u, 'delete')"
+                                        class="h-8 px-3 rounded-lg text-xs font-bold text-rose-600 hover:bg-rose-50 transition-all"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <tr v-if="usersPayload.data.length === 0">
+                            <td colspan="5" class="px-8 py-12 text-center text-slate-500 text-sm">
+                                No users
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <Pagination class="mt-6" :pagination-payload="usersPayload" :update-data="['usersPayload']" />
+        </div>
     </div>
-
 </template>
+
 <script>
+import { defineComponent, computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
+import ManageUserModal from './ManageUserModal.vue';
+import Pagination from '@/Partials/Pagination.vue';
+import { Plus, User } from 'lucide-vue-next';
+import moment from 'moment';
 
-    import CreateUserModal from './ManageUserModal.vue'
-    import Pagination from '../../../../Partials/Pagination.vue'
-    import { defineComponent } from 'vue'
-    import moment from "moment";
-
-    export default defineComponent({
-        components: {
-            CreateUserModal, Pagination
+export default defineComponent({
+    components: {
+        ManageUserModal,
+        Pagination,
+        Plus,
+        User,
+    },
+    props: {
+        availablePermissions: { type: Array, default: () => [] },
+        project: { type: Object, default: null },
+        usersPayload: { type: Object, required: true },
+    },
+    setup() {
+        const projectPermissions = computed(() => usePage().props.projectPermissions ?? []);
+        return { projectPermissions };
+    },
+    data() {
+        return {
+            isShowingModal: false,
+            modalAction: null,
+            user: null,
+            moment,
+        };
+    },
+    methods: {
+        permissionsCount(u) {
+            const perms = u.pivot?.permissions;
+            return Array.isArray(perms) ? perms.length : 0;
         },
-        props: {
-            availablePermissions: Array,
-            usersPayload: Object
+        goToUser(userId) {
+            if (!this.project?.id || !userId) return;
+            this.$inertia.visit(route('show.user', { project: this.project.id, user: userId }));
         },
-        data() {
-            return {
-                refreshContentInterval: null,
-                isShowingModal: false,
-                modalAction: null,
-                user: null,
-                moment: moment
-            }
+        onDeleted() {
+            this.user = null;
+            this.$inertia.reload();
         },
-        methods: {
-            onDeleted() {
-                this.user = null;
-            },
-            refreshContent()
-            {
-                this.$inertia.reload();
-            },
-            showModal(user, action){
-                this.user = user;
-                this.modalAction = action;
-                this.isShowingModal = true
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
-            }
+        showModal(user, action) {
+            this.user = user;
+            this.modalAction = action;
+            this.isShowingModal = true;
         },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
-        },
-        unmounted() {
-            this.cleanUp()
-        }
-    })
+    },
+});
 </script>

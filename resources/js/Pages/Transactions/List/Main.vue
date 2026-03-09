@@ -1,0 +1,33 @@
+<template>
+    <app-layout title="Transactions">
+        <div class="min-h-screen bg-slate-50 pb-12">
+            <div class="max-w-7xl mx-auto px-6 pt-6 pb-12">
+                <TransactionsContent
+                    :pricing-plans="pricingPlans"
+                    :project-permissions="projectPermissions"
+                    :refetch-trigger="refetchKey"
+                />
+            </div>
+        </div>
+    </app-layout>
+</template>
+
+<script>
+import { defineComponent } from 'vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import TransactionsContent from './Partials/Content.vue';
+
+export default defineComponent({
+    components: {
+        AppLayout,
+        TransactionsContent,
+    },
+    props: {
+        pricingPlans: { type: Array, default: () => [] },
+        projectPermissions: { type: Array, default: () => [] },
+    },
+    data() {
+        return { refetchKey: 0 };
+    },
+});
+</script>

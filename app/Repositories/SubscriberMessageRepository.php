@@ -50,16 +50,60 @@ class SubscriberMessageRepository
     }
 
     /**
-     *  Get the project subscriber messages with optional relationships
+     *  Get the project subscriber messages with optional filters, relationships and pagination.
      *
-     *  @param string $msisdn The MSISDN (Mobile Subscriber Integrated Services Digital Network Number).
+     *  @param array<string, mixed>|null $filters Optional filters (msisdn, status, type, date_from, date_to, per_page, sort).
      *  @param array $relationships The relationships to eager load on the subscriber messages.
      *  @param array $countableRelationships The relationships to count on the subscriber messages.
      *  @return LengthAwarePaginator The paginated list of project subscriber messages.
      */
-    public function getProjectSubscriberMessages($msisdn = null, $relationships = [], $countableRelationships = []): LengthAwarePaginator
+    public function getProjectSubscriberMessages(?array $filters = null, array $relationships = [], array $countableRelationships = []): LengthAwarePaginator
     {
-        return $this->queryProjectSubscriberMessages($msisdn, $relationships, $countableRelationships)->latest()->paginate();
+        $query = $this->project->subscriberMessages()->with($relationships)->withCount($countableRelationships);
+
+        if ($filters) {
+            if (! empty($filters['msisdn'])) {
+                $query->whereHas('subscriber', function (Builder $q) use ($filters) {
+                    $q->where('msisdn', 'like', '%' . $filters['msisdn'] . '%');
+                });
+            }
+
+            if (! empty($filters['status'])) {
+                if (strtolower($filters['status']) === 'successful') {
+                    $query->where('is_successful', true);
+                } elseif (strtolower($filters['status']) === 'unsuccessful') {
+                    $query->where('is_successful', false);
+                }
+            }
+
+            if (! empty($filters['type'])) {
+                $query->where('type', $filters['type']);
+            }
+
+            if (! empty($filters['date_from'])) {
+                $query->where('subscriber_messages.created_at', '>=', \Carbon\Carbon::parse($filters['date_from'])->startOfDay());
+            }
+            if (! empty($filters['date_to'])) {
+                $query->where('subscriber_messages.created_at', '<=', \Carbon\Carbon::parse($filters['date_to'])->endOfDay());
+            }
+
+            if (! empty($filters['sort']) && preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'], $m)) {
+                $column = $m[1];
+                $direction = $m[2];
+                $allowed = ['created_at', 'id', 'type'];
+                if (in_array($column, $allowed, true)) {
+                    $query->orderBy('subscriber_messages.' . $column, $direction);
+                }
+            } else {
+                $query->orderBy('subscriber_messages.created_at', 'desc');
+            }
+        } else {
+            $query->latest('subscriber_messages.created_at');
+        }
+
+        $perPage = isset($filters['per_page']) ? (int) $filters['per_page'] : 15;
+
+        return $query->paginate($perPage);
     }
 
     /**

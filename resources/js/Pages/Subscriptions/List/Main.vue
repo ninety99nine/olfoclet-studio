@@ -1,33 +1,35 @@
 <template>
-    <app-layout title="Dashboard">
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
-                <manage-subscription-modal :showAddbutton="true" :pricingPlans="pricingPlans" />
-
-                <subscriptions-content :subscriptionsPayload="subscriptionsPayload" :pricingPlans="pricingPlans" :totalSubscribers="totalSubscribers" />
-
+    <app-layout title="Subscriptions">
+        <div class="min-h-screen bg-slate-50 pb-12">
+            <div class="max-w-7xl mx-auto px-6 pt-6 pb-12">
+                <SubscriptionsContent
+                    :total-subscribers="totalSubscribers"
+                    :pricing-plans="pricingPlans"
+                    :project-permissions="projectPermissions"
+                    :refetch-trigger="refetchKey"
+                />
             </div>
         </div>
     </app-layout>
 </template>
 
 <script>
-    import { defineComponent } from 'vue'
-    import AppLayout from '@/Layouts/AppLayout.vue'
-    import SubscriptionsContent from './Partials/Content.vue'
-    import ManageSubscriptionModal from './Partials/ManageSubscriptionModal.vue'
+import { defineComponent } from 'vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import SubscriptionsContent from './Partials/Content.vue';
 
-    export default defineComponent({
-        components: {
-            AppLayout,
-            SubscriptionsContent,
-            ManageSubscriptionModal
-        },
-        props: {
-            pricingPlans: Array,
-            totalSubscribers: Number,
-            subscriptionsPayload: Object
-        }
-    })
+export default defineComponent({
+    components: {
+        AppLayout,
+        SubscriptionsContent,
+    },
+    props: {
+        totalSubscribers: { type: Number, default: 0 },
+        pricingPlans: { type: Array, default: () => [] },
+        projectPermissions: { type: Array, default: () => [] },
+    },
+    data() {
+        return { refetchKey: 0 };
+    },
+});
 </script>

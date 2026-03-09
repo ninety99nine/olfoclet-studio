@@ -23,8 +23,8 @@
             <span>{{ seconds }} {{ seconds == 1 ? 'sec ' : 'secs '}}</span>
         </template>
         <template v-else>
-            <span>
-                <slot>Waiting</slot>
+            <span class="waiting-badge">
+                <slot>Pending</slot>
             </span>
         </template>
     </vue-countdown>
@@ -44,3 +44,17 @@
         }
     }
 </script>
+
+<style scoped>
+.waiting-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    white-space: nowrap;
+    background-color: #f1f5f9;
+    color: #1e293b;
+}
+</style>

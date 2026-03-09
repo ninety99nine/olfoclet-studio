@@ -31,4 +31,17 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Browsershot / PDF (Chromium)
+    |--------------------------------------------------------------------------
+    | Path to Chromium/Chrome for generating PDFs. Set CHROMIUM_PATH in .env
+    | to override. On macOS, defaults to Homebrew Chromium if installed.
+    */
+    'browsershot' => [
+        'chromium_path' => env('CHROMIUM_PATH', PHP_OS_FAMILY === 'Darwin'
+            ? '/Applications/Chromium.app/Contents/MacOS/Chromium'
+            : null),
+    ],
+
 ];

@@ -2,7 +2,7 @@
 
     <div>
 
-        <div v-if="$inertia.page.props.projectPermissions.includes('Manage subscriptions') && showAddbutton" class="grid grid-cols-2 mb-6 gap-4">
+        <div v-if="projectPermissions && projectPermissions.includes('Manage subscriptions') && showAddbutton" class="grid grid-cols-2 mb-6 gap-4">
 
             <div class="bg-gray-50 pt-4 pl-6 border-b rounded-t">
 
@@ -56,7 +56,7 @@
                 <!-- Modal Title -->
                 <template #title>
 
-                    <template v-if="wantsToUpdate">Update Subscription</template>
+                    <template v-if="wantsToUpdate">Cancel or uncancel subscription</template>
 
                     <template v-else-if="wantsToDelete">Delete Subscription</template>
 
@@ -72,6 +72,14 @@
                         <span class="block mt-6 mb-6">Are you sure you want to delete this subscription?</span>
 
                         <p class="text-sm text-gray-500">{{ hasSubscriber ? subscription.subscriber.msisdn : 'Unknown' }}</p>
+
+                    </template>
+
+                    <template v-else-if="wantsToUpdate">
+
+                        <p class="text-sm text-gray-600 mb-2">Subscriptions cannot be edited. You can cancel or uncancel this subscription.</p>
+                        <p class="text-sm font-medium text-gray-800">{{ hasSubscriber ? subscription.subscriber.msisdn : 'Unknown' }}</p>
+                        <p class="text-xs text-gray-500">{{ subscription.pricing_plan?.name ?? subscription.pricingPlan?.name ?? '—' }}</p>
 
                     </template>
 
@@ -111,15 +119,11 @@
                     </jet-button>
 
                     <jet-button v-if="wantsToUpdate && form.cancelled_at == null" @click.prevent="cancel()" :class="[{ 'opacity-25': form.processing }, 'mr-2']" :disabled="form.processing">
-                        Cancel
+                        Cancel subscription
                     </jet-button>
 
                     <jet-button v-if="wantsToUpdate && form.cancelled_at != null" @click.prevent="uncancel()" :class="[{ 'opacity-25': form.processing }, 'mr-2']" :disabled="form.processing">
-                        Uncancel
-                    </jet-button>
-
-                    <jet-button v-if="wantsToUpdate" @click.prevent="update()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Update
+                        Uncancel subscription
                     </jet-button>
 
                     <jet-danger-button v-if="wantsToDelete" @click.prevent="destroy()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
@@ -173,7 +177,14 @@
                 type: Object,
                 default: null
             },
-            pricingPlans: Array,
+            pricingPlans: {
+                type: Array,
+                default: () => []
+            },
+            projectPermissions: {
+                type: Array,
+                default: () => []
+            },
             show: {
                 type: Boolean,
                 default: false
@@ -313,7 +324,7 @@
 
                     onSuccess: (response) => {
 
-                        this.handleOnSuccess();
+                        this.handleOnSuccess(false, 'create');
 
                     },
 
@@ -345,7 +356,7 @@
 
                     onSuccess: (response) => {
 
-                        this.handleOnSuccess();
+                        this.handleOnSuccess(false, 'update');
 
                     },
 
@@ -365,7 +376,7 @@
 
                     onSuccess: (response) => {
 
-                        this.handleOnSuccess();
+                        this.handleOnSuccess(false, 'update');
 
                     },
 
@@ -385,7 +396,7 @@
 
                     onSuccess: (response) => {
 
-                        this.handleOnSuccess();
+                        this.handleOnSuccess(false, 'update');
 
                     },
 
@@ -419,11 +430,13 @@
 
                 this.form.delete(route('delete.subscription', { project: route().params.project, subscription: this.subscription.id }), options);
             },
-            handleOnSuccess(hasDeleted = false){
+            handleOnSuccess(hasDeleted = false, action = null){
 
                 this.reset();
                 this.closeModal();
                 if(hasDeleted) this.$emit('onDeleted');
+                else if (action === 'create') this.$emit('onCreated');
+                else if (action === 'update') this.$emit('onUpdated');
 
                 this.showSuccessMessage = true;
 

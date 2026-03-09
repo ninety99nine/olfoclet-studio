@@ -1,399 +1,268 @@
 <template>
+    <div class="min-h-screen bg-slate-50/50 p-4 lg:p-8 font-sans antialiased text-slate-700">
+        <div class="max-w-[1600px] mx-auto mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h1 class="text-2xl font-black tracking-tight text-indigo-950">Auto Billing Schedules</h1>
 
-    <div>
-
-        <div class="grid grid-cols-12 gap-4">
-
-            <div class="col-span-6">
-                <div class="bg-gray-50 border-b px-6 py-4 rounded-t text-gray-500 text-sm mb-4">
-                    <div class="text-2xl font-semibold leading-6 text-gray-500">Auto Billing Schedules</div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="bg-white shadow-xl sm:rounded-lg">
-
-            <!-- Table -->
-            <div class="flex flex-col overflow-y-auto">
-                <div class="align-middle inline-block min-w-full">
-                    <div class="shadow border-b border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
-
-                                    </th>
-                                    <th scope="col" colspan="7" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        <div class="font-bold text-teal-500">AUTO BILLING SCHEDULE</div>
-                                    </th>
-                                    <th scope="col" colspan="8" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50 border-r border-dotted border-r-violet-300">
-                                        <div class="font-bold text-fuchsia-500">LAST AUTO BILLING TRANSACTION</div>
-                                    </th>
-                                    <th scope="col" colspan="6" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50 border-r border-dotted border-r-teal-300">
-                                        <div class="font-bold text-violet-500">AUTO BILLING REMINDER</div>
-                                    </th>
-                                    <th scope="col" colspan="6" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <div class="font-bold text-teal-500">PRICING PLAN</div>
-                                    </th>
-                                </tr>
-
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
-                                        <span>Mobile</span>
-                                    </th>
-
-
-
-
-                                    <!-- Auto Billing Enabled -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Auto Billing Enabled</span>
-                                    </th>
-                                    <!-- Next Attempt Date -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Next Attempt Date</span>
-                                    </th>
-                                    <!-- Next Attempt Countdown -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Countdown</span>
-                                    </th>
-                                    <!-- Attempt -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Attempts Before Disabling</span>
-                                    </th>
-                                    <!-- Overall Attempts -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Overall Attempts</span>
-                                    </th>
-                                    <!-- Overall Successful Attempts -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Overall Successful Attempts</span>
-                                    </th>
-                                    <!-- Overall Failed Attempts -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Overall Failed Attempts</span>
-                                    </th>
-                                    <!-- Created Date -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        <span>Created Date</span>
-                                    </th>
-
-
-
-
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Status</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Amount</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Funds Before Deduction</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Funds After Deduction</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Rating Type</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Auto Billing</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Description</span>
-                                    </th>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50 border-r border-dotted border-r-violet-300">
-                                        <span>Created</span>
-                                    </th>
-
-
-                                    <!-- Reminded 72 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>72 Hours Before</span>
-                                    </th>
-                                    <!-- Reminded 48 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>48 Hours Before</span>
-                                    </th>
-                                    <!-- Reminded 24 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>24 Hours Before</span>
-                                    </th>
-                                    <!-- Reminded 12 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>12 Hours Before</span>
-                                    </th>
-                                    <!-- Reminded 6 Hours Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50">
-                                        <span>6 Hours Before</span>
-                                    </th>
-                                    <!-- Reminded 1 Hour Before -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-violet-50 border-r border-dotted border-r-teal-300">
-                                        <span>1 Hour Before</span>
-                                    </th>
-
-
-
-
-                                    <!-- Pricing Plan Name -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Name</span>
-                                    </th>
-                                    <!-- Pricing Plan Description -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Description</span>
-                                    </th>
-                                    <!-- Pricing Plan Active -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Active</span>
-                                    </th>
-                                    <!-- Pricing Plan Duration -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Duration</span>
-                                    </th>
-                                    <!-- Pricing Plan Price -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Price</span>
-                                    </th>
-                                    <!-- Pricing Plan Created -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Created</span>
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-
-                                <tr v-for="autoBillingSchedule in autoBillingSchedulesPayload.data" :key="autoBillingSchedule.id">
-
-                                    <!-- Mobile -->
-                                    <td class="px-6 py-3 whitespace-nowrap border-r border-dotted border-r-teal-300">
-                                        <div class="text-sm text-gray-900">{{ autoBillingSchedule.subscriber.msisdn }}</div>
-                                    </td>
-
-
-
-
-                                    <!-- Auto Billing Enabled -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        <AutoBillingEnabledStatusBadge :autoBillingSchedule="autoBillingSchedule"></AutoBillingEnabledStatusBadge>
-                                    </td>
-                                    <!-- Next Attempt Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        {{ autoBillingSchedule.next_attempt_date == null ? '...' : moment(autoBillingSchedule.next_attempt_date).format('lll') }}
-                                    </td>
-                                    <!-- Next Attempt Countdown -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <span v-if="autoBillingSchedule.next_attempt_date_milli_seconds_left == null">...</span>
-                                        <Countdown v-else :time="autoBillingSchedule.next_attempt_date_milli_seconds_left"></Countdown>
-                                    </td>
-                                    <!-- Attempt -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.attempt == null ? '...' : autoBillingSchedule.attempt }}
-                                            /
-                                        {{ autoBillingSchedule.pricing_plan == null ? '...' : (autoBillingSchedule.pricing_plan.max_auto_billing_attempts == 0 ? 'unlimited' : autoBillingSchedule.pricing_plan.max_auto_billing_attempts) }}
-                                    </td>
-                                    <!-- Overall Attempts -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.overall_attempts == null ? '...' : autoBillingSchedule.overall_attempts }}
-                                    </td>
-                                    <!-- Overall Successful Attempts -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.overall_successful_attempts == null ? '...' : autoBillingSchedule.overall_successful_attempts }}
-                                    </td>
-                                    <!-- Overall Failed Attempts -->
-                                    <td class="px-6 py-3 text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.overall_failed_attempts == null ? '...' : autoBillingSchedule.overall_failed_attempts }}
-                                    </td>
-                                    <!-- Created Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        {{ autoBillingSchedule.created_at == null ? '...' : moment(autoBillingSchedule.created_at).format('lll') }}
-                                    </td>
-
-                                    <!-- Status -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        <template v-if="getLatestAutoBillingTransaction(autoBillingSchedule).is_successful">
-                                            <BillingTransactionStatusBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></BillingTransactionStatusBadge>
-                                        </template>
-                                        <span v-else>...</span>
-                                    </td>
-                                    <!-- Amount -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-center font-bold bg-fuchsia-50">
-                                        <span v-if="getLatestAutoBillingTransaction(autoBillingSchedule).amount">{{ getLatestAutoBillingTransaction(autoBillingSchedule).amount.amount_with_currency }}</span>
-                                        <span v-else>...</span>
-                                    </td>
-                                    <!-- Funds Before Deduction -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        {{ getLatestAutoBillingTransaction(autoBillingSchedule).funds_before_deduction == null ? '...' : getLatestAutoBillingTransaction(autoBillingSchedule).funds_before_deduction.amount_with_currency }}
-                                    </td>
-                                    <!-- Funds After Deduction -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        {{ getLatestAutoBillingTransaction(autoBillingSchedule).funds_after_deduction == null ? '...' : getLatestAutoBillingTransaction(autoBillingSchedule).funds_after_deduction.amount_with_currency }}
-                                    </td>
-                                    <!-- Rating Type -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <template v-if="getLatestAutoBillingTransaction(autoBillingSchedule).rating_type">
-                                            <RatingTypeBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></RatingTypeBadge>
-                                        </template>
-                                        <span v-else>...</span>
-                                    </td>
-                                    <!-- Created Using Auto Billing -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <template v-if="getLatestAutoBillingTransaction(autoBillingSchedule).created_using_auto_billing">
-                                            <CreatedUsingAutoBillingBadge :billingTransaction="getLatestAutoBillingTransaction(autoBillingSchedule)"></CreatedUsingAutoBillingBadge>
-                                        </template>
-                                        <span v-else>...</span>
-                                    </td>
-                                    <!-- Description -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <span>{{ getLatestAutoBillingTransaction(autoBillingSchedule).description ?? '...' }}</span>
-                                    </td>
-                                    <!-- Created Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 bg-fuchsia-50 border-r border-dotted border-r-violet-300">
-                                        {{ getLatestAutoBillingTransaction(autoBillingSchedule).created_at == null ? '...' : moment(getLatestAutoBillingTransaction(autoBillingSchedule).created_at).format('lll') }}
-                                    </td>
-
-
-
-
-                                    <!-- Reminded 72 Hours Before -->
-                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="72" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 48 Hours Before -->
-                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="48" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 24 Hours Before -->
-                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="24" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 12 Hours Before -->
-                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="12" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 6 Hours Before -->
-                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50">
-                                        <AutoBillingReminderStatusBadge :hours="6" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-                                    <!-- Reminded 1 Hour Before -->
-                                    <td class="px-6 py-3 text-xs text-gray-500 bg-violet-50 border-r border-dotted border-r-teal-300">
-                                        <AutoBillingReminderStatusBadge :hours="1" :autoBillingSchedule="autoBillingSchedule"></AutoBillingReminderStatusBadge>
-                                    </td>
-
-
-                                    <!-- Pricing Plan Name -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        <div class="text-sm text-gray-900">{{ autoBillingSchedule.pricing_plan.name }}</div>
-                                    </td>
-                                    <!-- Pricing Plan Description -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        {{ autoBillingSchedule.pricing_plan.description == null ? '...' : autoBillingSchedule.pricing_plan.description }}
-                                    </td>
-                                    <!-- Pricing Plan Active -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <PricingPlanActiveStatusBadge :pricingPlan="autoBillingSchedule.pricing_plan"></PricingPlanActiveStatusBadge>
-                                    </td>
-                                    <!-- Pricing Plan Duration -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.pricing_plan.duration_in_words == null ? '...' : autoBillingSchedule.pricing_plan.duration_in_words }}
-                                    </td>
-                                    <!-- Pricing Plan Price -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ autoBillingSchedule.pricing_plan.price == null ? '...' : autoBillingSchedule.pricing_plan.price.amount_with_currency }}
-                                    </td>
-                                    <!-- Pricing Plan Created Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        {{ autoBillingSchedule.pricing_plan.created_at == null ? '...' : moment(autoBillingSchedule.pricing_plan.created_at).format('lll') }}
-                                    </td>
-
-                                </tr>
-
-                                <tr v-if="autoBillingSchedulesPayload.data.length == 0">
-
-                                    <!-- Content -->
-                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No auto billing schedules</div>
-                                    </td>
-
-                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No auto billing schedules</div>
-                                    </td>
-
-                                    <td :colspan="7" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No auto billing schedules</div>
-                                    </td>
-
-                                </tr>
-
-                            </tbody>
-                        </table>
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-0.5">Total</span>
+                        <span class="text-xl font-bold text-indigo-900 tabular-nums leading-none">
+                            {{ (payload.total ?? 0).toLocaleString() }}
+                        </span>
                     </div>
                 </div>
             </div>
-
-            <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="autoBillingSchedulesPayload" :updateData="['autoBillingSchedulesPayload']" />
-
         </div>
 
-    </div>
+        <div class="max-w-[1600px] mx-auto space-y-4">
+            <div class="flex flex-col xl:flex-row items-center justify-between gap-4">
+                <div class="flex-grow w-full xl:w-auto flex items-center gap-2">
+                    <button
+                        @click="refresh"
+                        class="h-11 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-[10px] font-black flex items-center justify-center gap-2 transition-all uppercase tracking-widest"
+                        title="Sync Data"
+                    >
+                        <RefreshCw :size="16" class="text-indigo-500" :class="{ 'animate-spin-smooth': loading }" />
+                        <span class="hidden lg:inline">Refresh</span>
+                    </button>
+                </div>
 
+                <div class="flex items-center gap-1">
+                    <button
+                        v-for="(link, index) in filteredPagination"
+                        :key="index"
+                        :disabled="!link.page"
+                        @click="link.page && changePage(link.page)"
+                        class="h-9 min-w-[36px] flex items-center justify-center rounded-lg transition-all font-bold text-[10px]"
+                        :class="[
+                            link.active
+                                ? 'bg-indigo-600 text-white shadow-sm px-3'
+                                : link.label === '...' ? 'text-slate-300 cursor-default' : 'bg-transparent text-slate-500 hover:bg-slate-100',
+                            !link.page && link.label !== '...' ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
+                        ]"
+                    >
+                        <ChevronLeft v-if="link.label === 'prev'" :size="16" />
+                        <ChevronRight v-else-if="link.label === 'next'" :size="16" />
+                        <span v-else>{{ link.label }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <Transition name="content-switch" mode="out-in">
+                    <div v-if="loading" key="loading" class="py-24 px-8 flex flex-col items-center justify-center text-center">
+                        <span class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 mb-6">
+                            <RefreshCw :size="24" class="text-indigo-500 animate-spin-smooth" />
+                        </span>
+                        <p class="text-sm font-medium text-slate-500">Loading billing schedules...</p>
+                    </div>
+                    <div v-else-if="payload.data && payload.data.length > 0" key="table-wrapper" class="overflow-x-auto">
+                        <table class="w-full min-w-[1280px] border-collapse [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-50/50 border-b border-slate-100">
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Subscriber</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Active</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Next attempt</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Attempts</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Overall</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Last tx</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Amount</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Reminders</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Plan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr
+                                    v-for="row in payload.data"
+                                    :key="row.id"
+                                    class="group hover:bg-indigo-50/20 transition-colors"
+                                >
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-all">
+                                                <Phone :size="14" class="text-xs" />
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-bold text-indigo-950">{{ row.subscriber?.msisdn ?? '—' }}</div>
+                                                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">#{{ row.id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <AutoBillingEnabledStatusBadge :auto-billing-schedule="row" class="scale-90 origin-left" />
+                                    </td>
+                                    <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-top">
+                                        <div class="flex flex-col gap-1">
+                                            <span v-if="row.next_attempt_date_milli_seconds_left == null" class="text-slate-400 text-[10px]">—</span>
+                                            <Countdown v-else :time="row.next_attempt_date_milli_seconds_left" />
+                                            <span class="whitespace-nowrap text-[10px] text-slate-500">{{ row.next_attempt_date ? moment(row.next_attempt_date).format('DD MMM YY HH:mm') : '—' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center text-xs text-slate-600">
+                                        {{ row.attempt ?? '—' }} / {{ row.pricing_plan ? (row.pricing_plan.max_auto_billing_attempts === 0 ? '∞' : row.pricing_plan.max_auto_billing_attempts) : '—' }}
+                                    </td>
+                                    <td class="px-6 py-4 text-center whitespace-normal align-top">
+                                        <div class="flex flex-col items-center gap-0.5">
+                                            <span class="text-sm font-bold text-slate-800 tabular-nums">{{ row.overall_attempts ?? '—' }}</span>
+                                            <span class="text-[10px] text-slate-500 tabular-nums">
+                                                <span :class="(row.overall_successful_attempts ?? 0) >= 1 ? 'text-emerald-600' : 'text-slate-500'">{{ (row.overall_successful_attempts ?? 0).toLocaleString() }}</span>
+                                                <span class="text-slate-400"> ok</span>
+                                                <span class="text-slate-300"> · </span>
+                                                <span :class="(row.overall_failed_attempts ?? 0) >= 1 ? 'text-rose-600' : 'text-slate-500'">{{ (row.overall_failed_attempts ?? 0).toLocaleString() }}</span>
+                                                <span class="text-slate-400"> fail</span>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <template v-if="getLatestTx(row).id">
+                                            <BillingTransactionStatusBadge :billing-transaction="getLatestTx(row)" class="scale-90 origin-left" />
+                                            <p class="text-[10px] text-slate-500 mt-0.5">{{ getLatestTx(row).created_at ? moment(getLatestTx(row).created_at).format('DD MMM HH:mm') : '' }}</p>
+                                        </template>
+                                        <span v-else class="text-slate-400">—</span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        <span v-if="getLatestTx(row).id" class="text-sm font-bold text-slate-800">{{ formatMoney(getLatestTx(row).amount) }}</span>
+                                        <span v-else class="text-slate-400">—</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-nowrap gap-1 justify-center">
+                                            <AutoBillingReminderStatusBadge v-for="h in [72, 48, 24, 12, 6, 1]" :key="h" :hours="h" :auto-billing-schedule="row" class="scale-75 origin-center shrink-0" />
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="text-sm font-medium text-slate-800">{{ row.pricing_plan?.name ?? '—' }}</div>
+                                        <div class="text-[10px] text-slate-500">{{ row.pricing_plan?.duration_in_words ?? '' }} · {{ row.pricing_plan?.price != null ? formatMoney(row.pricing_plan.price) : '' }}</div>
+                                        <PricingPlanActiveStatusBadge v-if="row.pricing_plan" :pricing-plan="row.pricing_plan" class="scale-90 origin-left mt-1" />
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div v-else key="empty" class="py-24 px-8 flex flex-col items-center justify-center text-center">
+                        <div class="h-20 w-20 rounded-3xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 mb-6">
+                            <CalendarClock :size="40" class="text-slate-500" />
+                        </div>
+                        <h3 class="text-lg font-bold text-indigo-950 mb-1">No billing schedules found</h3>
+                        <p class="text-sm text-slate-400 max-w-xs">There are no billing schedules in this project yet.</p>
+                    </div>
+                </Transition>
+                <Pagination
+                    :pagination-payload="payload"
+                    :update-data="['autoBillingSchedulesPayload']"
+                />
+            </div>
+        </div>
+    </div>
 </template>
 
 <script>
-    import BillingTransactionStatusBadge from './../../../BillingTransactions/List/Partials/BillingTransactionStatusBadge.vue';
-    import CreatedUsingAutoBillingBadge from './../../../BillingTransactions/List/Partials/CreatedUsingAutoBillingBadge.vue';
-    import PricingPlanActiveStatusBadge from './../../../PricingPlans/List/Partials/ActiveStatusBadge.vue';
-    import RatingTypeBadge from './../../../BillingTransactions/List/Partials/RatingTypeBadge.vue';
-    import AutoBillingReminderStatusBadge from './AutoBillingReminderStatusBadge.vue';
-    import AutoBillingEnabledStatusBadge from './AutoBillingEnabledStatusBadge.vue';
-    import Pagination from '../../../../Partials/Pagination.vue';
-    import Countdown from './../../../../Partials/Countdown.vue';
-    import { defineComponent } from 'vue';
-    import moment from "moment";
+import { defineComponent, computed } from 'vue';
+import Pagination from '@/Partials/Pagination.vue';
+import { router } from '@inertiajs/vue3';
+import moment from 'moment';
+import { RefreshCw, ChevronLeft, ChevronRight, Phone, CalendarClock } from 'lucide-vue-next';
+import { formatMoney } from '@/utils/formatMoney';
+import AutoBillingEnabledStatusBadge from './AutoBillingEnabledStatusBadge.vue';
+import AutoBillingReminderStatusBadge from './AutoBillingReminderStatusBadge.vue';
+import BillingTransactionStatusBadge from '@/Pages/BillingTransactions/List/Partials/BillingTransactionStatusBadge.vue';
+import PricingPlanActiveStatusBadge from '@/Pages/PricingPlans/List/Partials/ActiveStatusBadge.vue';
+import Countdown from '@/Partials/Countdown.vue';
 
-    export default defineComponent({
-        components: {
-            Countdown, PricingPlanActiveStatusBadge, AutoBillingReminderStatusBadge, AutoBillingEnabledStatusBadge, Pagination,
-            BillingTransactionStatusBadge, RatingTypeBadge, CreatedUsingAutoBillingBadge
+export default defineComponent({
+    components: {
+        Pagination,
+        RefreshCw,
+        ChevronLeft,
+        ChevronRight,
+        Phone,
+        CalendarClock,
+        AutoBillingEnabledStatusBadge,
+        AutoBillingReminderStatusBadge,
+        BillingTransactionStatusBadge,
+        PricingPlanActiveStatusBadge,
+        Countdown,
+    },
+    props: {
+        autoBillingSchedulesPayload: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, total: 0, links: [] }) },
+    },
+    setup(props) {
+        const payload = computed(() => props.autoBillingSchedulesPayload || { data: [], current_page: 1, last_page: 1, total: 0, links: [] });
+        return { payload };
+    },
+    data() {
+        return { moment, loading: false, initialLoadComplete: false };
+    },
+    watch: {
+        loading(val) {
+            if (!val && (this.payload?.data?.length ?? 0) > 0) this.initialLoadComplete = true;
         },
-        props: {
-            autoBillingSchedulesPayload: Object
-        },
-        data() {
-            return {
-                refreshContentInterval: null,
-                moment: moment
-            }
-        },
-        methods: {
-            getLatestAutoBillingTransaction(autoBillingSchedule)
-            {
-                return autoBillingSchedule.subscriber.latest_auto_billing_transaction ?? {};
+        'autoBillingSchedulesPayload.data': {
+            handler(data) {
+                if (!this.loading && data && data.length > 0) this.initialLoadComplete = true;
             },
-            refreshContent()
-            {
-                this.$inertia.reload();
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
-            }
+            deep: true,
         },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
+    },
+    computed: {
+        filteredPagination() {
+            const current = this.payload.current_page || 1;
+            const last = this.payload.last_page || 1;
+            if (last <= 1) return [];
+            const pages = [];
+            pages.push({ label: 'prev', page: current > 1 ? current - 1 : null });
+            pages.push({ label: '1', active: current === 1, page: 1 });
+            if (current > 3) pages.push({ label: '...', active: false, page: null });
+            const start = Math.max(2, current - 1);
+            const end = Math.min(last - 1, current + 1);
+            for (let i = start; i <= end; i++) if (i !== 1 && i !== last) pages.push({ label: i.toString(), active: current === i, page: i });
+            if (current < last - 2) pages.push({ label: '...', active: false, page: null });
+            if (last > 1) pages.push({ label: last.toString(), active: current === last, page: last });
+            pages.push({ label: 'next', page: current < last ? current + 1 : null });
+            return pages;
         },
-        unmounted() {
-            this.cleanUp()
-        }
-    })
+    },
+    methods: {
+        formatMoney,
+        getLatestTx(row) {
+            return row?.subscriber?.latest_auto_billing_transaction ?? {};
+        },
+        refresh() {
+            this.loading = true;
+            this.$inertia.reload({ onFinish: () => { this.loading = false; } });
+        },
+        changePage(page) {
+            const project = route().params.project;
+            if (!project) return;
+            this.loading = true;
+            router.visit(route('show.auto.billing.schedules', { project }), { data: { page }, preserveState: false, onFinish: () => { this.loading = false; } });
+        },
+    },
+});
 </script>
+
+<style scoped>
+.content-switch-leave-active,
+.content-switch-enter-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.content-switch-leave-to,
+.content-switch-enter-from {
+    opacity: 0;
+    transform: translateY(6px);
+}
+.content-switch-leave-from,
+.content-switch-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+@keyframes spin-smooth {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.animate-spin-smooth {
+    animation: spin-smooth 0.8s linear infinite;
+    transform-origin: center;
+}
+</style>

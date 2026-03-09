@@ -7,7 +7,7 @@
             </svg>
             Successful
         </span>
-        <span v-else-if="autoBillingPricingPlanJobBatch.failed_jobs > 0" class="bg-red-100 text-red-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-red-200 dark:text-red-900">
+        <span v-else-if="autoBillingPricingPlanJobBatch.failed_jobs > 0" class="bg-amber-100 text-amber-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded dark:bg-amber-200 dark:text-amber-900">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
@@ -19,12 +19,7 @@
             </svg>
             Running
         </span>
-        <span v-else class="bg-gray-100 text-gray-900 text-sm font-medium inline-flex items-center px-2.5 py-0.5 rounded mr-2 dark:bg-gray-200 dark:text-gray-900">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 mr-1 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            Waiting
-        </span>
+        <span v-else class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 whitespace-nowrap">Pending</span>
     </div>
 
 </template>

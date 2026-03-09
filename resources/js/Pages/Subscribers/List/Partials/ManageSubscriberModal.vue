@@ -1,371 +1,299 @@
 <template>
-
     <div>
-
-        <div v-if="$inertia.page.props.projectPermissions.includes('Manage subscribers') && showAddbutton" class="grid grid-cols-2 mb-6 gap-4">
-
-            <div class="bg-gray-50 pt-4 px-6 border-b rounded-t">
-
-                <div class="text-2xl font-semibold leading-6 text-gray-500 pb-4">Subscribers</div>
-
-            </div>
-
-            <!-- Add Subscriber Button -->
-            <div>
-                <jet-button @click="openModal()" class="float-right w-fit">
-                    Add Subscriber
-                </jet-button>
-                <div class="clear-both"></div>
-            </div>
-
+        <!-- Add button slot: only when showAddbutton is true (legacy, now handled by parent) -->
+        <div v-if="projectPermissions.includes('Manage subscribers') && showAddbutton" class="flex justify-end mb-4">
+            <Button label="Add Subscriber" @click="openModal()">
+            <template #icon><Plus :size="16" /></template>
+        </Button>
         </div>
 
-        <div class="clear-both">
+        <Dialog
+            v-model:visible="showModal"
+            :header="dialogTitle"
+            :modal="true"
+            :closable="true"
+            :draggable="false"
+            :style="{ width: wantsToDelete ? '400px' : '560px' }"
+            :dismissableMask="!processing"
+            :pt="{
+                root: { class: 'rounded-3xl border-none shadow-2xl overflow-hidden' },
+                header: { class: 'bg-white px-6 pt-5 pb-0 border-none text-indigo-900 font-black uppercase text-sm tracking-widest' },
+                pcCloseButton: { root: { class: 'h-8 w-8 bg-slate-50 text-slate-400 hover:text-rose-500 transition-all !border-0 !border-none shadow-none' } },
+                content: { class: 'pt-4 pb-6' }
+            }"
+            @hide="emitModelValue"
+        >
+            <template v-if="wantsToDelete" #default>
+                <p class="m-0 text-slate-600">Are you sure you want to delete this subscriber?</p>
+                <p class="font-bold text-indigo-950 mt-2">{{ subscriber?.msisdn }}</p>
+            </template>
 
-            <!-- Success Message -->
-            <div v-if="showSuccessMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6" role="alert">
-                <strong v-if="wantsToUpdate" class="font-bold">Subscriber updated successfully</strong>
-                <strong v-else-if="wantsToDelete" class="font-bold">Subscriber deleted successfully</strong>
-                <strong v-else class="font-bold">Subscriber created successfully</strong>
+            <template v-else #default>
+                <div class="flex flex-col gap-4">
+                    <div class="space-y-1">
+                        <label for="msisdn" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Mobile number</label>
+                        <InputText
+                            id="msisdn"
+                            v-model="form.msisdn"
+                            placeholder="26772000001"
+                            class="w-full"
+                            :class="{ 'p-invalid': v$.msisdn.$error }"
+                            @blur="v$.msisdn.$touch()"
+                        />
+                        <InlineMessage v-if="v$.msisdn.$error" severity="error" class="mt-1">
+                            {{ v$.msisdn.required.$message }}
+                        </InlineMessage>
+                        <InlineMessage v-else-if="formErrors.msisdn" severity="error" class="mt-1">
+                            {{ formErrors.msisdn }}
+                        </InlineMessage>
+                    </div>
+                    <div class="space-y-1">
+                        <label for="metadata" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Metadata (JSON)</label>
+                        <Textarea
+                            id="metadata"
+                            v-model="form.metadata"
+                            rows="12"
+                            class="w-full font-mono text-sm"
+                            :class="{ 'p-invalid': v$.metadata.$error }"
+                            placeholder="{}"
+                            @blur="v$.metadata.$touch()"
+                        />
+                        <InlineMessage v-if="v$.metadata.$error && v$.metadata.validJson" severity="error" class="mt-1">
+                            {{ v$.metadata.validJson.$message }}
+                        </InlineMessage>
+                        <InlineMessage v-else-if="formErrors.metadata" severity="error" class="mt-1">
+                            {{ formErrors.metadata }}
+                        </InlineMessage>
+                    </div>
+                </div>
+            </template>
 
-                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                    <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-                </span>
-            </div>
-
-            <!-- Error Message -->
-            <div v-if="showErrorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
-                <strong v-if="wantsToUpdate" class="font-bold">Subscriber update failed</strong>
-                <strong v-else-if="wantsToDelete" class="font-bold">Subscriber delete failed</strong>
-                <strong v-else class="font-bold">Subscriber creation failed</strong>
-
-                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                    <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-                </span>
-            </div>
-
-            <!-- Dialog Modal -->
-            <jet-dialog-modal :show="showModal" :closeable="false">
-
-                <!-- Modal Title -->
-                <template #title>
-
-                    <template v-if="wantsToUpdate">Update Subscriber</template>
-
-                    <template v-else-if="wantsToDelete">Delete Subscriber</template>
-
-                    <template v-else>Add Subscriber</template>
-
-                </template>
-
-                <!-- Modal Content -->
-                <template #content>
-
-                    <template v-if="wantsToDelete">
-
-                        <span class="block mt-6 mb-6">Are you sure you want to delete this subscriber?</span>
-
-                        <p class="text-sm text-gray-500">{{ subscriber.msisdn }}</p>
-
-                    </template>
-
-                    <template v-else>
-
-                        <!-- Mobile -->
-                        <div class="mb-4">
-                            <jet-label for="msisdn" value="Mobile" />
-                            <jet-input id="msisdn" type="text" class="w-full mt-1 block" v-model="form.msisdn" placeholder = "26772000001" />
-                            <jet-input-error :message="form.errors.msisdn" class="mt-2" />
-                        </div>
-
-                        <!-- Metadata -->
-                        <jet-input-error :message="form.errors.metadata" class="mb-2" />
-                        <CodeEditor v-model="form.metadata" :languages="[['json', 'JSON']]" :line-nums="true" :tab-spaces="4" theme="gradient-dark" :header="false" width="100%" height="400px" font-size="14px"></CodeEditor>
-
-                    </template>
-
-                </template>
-
-                <!-- Modal Footer -->
-                <template #footer>
-
-                    <jet-secondary-button @click="closeModal()" class="mr-2">
-                        Cancel
-                    </jet-secondary-button>
-
-                    <jet-button v-if="!hasSubscriber" @click.prevent="create()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Create
-                    </jet-button>
-
-                    <jet-button v-if="wantsToUpdate" @click.prevent="update()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Update
-                    </jet-button>
-
-                    <jet-danger-button v-if="wantsToDelete" @click.prevent="destroy()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Delete
-                    </jet-danger-button>
-
-                </template>
-
-            </jet-dialog-modal>
-
-        </div>
-
+            <template #footer>
+                <Button label="Cancel" severity="secondary" outlined :disabled="processing" @click="closeModal()" />
+                <Button
+                    v-if="!hasSubscriber"
+                    label="Create"
+                    :loading="processing"
+                    :disabled="processing"
+                    @click="create()"
+                >
+                    <template #icon><Check :size="16" /></template>
+                </Button>
+                <Button
+                    v-if="wantsToDelete"
+                    label="Clear metadata"
+                    severity="secondary"
+                    outlined
+                    :loading="processing"
+                    :disabled="processing"
+                    class="opacity-80"
+                    @click="wipeMetadata()"
+                >
+                    <template #icon><Eraser :size="16" /></template>
+                </Button>
+                <Button
+                    v-if="wantsToDelete"
+                    label="Delete"
+                    severity="danger"
+                    :loading="processing || deletingSubscriber"
+                    :disabled="processing || deletingSubscriber"
+                    @click="destroy()"
+                >
+                    <template #icon><Trash2 :size="16" /></template>
+                </Button>
+            </template>
+        </Dialog>
     </div>
-
 </template>
 
 <script>
+import { defineComponent, reactive, computed, watch } from 'vue';
+import { useVuelidate } from '@vuelidate/core';
+import { required } from '@vuelidate/validators';
 
-    import { defineComponent } from 'vue'
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Textarea from 'primevue/textarea';
+import InlineMessage from 'primevue/inlinemessage';
+import { useToast } from 'primevue/usetoast';
+import { Plus, Check, Trash2, Eraser } from 'lucide-vue-next';
 
-    import JetInput from '@/Components/TextInput.vue'
-    import JetLabel from '@/Components/InputLabel.vue'
-    import JetButton from '@/Components/PrimaryButton.vue'
-    import JetInputError from '@/Components/InputError.vue'
-    import JetSelectInput from '@/Components/SelectInput.vue'
-    import JetDialogModal from '@/Components/DialogModal.vue'
-    import JetDangerButton from '@/Components/DangerButton.vue'
-    import JetActionMessage from '@/Components/ActionMessage.vue'
-    import JetSecondaryButton from '@/Components/SecondaryButton.vue'
+function validJson(value) {
+    if (!value || String(value).trim() === '') return true;
+    try {
+        JSON.parse(value);
+        return true;
+    } catch {
+        return false;
+    }
+}
 
-    /**
-     *  Package Reference: https://github.com/justcaliturner/simple-code-editor
-     */
-    import hljs from 'highlight.js';
-    import CodeEditor from "simple-code-editor";
-
-    export default defineComponent({
-        components: {
-            JetLabel, JetInput, JetButton, JetInputError, JetSelectInput, JetDialogModal, JetSecondaryButton, JetActionMessage,
-            JetDangerButton, CodeEditor
+export default defineComponent({
+    components: {
+        Dialog,
+        Button,
+        InputText,
+        Textarea,
+        InlineMessage,
+        Plus,
+        Check,
+        Trash2,
+        Eraser,
+    },
+    setup(props, { emit }) {
+        const toast = useToast();
+        const form = reactive({ msisdn: '', metadata: '' });
+        const rules = computed(() => ({
+            msisdn: { required },
+            metadata: {
+                validJson: {
+                    $validator: (v) => validJson(v),
+                    $message: () => 'Must be valid JSON or empty',
+                },
+            },
+        }));
+        const v$ = useVuelidate(rules, form);
+        return { toast, form, v$ };
+    },
+    props: {
+        action: { type: String, default: 'update' },
+        modelValue: { type: Boolean, default: false },
+        showAddbutton: { type: Boolean, default: false },
+        subscriber: { type: Object, default: null },
+        show: { type: Boolean, default: false },
+        projectPermissions: { type: Array, default: () => [] },
+        deletingSubscriber: { type: Boolean, default: false },
+    },
+    emits: ['update:modelValue', 'onCreated', 'onUpdated', 'onDeleted', 'requestDelete'],
+    data() {
+        return {
+            processing: false,
+            showModal: this.modelValue,
+            formErrors: {},
+        };
+    },
+    computed: {
+        dialogTitle() {
+            if (this.wantsToDelete) return 'Delete Subscriber';
+            return 'Add Subscriber';
         },
-        props: {
-            action: {
-                type: String,
-                default: 'update'
-            },
-            modelValue: {
-                type: Boolean,
-                default: false
-            },
-            showAddbutton: {
-                type: Boolean,
-                default: false
-            },
-            subscriber: {
-                type: Object,
-                default: null
-            },
-            show: {
-                type: Boolean,
-                default: false
-            }
+        hasSubscriber() {
+            return this.subscriber != null;
         },
-        data() {
-            return {
-
-                //  Form attributes
-                form: null,
-
-                //  Modal attributes
-                showModal: this.modelValue,
-
-                showSuccessMessage: false,
-                showErrorMessage: false
-            }
+        wantsToDelete() {
+            return this.hasSubscriber && this.action === 'delete';
         },
-
-        watch: {
-
-            showModal: {
-                handler: function (val, oldVal) {
-
-                    if(val != this.modelValue){
-                        this.$emit('update:modelValue', val);
-                    }
-
-                }
-            },
-
-            modelValue: {
-                handler: function (val, oldVal) {
-
-                    if(val != this.showModal){
-                        this.showModal = val;
-                        this.reset();
-                    }
-
-                }
-            },
-
+    },
+    watch: {
+        showModal(val) {
+            if (val !== this.modelValue) this.$emit('update:modelValue', val);
         },
-
-        computed: {
-            hasSubscriber(){
-                return this.subscriber == null ? false : true;
-            },
-            wantsToUpdate(){
-                return (this.hasSubscriber && this.action == 'update') ? true : false;
-            },
-            wantsToDelete(){
-                return (this.hasSubscriber && this.action == 'delete') ? true : false;
-            }
-        },
-        methods: {
-
-            /**
-             *  MODAL METHODS
-             */
-            openModal() {
-                this.showModal = true;
-            },
-            closeModal() {
-                this.showModal = false;
-            },
-
-
-            /**
-             *  JSON METHODS
-             */
-            isValidJsonString(str) {
-                try {
-                    JSON.parse(str);
-                } catch (e) {
-                    return false;
-                }
-                return true;
-            },
-
-            /**
-             *  FORM METHODS
-             */
-            create() {
-
-                if( this.form.metadata.trim() != '' && this.isValidJsonString(this.form.metadata) == false) {
-
-                    this.form.setError('metadata', 'Subscriber metadata is not valid JSON format');
-                    setTimeout(() => { this.form.clearErrors('metadata'); }, 3000);
-                    return;
-
-                }
-
-                var options = {
-
-                    preserveState: true, preserveScroll: true, replace: true,
-
-                    onSuccess: (response) => {
-
-                        this.handleOnSuccess();
-
-                    },
-
-                    onError: errors => {
-
-                        this.handleOnError();
-
-                    },
-
-                };
-
-                this.form.post(route('create.subscriber', { project: route().params.project }), options);
-            },
-            update() {
-
-                if( this.form.metadata.trim() != '' && this.isValidJsonString(this.form.metadata) == false) {
-
-                    this.form.setError('metadata', 'Subscriber metadata is not valid JSON format');
-                    setTimeout(() => { this.form.clearErrors('metadata'); }, 3000);
-                    return;
-
-                }
-
-                var options = {
-
-                    preserveState: true, preserveScroll: true, replace: true,
-
-                    onSuccess: (response) => {
-
-                        this.handleOnSuccess();
-
-                    },
-
-                    onError: errors => {
-
-                        this.handleOnError();
-
-                    },
-                };
-
-                this.form.put(route('update.subscriber', { project: route().params.project, subscriber: this.subscriber.id }), options);
-            },
-            destroy() {
-
-                var options = {
-
-                    preserveState: true, preserveScroll: true, replace: true,
-
-                    onSuccess: (response) => {
-
-                        this.handleOnSuccess(true);
-
-                    },
-
-                    onError: errors => {
-
-                        this.handleOnError();
-
-                    },
-                };
-
-                this.form.delete(route('delete.subscriber', { project: route().params.project, subscriber: this.subscriber.id }), options);
-            },
-            handleOnSuccess(hasDeleted = false){
-
+        modelValue(val) {
+            if (val !== this.showModal) {
+                this.showModal = val;
                 this.reset();
-                this.closeModal();
-                if(hasDeleted) this.$emit('onDeleted');
-
-                this.showSuccessMessage = true;
-
-                setTimeout(() => {
-                    this.showSuccessMessage = false;
-                }, 3000);
-
-            },
-            handleOnError(){
-
-                this.showErrorMessage = true;
-
-                setTimeout(() => {
-                    this.showErrorMessage = false;
-                }, 3000);
-
-            },
-            reset() {
-
-                var metadata = '';
-
-                if( this.hasSubscriber ) {
-
-                    if(this.subscriber.metadata != null) {
-
-                        metadata = JSON.stringify(this.subscriber.metadata, null, 4);
-
-                    }
-
-                }
-
-                this.form = this.$inertia.form({
-                    msisdn: this.hasSubscriber ? this.subscriber.msisdn : null,
-                    metadata: metadata
-                });
-            },
+            }
         },
-        created(){
-
+    },
+    methods: {
+        openModal() {
+            this.showModal = true;
+        },
+        closeModal() {
+            this.showModal = false;
+        },
+        emitModelValue() {
+            this.$emit('update:modelValue', this.showModal);
+        },
+        reset() {
+            let metadata = '';
+            if (this.hasSubscriber && this.subscriber.metadata != null) {
+                metadata = JSON.stringify(this.subscriber.metadata, null, 4);
+            }
+            this.form.msisdn = this.hasSubscriber ? this.subscriber.msisdn : '';
+            this.form.metadata = metadata;
+            this.formErrors = {};
+            this.v$.$reset();
+        },
+        async create() {
+            this.v$.$touch();
+            if (this.v$.$invalid) return;
+            this.processing = true;
+            this.formErrors = {};
+            const url = route('create.subscriber', { project: route().params.project });
+            window.axios
+                .post(url, { msisdn: this.form.msisdn, metadata: this.form.metadata })
+                .then(() => {
+                    this.handleOnSuccess('created');
+                    this.$emit('onCreated');
+                })
+                .catch((err) => {
+                    if (err.response?.status === 422 && err.response.data?.errors) {
+                        const raw = err.response.data.errors;
+                        this.formErrors = Object.fromEntries(
+                            Object.entries(raw).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v])
+                        );
+                    }
+                    const detail = err.response?.data?.message || 'Subscriber creation failed.';
+                    this.toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 });
+                })
+                .finally(() => (this.processing = false));
+        },
+        destroy() {
+            const raw = this.subscriber?.id;
+            const subscriberId = raw != null ? Number(raw) : NaN;
+            if (!Number.isInteger(subscriberId) || subscriberId <= 0) {
+                this.toast.add({ severity: 'error', summary: 'Error', detail: 'Cannot delete: subscriber not identified.', life: 5000 });
+                return;
+            }
+            // Parent builds URL and performs DELETE so the path always includes the subscriber id
+            this.$emit('requestDelete', subscriberId);
+        },
+        wipeMetadata() {
+            const subscriberId = this.subscriber?.id;
+            if (!subscriberId) return;
+            if (!window.confirm('Clear all metadata for this subscriber? The subscriber account will not be deleted. Use this for data deletion requests.')) return;
+            this.processing = true;
+            const project = route().params.project;
+            const url = `${route('show.subscriber', { project, subscriber: subscriberId })}/wipe-metadata`;
+            window.axios
+                .patch(url)
+                .then(() => {
+                    this.toast.add({ severity: 'success', summary: 'Success', detail: 'Subscriber metadata cleared. Account kept.', life: 4000 });
+                    this.reset();
+                    this.closeModal();
+                    this.$emit('onUpdated');
+                })
+                .catch((err) => {
+                    const detail = err.response?.data?.message || 'Failed to clear metadata.';
+                    this.toast.add({ severity: 'error', summary: 'Error', detail, life: 5000 });
+                })
+                .finally(() => (this.processing = false));
+        },
+        handleOnSuccess(action) {
             this.reset();
-
-        }
-    })
+            this.closeModal();
+            if (action === 'deleted') this.$emit('onDeleted');
+            const summary = 'Success';
+            const detail = action === 'deleted' ? 'Subscriber deleted successfully.' : 'Subscriber created successfully.';
+            this.toast.add({ severity: 'success', summary, detail, life: 4000 });
+        },
+    },
+    created() {
+        this.reset();
+    },
+});
 </script>
+
+<style scoped>
+:deep(.p-inputtext) {
+    @apply h-11 bg-slate-50 border-slate-100 rounded-xl transition-all;
+}
+:deep(.p-inputtext:focus) {
+    @apply border-indigo-400 bg-white ring-2 ring-indigo-500/10;
+}
+:deep(textarea.p-inputtext) {
+    @apply rounded-xl bg-slate-50 border-slate-100 font-mono text-sm;
+}
+</style>

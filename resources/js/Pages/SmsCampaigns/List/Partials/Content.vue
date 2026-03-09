@@ -1,217 +1,299 @@
 <template>
-
-    <div>
-
-        <manage-sms-campaign-modal
+    <div class="p-4 lg:p-8 font-sans antialiased text-slate-700">
+        <ManageSmsCampaignModal
             v-model="isShowingModal"
-            :action="modalAction" :smsCampaign="smsCampaign"
-            :contentToSendOptions="contentToSendOptions"
-            :scheduleTypeOptions="scheduleTypeOptions"
+            :action="modalAction"
+            :sms-campaign="smsCampaign"
+            :content-to-send-options="contentToSendOptions"
+            :schedule-type-options="scheduleTypeOptions"
+            :show-addbutton="false"
             @onDeleted="onDeleted"
         />
 
-        <div class="bg-gray-50 border-b px-6 py-4 rounded-t text-gray-500 text-sm mb-4">
+        <div class="max-w-[1600px] mx-auto mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h1 class="text-2xl font-black tracking-tight text-indigo-950">SMS Campaigns</h1>
 
-            <div class="text-2xl font-semibold leading-6 text-gray-500 border-b pb-4 mb-4">Sms Campaigns</div>
-
-            <div class="flex items-center">
-
-                <!-- Note -->
-                <span v-if="projectPayload.can_send_messages" class="text-gray-400"><span class="text-green-500 font-bold">Sending messages is enabled</span> — You can turn off "Send messages" in settings (This affects all sms campaigns)</span>
-                <span v-else class="text-gray-400"><span class="text-red-500 font-bold">Sending messages is disabled</span> — You can turn on "Send messages" in settings</span>
-
-                <el-popover :width="400">
-                    <template #reference>
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 ml-2" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
-                        </svg>
-                    </template>
-                    <template #default>
-                        <span v-if="projectPayload.can_send_messages" class="break-normal">
-                            Turning off "Send Messages" from the project settings means that every sms campaign won't be able to send messages even if the sms campaign "Send Messages" option is turned on
-                            <hr class="my-4">
-                            After turning off "Send Messages" from the project settings, any running sms campaigns will complete their last sprint before completely stopping to send messages.
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-0.5">Total</span>
+                        <span class="text-xl font-bold text-indigo-900 tabular-nums leading-none">
+                            {{ (smsCampaignsPayload.total ?? 0).toLocaleString() }}
                         </span>
-                        <span v-else class="break-normal">
-                            Turning on "Send Messages" from the project settings means that every sms campaign will be able to send messages as long as the sms campaign "Send Messages" option is turned on
-                        </span>
-                    </template>
-                </el-popover>
+                    </div>
 
+                    <button
+                        v-if="projectPermissions.includes('Manage sms campaigns')"
+                        @click="showModal(null, 'create')"
+                        class="h-10 px-5 flex items-center gap-2 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100 active:scale-95"
+                    >
+                        <Plus :size="14" class="text-xs" />
+                        <span class="text-xs">Add SMS Campaign</span>
+                    </button>
+                </div>
             </div>
-
         </div>
 
-        <div class="bg-white shadow-xl sm:rounded-lg">
+        <!-- Project send messages note -->
+        <div class="max-w-[1600px] mx-auto mb-4 flex items-center gap-2">
+            <span v-if="projectPayload.can_send_messages" class="text-sm text-slate-600">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 font-bold text-xs">Sending enabled</span>
+                — You can turn off "Send messages" in project settings (affects all SMS campaigns).
+            </span>
+            <span v-else class="text-sm text-slate-600">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-rose-50 text-rose-700 font-bold text-xs">Sending disabled</span>
+                — Turn on "Send messages" in project settings to allow campaigns to send.
+            </span>
+            <el-popover :width="380" trigger="hover">
+                <template #reference>
+                    <span class="inline-flex items-center justify-center w-6 h-6 rounded-lg bg-slate-100 text-slate-400 hover:text-indigo-500 hover:bg-indigo-50 transition-colors cursor-help">
+                        <Info :size="14" />
+                    </span>
+                </template>
+                <template #default>
+                    <p v-if="projectPayload.can_send_messages" class="text-sm text-slate-600 leading-relaxed">
+                        Turning off "Send Messages" from the project settings means no SMS campaign can send, even if the campaign's "Send Messages" option is on. Any running campaigns will complete their current sprint before stopping.
+                    </p>
+                    <p v-else class="text-sm text-slate-600 leading-relaxed">
+                        Turning on "Send Messages" in project settings allows campaigns to send when their own "Send Messages" option is enabled.
+                    </p>
+                </template>
+            </el-popover>
+        </div>
 
-            <!-- Table -->
-            <div class="flex flex-col overflow-y-auto">
-                <div class="align-middle inline-block min-w-full">
-                    <div class="shadow border-b border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-                            <tr>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Name</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Send Messages</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Status</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Sprints</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
-                                    <span>Total</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
-                                    <span>Pending</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
-                                    <span>Processed</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-indigo-100">
-                                    <span>Progress</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Last Sprint Date</span>
-                                </th>
-                                <th scope="col" class="px-6 py-3 whitespace-nowrap text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <span>Actions</span>
-                                </th>
-                            </tr>
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-                                <tr v-for="smsCampaign in smsCampaignsPayload.data" :key="smsCampaign.id">
-                                    <!-- Name -->
-                                    <td class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-sm text-gray-900">{{ smsCampaign.name }}</div>
-                                    </td>
-                                    <!-- Send SMS -->
-                                    <td class="px-6 py-3">
-                                        <SmsCampaignCanSendSmsBadge :smsCampaign="smsCampaign"></SmsCampaignCanSendSmsBadge>
-                                    </td>
-                                    <!-- Status -->
-                                    <td class="px-6 py-3">
-                                        <SmsCampaignStatusBadge :smsCampaignBatchJob="getLatestSmsCampaignBatchJob(smsCampaign)"></SmsCampaignStatusBadge>
-                                    </td>
-                                    <!-- Sprints -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center">
-                                        <div class="text-sm text-gray-900">{{ smsCampaign.sms_campaign_batch_jobs_count }}</div>
-                                    </td>
-                                    <!-- Total -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
-                                        <div class="text-sm text-gray-900">{{ getLatestSmsCampaignBatchJob(smsCampaign).total_jobs }}</div>
-                                    </td>
-                                    <!-- Pending -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
-                                        <div class="text-sm text-gray-900">{{ getLatestSmsCampaignBatchJob(smsCampaign).pending_jobs }}</div>
-                                    </td>
-                                    <!-- Processed -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
-                                        <div class="text-sm text-gray-900">{{ getLatestSmsCampaignBatchJob(smsCampaign).processed_jobs }}</div>
-                                    </td>
-                                    <!-- Progress -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-indigo-50">
-                                        <span class="text-lg text-green-600">{{ getLatestSmsCampaignBatchJob(smsCampaign).progress }} {{ getLatestSmsCampaignBatchJob(smsCampaign).progress ? '%' : '' }}</span>
-                                    </td>
-                                    <!-- Last Sprint Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                        {{ getLatestSmsCampaignBatchJob(smsCampaign).created_at == null ? '...' : moment(getLatestSmsCampaignBatchJob(smsCampaign).created_at).format('lll') }}
-                                    </td>
-                                    <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
-                                        <a v-if="$inertia.page.props.projectPermissions.includes('View sms campaigns')" href="#" @click.prevent="$inertia.get(route('show.sms.campaign.job.batches', { project: route().params.project, sms_campaign: smsCampaign.id }))" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>
-                                        <a v-if="$inertia.page.props.projectPermissions.includes('Manage sms campaigns')" href="#" @click.prevent="showModal(smsCampaign, 'update')" class="text-indigo-600 hover:text-indigo-900 mr-3">Edit</a>
-                                        <a v-if="$inertia.page.props.projectPermissions.includes('Manage sms campaigns')" href="#" @click.prevent="showModal(smsCampaign, 'delete')" class="text-red-600 hover:text-red-900">Delete</a>
-                                    </td>
-                                </tr>
+        <div class="max-w-[1600px] mx-auto space-y-4">
+            <div class="flex flex-col xl:flex-row items-center justify-between gap-4">
+                <div class="flex-grow w-full xl:w-auto flex items-center gap-2">
+                    <button
+                        @click="refresh"
+                        class="h-11 w-11 flex items-center justify-center rounded-xl bg-white border border-slate-200 text-indigo-500 hover:text-indigo-700 hover:border-indigo-200 transition-all shadow-sm"
+                        title="Refresh"
+                    >
+                        <RefreshCw :size="18" class="text-base block" />
+                    </button>
+                </div>
 
-                                <tr v-if="smsCampaignsPayload.data.length == 0">
-                                    <!-- Content -->
-                                    <td :colspan="10" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No sms campaigns</div>
-                                    </td>
-                                </tr>
-
-                            </tbody>
-                        </table>
-                    </div>
+                <div v-if="paginationLinks.length > 0" class="flex items-center gap-1">
+                    <template v-for="(link, index) in paginationLinks" :key="index">
+                        <Link
+                            v-if="link.url"
+                            :href="link.url"
+                            preserve-scroll
+                            class="h-9 min-w-[36px] flex items-center justify-center rounded-lg transition-all font-bold text-[10px]"
+                            :class="link.active ? 'bg-indigo-600 text-white shadow-sm px-3' : 'bg-transparent text-slate-500 hover:bg-slate-100'"
+                        >
+                            <ChevronLeft v-if="isPrevLabel(link.label)" :size="16" />
+                            <ChevronRight v-else-if="isNextLabel(link.label)" :size="16" />
+                            <span v-else v-html="link.label" />
+                        </Link>
+                        <span
+                            v-else
+                            class="h-9 min-w-[36px] flex items-center justify-center rounded-lg text-slate-300 cursor-default font-bold text-[10px]"
+                        >
+                            <ChevronLeft v-if="isPrevLabel(link.label)" :size="16" />
+                            <ChevronRight v-else-if="isNextLabel(link.label)" :size="16" />
+                            <span v-else v-html="link.label" />
+                        </span>
+                    </template>
                 </div>
             </div>
 
-            <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="smsCampaignsPayload" :updateData="['smsCampaignsPayload']" />
+            <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <div v-if="smsCampaignsPayload.data.length === 0" class="py-24 px-8 flex flex-col items-center justify-center text-center">
+                    <div class="h-20 w-20 rounded-3xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 mb-6">
+                        <MessageSquare :size="40" class="text-slate-500" />
+                    </div>
+                    <h3 class="text-lg font-bold text-indigo-950 mb-1">No SMS campaigns</h3>
+                    <p class="text-sm text-slate-400 max-w-xs">Create a campaign to start sending messages to your subscribers.</p>
+                    <button
+                        v-if="projectPermissions.includes('Manage sms campaigns')"
+                        @click="showModal(null, 'create')"
+                        class="mt-6 h-10 px-5 flex items-center gap-2 rounded-xl bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-all shadow-md shadow-indigo-100"
+                    >
+                        <Plus :size="14" />
+                        <span class="text-xs">Add SMS Campaign</span>
+                    </button>
+                </div>
 
+                <div v-else class="overflow-x-auto">
+                    <table class="w-full min-w-[1000px] border-collapse">
+                        <thead>
+                            <tr class="bg-slate-50/50 border-b border-slate-100">
+                                <th class="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left whitespace-nowrap">Name</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left whitespace-nowrap">Send messages</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Status</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Sprints</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Total</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Pending</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Processed</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Progress</th>
+                                <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Last sprint</th>
+                                <th class="px-8 py-5"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr
+                                v-for="smsCampaign in smsCampaignsPayload.data"
+                                :key="smsCampaign.id"
+                                class="group hover:bg-indigo-50/20 transition-colors cursor-pointer"
+                                @click="goToCampaign(smsCampaign)"
+                            >
+                                <td class="px-8 py-4 whitespace-nowrap">
+                                    <span class="text-sm font-bold text-indigo-950">{{ smsCampaign.name }}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <SmsCampaignCanSendSmsBadge :sms-campaign="smsCampaign" />
+                                </td>
+                                <td class="px-6 py-4">
+                                    <SmsCampaignStatusBadge :sms-campaign-batch-job="getLatestSmsCampaignBatchJob(smsCampaign)" />
+                                </td>
+                                <td class="px-6 py-4 text-center">
+                                    <span class="text-sm font-medium text-slate-800">{{ smsCampaign.sms_campaign_batch_jobs_count }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center bg-slate-50/50">
+                                    <span class="text-sm font-medium text-slate-800 tabular-nums">{{ getLatestSmsCampaignBatchJob(smsCampaign).total_jobs ?? '—' }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center bg-slate-50/50">
+                                    <span class="text-sm font-medium text-slate-800 tabular-nums">{{ getLatestSmsCampaignBatchJob(smsCampaign).pending_jobs ?? '—' }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center bg-slate-50/50">
+                                    <span class="text-sm font-medium text-slate-800 tabular-nums">{{ getLatestSmsCampaignBatchJob(smsCampaign).processed_jobs ?? '—' }}</span>
+                                </td>
+                                <td class="px-6 py-4 text-center bg-slate-50/50">
+                                    <span class="text-sm font-bold text-emerald-600 tabular-nums">{{ getLatestSmsCampaignBatchJob(smsCampaign).progress ?? '' }}{{ getLatestSmsCampaignBatchJob(smsCampaign).progress != null ? '%' : '—' }}</span>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="text-xs font-bold text-slate-600">{{ formatLastSprint(getLatestSmsCampaignBatchJob(smsCampaign).created_at) }}</span>
+                                </td>
+                                <td class="px-8 py-4 text-right" @click.stop>
+                                    <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                        <Link
+                                            v-if="projectPermissions.includes('View sms campaigns')"
+                                            :href="route('show.sms.campaign.job.batches', { project: route().params.project, sms_campaign: smsCampaign.id })"
+                                            class="h-8 px-3 flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-indigo-500 hover:border-indigo-200 transition-all text-xs font-bold"
+                                        >
+                                            View
+                                        </Link>
+                                        <button
+                                            v-if="projectPermissions.includes('Manage sms campaigns')"
+                                            type="button"
+                                            @click.stop="showModal(smsCampaign, 'update')"
+                                            class="h-8 px-3 flex items-center gap-1.5 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-indigo-500 hover:border-indigo-200 transition-all text-xs font-bold"
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            v-if="projectPermissions.includes('Manage sms campaigns')"
+                                            type="button"
+                                            @click.stop="showModal(smsCampaign, 'delete')"
+                                            class="h-8 w-8 flex items-center justify-center rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-rose-500 hover:border-rose-200 transition-all"
+                                            title="Delete campaign"
+                                        >
+                                            <Trash2 :size="12" />
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <Pagination
+                    :pagination-payload="smsCampaignsPayload"
+                    :update-data="['smsCampaignsPayload']"
+                />
+            </div>
         </div>
-
     </div>
-
 </template>
+
 <script>
-    import SmsCampaignCanSendSmsBadge from '../JobBatches/List/Partials/SmsCampaignCanSendSmsBadge.vue';
-    import SmsCampaignStatusBadge from '../JobBatches/List/Partials/SmsCampaignStatusBadge.vue';
-    import ManageSmsCampaignModal from './ManageSmsCampaignModal.vue';
-    import Pagination from '../../../../Partials/Pagination.vue';
-    import { defineComponent } from 'vue';
-    import moment from "moment";
+import { defineComponent, computed } from 'vue';
+import { Link } from '@inertiajs/vue3';
+import Pagination from '@/Partials/Pagination.vue';
+import ManageSmsCampaignModal from './ManageSmsCampaignModal.vue';
+import SmsCampaignCanSendSmsBadge from '../JobBatches/List/Partials/SmsCampaignCanSendSmsBadge.vue';
+import SmsCampaignStatusBadge from '../JobBatches/List/Partials/SmsCampaignStatusBadge.vue';
+import { Plus, RefreshCw, ChevronLeft, ChevronRight, Info, MessageSquare, Trash2 } from 'lucide-vue-next';
+import moment from 'moment';
 
-    export default defineComponent({
-        components: {
-            ManageSmsCampaignModal, Pagination, SmsCampaignCanSendSmsBadge, SmsCampaignStatusBadge
+export default defineComponent({
+    components: {
+        ManageSmsCampaignModal,
+        Pagination,
+        SmsCampaignCanSendSmsBadge,
+        SmsCampaignStatusBadge,
+        Link,
+        Plus,
+        RefreshCw,
+        ChevronLeft,
+        ChevronRight,
+        Info,
+        MessageSquare,
+        Trash2,
+    },
+    props: {
+        smsCampaignsPayload: { type: Object, required: true },
+        contentToSendOptions: { type: Array, default: () => [] },
+        scheduleTypeOptions: { type: Array, default: () => [] },
+        projectPayload: { type: Object, default: null },
+    },
+    data() {
+        return {
+            isShowingModal: false,
+            modalAction: null,
+            smsCampaign: null,
+        };
+    },
+    computed: {
+        projectPermissions() {
+            return this.$page?.props?.projectPermissions ?? [];
         },
-        props: {
-            smsCampaignsPayload: Object,
-            contentToSendOptions: Array,
-            scheduleTypeOptions: Array,
-            projectPayload: Object
+        paginationLinks() {
+            const links = this.smsCampaignsPayload?.links ?? [];
+            if (links.length <= 1) return [];
+            return links;
         },
-        data() {
-            return {
-                refreshContentInterval: null,
-                isShowingModal: false,
-                modalAction: null,
-                smsCampaign: null,
-                moment: moment
+    },
+    methods: {
+        refresh() {
+            this.$inertia.reload();
+        },
+        isPrevLabel(label) {
+            if (typeof label !== 'string') return false;
+            const t = label.replace(/&[^;]+;/g, '').trim().toLowerCase();
+            return t === 'previous' || t === '« previous';
+        },
+        isNextLabel(label) {
+            if (typeof label !== 'string') return false;
+            const t = label.replace(/&[^;]+;/g, '').trim().toLowerCase();
+            return t === 'next' || t === 'next »';
+        },
+        onDeleted() {
+            this.smsCampaign = null;
+            this.$inertia.reload();
+        },
+        getLatestSmsCampaignBatchJob(smsCampaign) {
+            if (smsCampaign.latest_sms_campaign_batch_job?.length) {
+                return smsCampaign.latest_sms_campaign_batch_job[0];
             }
+            return {};
         },
-        methods: {
-            onDeleted() {
-                this.smsCampaign = null;
-            },
-            refreshContent()
-            {
-                this.$inertia.reload();
-            },
-            getLatestSmsCampaignBatchJob(smsCampaign)
-            {
-                if( smsCampaign.latest_sms_campaign_batch_job.length ) {
-                    return smsCampaign.latest_sms_campaign_batch_job[0];
-                }
-                return {};
-            },
-            showModal(smsCampaign, action)
-            {
-                this.smsCampaign = smsCampaign;
-                this.modalAction = action;
-                this.isShowingModal = true
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
-            }
+        formatLastSprint(createdAt) {
+            if (!createdAt) return '—';
+            return moment(createdAt).format('MMM D, YYYY h:mm A');
         },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
+        showModal(smsCampaign, action) {
+            this.smsCampaign = smsCampaign;
+            this.modalAction = action;
+            this.isShowingModal = true;
         },
-        unmounted() {
-            this.cleanUp()
-        }
-    })
+        goToCampaign(smsCampaign) {
+            if (!this.projectPermissions.includes('View sms campaigns') || !smsCampaign?.id) return;
+            this.$inertia.visit(route('show.sms.campaign.job.batches', {
+                project: route().params.project,
+                sms_campaign: smsCampaign.id,
+            }));
+        },
+    },
+});
 </script>

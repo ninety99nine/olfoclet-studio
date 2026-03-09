@@ -1,382 +1,221 @@
 <template>
-
     <div>
+        <Dialog
+            v-model:visible="showModal"
+            :header="dialogTitle"
+            :modal="true"
+            :closable="true"
+            :draggable="false"
+            :style="{ width: wantsToDelete ? '400px' : '520px' }"
+            :dismissableMask="!form?.processing"
+            :pt="{
+                root: { class: 'rounded-3xl border-none shadow-2xl overflow-hidden' },
+                header: { class: 'bg-white px-6 pt-5 pb-0 border-none text-indigo-900 font-black uppercase text-sm tracking-widest' },
+                pcCloseButton: { root: { class: 'h-8 w-8 bg-slate-50 text-slate-400 hover:text-rose-500 transition-all !border-0 !border-none shadow-none' } },
+                content: { class: 'pt-4 pb-6' }
+            }"
+            @hide="emitModelValue"
+        >
+            <template v-if="wantsToDelete" #default>
+                <p class="m-0 text-slate-600">Are you sure you want to delete this topic?</p>
+                <p class="font-bold text-indigo-950 mt-2">{{ topic?.title }}</p>
+            </template>
 
-        <!-- Add Topic Button -->
-        <div v-if="showHeader" class="grid grid-cols-2 mb-6 gap-4">
-
-            <div>
-                <div class="bg-gray-50 pt-4 pl-6 border-b rounded-t">
-
-                    <div class="text-2xl font-semibold leading-6 text-gray-500 mb-4">{{ parentTopic ? parentTopic.title : 'Topics' }}</div>
-
-                    <template v-if="parentTopic">
-
-                        <jet-secondary-button @click="goBackToPreviousPage()" class="py-1 mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M7 16l-4-4m0 0l4-4m-4 4h18" />
-                            </svg>
-                            <span class="ml-2">Go Back</span>
-                        </jet-secondary-button>
-
-                        <el-breadcrumb separator=">" class="mb-4">
-                            <el-breadcrumb-item @click="nagivateToTopic()">
-                                <span class="hover:underline hover:text-green-600 text-green-500 font-semibold cursor-pointer">Topics</span>
-                            </el-breadcrumb-item>
-
-                            <el-breadcrumb-item v-for="breadcrumb in breadcrumbs" :key="breadcrumb.id" @click="nagivateToTopic(breadcrumb)">
-                                <span class="hover:underline hover:text-green-600 text-green-500 font-semibold cursor-pointer">{{ breadcrumb.title }}</span>
-                            </el-breadcrumb-item>
-                        </el-breadcrumb>
-
-                    </template>
-
-                </div>
-
-                <div class="bg-gray-50 border-b pl-6 py-3 rounded-t text-gray-500 text-sm mb-6">
-                    <span class="font-bold mr-2">Api Link:</span>
-                    <span v-if="parentTopic">{{ route('api.show.topic', { project: route().params.project, topic: parentTopic.id, type: 'children' }) }}</span>
-                    <span v-else>{{ route('api.show.topics', { project: route().params.project }) }}</span>
-                </div>
-            </div>
-
-            <div v-if="$inertia.page.props.projectPermissions.includes('Manage topics')">
-                <jet-button @click="openModal()" class="w-fit float-right">Add Topic</jet-button>
-                <div class="clear-both"></div>
-            </div>
-
-        </div>
-
-        <div>
-
-            <!-- Success Message -->
-            <div v-if="showSuccessMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
-                <strong v-if="wantsToUpdate" class="font-bold">Topic updated successfully</strong>
-                <strong v-else-if="wantsToDelete" class="font-bold">Topic deleted successfully</strong>
-                <strong v-else class="font-bold">Topic created successfully</strong>
-
-                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                    <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-                </span>
-            </div>
-
-            <!-- Error Message -->
-            <div v-if="showErrorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
-                <strong v-if="wantsToUpdate" class="font-bold">Topic update failed</strong>
-                <strong v-else-if="wantsToDelete" class="font-bold">Topic delete failed</strong>
-                <strong v-else class="font-bold">Topic creation failed</strong>
-
-                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
-                    <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
-                </span>
-            </div>
-
-            <!-- Dialog Modal -->
-            <jet-dialog-modal :show="showModal" :closeable="false">
-
-                <!-- Modal Title -->
-                <template #title>
-
-                    <template v-if="wantsToUpdate">Update Topic</template>
-
-                    <template v-else-if="wantsToDelete">Delete Topic</template>
-
-                    <template v-else>Add Topic</template>
-
-                </template>
-
-                <!-- Modal Content -->
-                <template #content>
-
-                    <template v-if="wantsToDelete">
-
-                        <span class="block mt-6 mb-6">Are you sure you want to delete this topic?</span>
-
-                        <p class="text-sm text-gray-500">{{ topic.title }}</p>
-
-                    </template>
-
-                    <template v-else>
-
-                        <span class="block mt-6 mb-6">
-
-                            <span v-if="parentTopic">
-                                You are {{ wantsToUpdate ? 'updating' : 'adding' }} a topic for
-                                <span class="rounded-lg py-1 px-2 border border-green-400 text-green-500 text-sm">
-                                    {{ parentTopic.title }}
-                                </span>
+            <template v-else #default>
+                <div class="flex flex-col gap-4">
+                    <div v-if="parentTopic" class="rounded-xl bg-slate-50 border border-slate-100 py-3 px-4">
+                        <p class="text-[11px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Parent</p>
+                        <p class="text-sm font-semibold text-indigo-900">{{ parentTopic.title }}</p>
+                        <nav v-if="breadcrumbs && breadcrumbs.length" class="mt-2 flex flex-wrap items-center gap-1.5 text-xs text-slate-500">
+                            <span>Topics</span>
+                            <span v-for="crumb in breadcrumbs" :key="crumb.id" class="flex items-center gap-1.5">
+                                <span>/</span>
+                                <span class="text-indigo-600">{{ crumb.title }}</span>
                             </span>
+                        </nav>
+                    </div>
 
-                            <div v-if="parentTopic" class="bg-gray-50 py-3 px-3 mt-6 mb-2">
+                    <div class="space-y-1">
+                        <label for="topic-title" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Title</label>
+                        <InputText
+                            id="topic-title"
+                            v-model="form.title"
+                            placeholder="Topic title"
+                            class="w-full"
+                            :class="{ 'p-invalid': form.errors?.title }"
+                        />
+                        <InlineMessage v-if="form.errors?.title" severity="error" class="mt-1">
+                            {{ form.errors.title }}
+                        </InlineMessage>
+                    </div>
 
-                                <el-breadcrumb separator=">">
-                                    <el-breadcrumb-item>
-                                        <span class="hover:text-green-600 text-green-500 font-semibold">Topics</span>
-                                    </el-breadcrumb-item>
+                    <div class="space-y-1">
+                        <label for="topic-content" class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Content</label>
+                        <Textarea
+                            id="topic-content"
+                            v-model="form.content"
+                            rows="5"
+                            placeholder="Topic content (optional)"
+                            class="w-full"
+                            :class="{ 'p-invalid': form.errors?.content || form.errors?.parent_topic_id }"
+                        />
+                        <InlineMessage v-if="form.errors?.content" severity="error" class="mt-1">
+                            {{ form.errors.content }}
+                        </InlineMessage>
+                        <InlineMessage v-if="form.errors?.parent_topic_id" severity="error" class="mt-1">
+                            {{ form.errors.parent_topic_id }}
+                        </InlineMessage>
+                    </div>
+                </div>
+            </template>
 
-                                    <el-breadcrumb-item v-for="breadcrumb in breadcrumbs" :key="breadcrumb.id">
-                                        <span class="text-green-500 font-semibold">{{ breadcrumb.title }}</span>
-                                    </el-breadcrumb-item>
-                                </el-breadcrumb>
-
-                            </div>
-
-                        </span>
-
-                        <!-- Title -->
-                        <div class="mb-4">
-                            <jet-label for="title" value="Name" />
-                            <jet-input id="title" type="text" class="w-full mt-1 block" v-model="form.title" />
-                            <jet-input-error :message="form.errors.title" class="mt-2" />
-                        </div>
-
-                        <!-- Content -->
-                        <div class="mb-4">
-                            <jet-label for="content" value="Content" />
-                            <jet-textarea id="content" class="w-full mt-1 block" v-model="form.content" />
-                            <jet-input-error :message="form.errors.content" class="mt-2" />
-
-                            <!-- Other errors -->
-                            <jet-input-error :message="form.errors.parent_topic_id" class="mt-2" />
-                        </div>
-
-                    </template>
-
-                </template>
-
-                <!-- Modal Footer -->
-                <template #footer>
-
-                    <jet-secondary-button @click="closeModal()" class="mr-2">
-                        Cancel
-                    </jet-secondary-button>
-
-                    <jet-button v-if="!hasTopic" @click.prevent="create()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Create
-                    </jet-button>
-
-                    <jet-button v-if="wantsToUpdate" @click.prevent="update()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Update
-                    </jet-button>
-
-                    <jet-danger-button v-if="wantsToDelete" @click.prevent="destroy()" :class="{ 'opacity-25': form.processing }" :disabled="form.processing">
-                        Delete
-                    </jet-danger-button>
-
-                </template>
-
-            </jet-dialog-modal>
-
-        </div>
-
+            <template #footer>
+                <Button label="Cancel" severity="secondary" outlined :disabled="form?.processing" @click="closeModal()" />
+                <Button
+                    v-if="!hasTopic"
+                    label="Create"
+                    :loading="form?.processing"
+                    :disabled="form?.processing"
+                    @click="create()"
+                >
+                    <template #icon><Check :size="16" /></template>
+                </Button>
+                <Button
+                    v-if="wantsToUpdate"
+                    label="Update"
+                    :loading="form?.processing"
+                    :disabled="form?.processing"
+                    @click="update()"
+                >
+                    <template #icon><Check :size="16" /></template>
+                </Button>
+                <Button
+                    v-if="wantsToDelete"
+                    label="Delete"
+                    severity="danger"
+                    :loading="form?.processing"
+                    :disabled="form?.processing"
+                    @click="destroy()"
+                >
+                    <template #icon><Trash2 :size="16" /></template>
+                </Button>
+            </template>
+        </Dialog>
     </div>
-
 </template>
 
 <script>
+import { defineComponent } from 'vue';
+import Dialog from 'primevue/dialog';
+import Button from 'primevue/button';
+import InputText from 'primevue/inputtext';
+import Textarea from 'primevue/textarea';
+import InlineMessage from 'primevue/inlinemessage';
+import { Check, Trash2 } from 'lucide-vue-next';
 
-    import { defineComponent } from 'vue'
-
-    import JetLabel from '@/Components/InputLabel.vue'
-    import JetInput from '@/Components/TextInput.vue'
-    import JetTextarea from '@/Components/Textarea.vue'
-    import JetButton from '@/Components/PrimaryButton.vue'
-    import JetInputError from '@/Components/InputError.vue'
-    import JetSelectInput from '@/Components/SelectInput.vue'
-    import JetDialogModal from '@/Components/DialogModal.vue'
-    import JetDangerButton from '@/Components/DangerButton.vue'
-    import JetSecondaryButton from '@/Components/SecondaryButton.vue'
-
-    export default defineComponent({
-        components: {
-            JetLabel, JetInput, JetTextarea, JetButton, JetInputError, JetSelectInput, JetDialogModal, JetSecondaryButton,
-            JetDangerButton
+export default defineComponent({
+    components: {
+        Dialog,
+        Button,
+        InputText,
+        Textarea,
+        InlineMessage,
+        Check,
+        Trash2,
+    },
+    props: {
+        topic: { type: Object, default: null },
+        action: { type: String, default: null },
+        parentTopic: { type: Object, default: null },
+        modelValue: { type: Boolean, default: false },
+        breadcrumbs: { type: Array, default: () => [] },
+    },
+    emits: ['update:modelValue', 'onDeleted'],
+    data() {
+        return {
+            form: null,
+            showModal: this.modelValue,
+        };
+    },
+    watch: {
+        showModal(val) {
+            if (val !== this.modelValue) this.$emit('update:modelValue', val);
         },
-        props: {
-            topic: Object,
-            action: String,
-            parentTopic: Object,
-            modelValue: Boolean,
-            breadcrumbs: Array,
-            showHeader: {
-                type: Boolean,
-                default: false
-            }
-        },
-        data() {
-            return {
-
-                //  Form attributes
-                form: null,
-
-                //  Modal attributes
-                showModal: this.modelValue,
-
-                showSuccessMessage: false,
-                showErrorMessage: false
-            }
-        },
-
-        watch: {
-
-            showModal: {
-                handler: function (val, oldVal) {
-
-                    if(val != this.modelValue){
-                        this.$emit('update:modelValue', val);
-                    }
-
-                }
-            },
-
-            modelValue: {
-                handler: function (val, oldVal) {
-
-                    if(val != this.showModal){
-                        this.showModal = val;
-                        this.reset();
-                    }
-
-                }
-            },
-
-        },
-
-        computed: {
-            hasTopic(){
-                return this.topic == null ? false : true;
-            },
-            wantsToUpdate(){
-                return (this.hasTopic && this.action == 'update') ? true : false;
-            },
-            wantsToDelete(){
-                return (this.hasTopic && this.action == 'delete') ? true : false;
-            }
-        },
-        methods: {
-            nagivateToTopic(topic = null){
-                if( topic ){
-
-                    this.$inertia.get(route('show.topic', { project: route().params.project, topic: topic.id }));
-
-                }else{
-
-                    this.$inertia.get(route('show.topics', { project: route().params.project }));
-
-                }
-            },
-            goBackToPreviousPage(){
-                window.history.back();
-            },
-            /**
-             *  MODAL METHODS
-             */
-            openModal() {
-                this.showModal = true;
-            },
-            closeModal() {
-                this.showModal = false;
-            },
-
-            /**
-             *  FORM METHODS
-             */
-            create() {
-                var options = {
-
-                    preserveState: true, preserveScroll: true, replace: true,
-
-                    onSuccess: (response) => {
-
-                        this.handleOnSuccess();
-
-                    },
-
-                    onError: errors => {
-
-                        this.handleOnError();
-
-                    },
-
-                };
-
-                this.form.post(route('create.topic', { project: route().params.project }), options);
-            },
-            update() {
-                var options = {
-
-                    preserveState: true, preserveScroll: true, replace: true,
-
-                    onSuccess: (response) => {
-
-                        this.handleOnSuccess();
-
-                    },
-
-                    onError: errors => {
-
-                        this.handleOnError();
-
-                    },
-                };
-
-                this.form.put(route('update.topic', { project: route().params.project, topic: this.topic.id }), options);
-            },
-            destroy() {
-
-                var options = {
-
-                    preserveState: true, preserveScroll: true, replace: true,
-
-                    onSuccess: (response) => {
-
-                        this.handleOnSuccess(true);
-
-                    },
-
-                    onError: errors => {
-
-                        this.handleOnError();
-
-                    },
-                };
-
-                this.form.delete(route('delete.topic', { project: route().params.project, topic: this.topic.id }), options);
-            },
-            handleOnSuccess(hasDeleted = false){
-
+        modelValue(val) {
+            if (val !== this.showModal) {
+                this.showModal = val;
                 this.reset();
-                this.closeModal();
-                if(hasDeleted) this.$emit('onDeleted');
-
-                this.showSuccessMessage = true;
-
-                setTimeout(() => {
-                    this.showSuccessMessage = false;
-                }, 3000);
-
-            },
-            handleOnError(){
-
-                this.showErrorMessage = true;
-
-                setTimeout(() => {
-                    this.showErrorMessage = false;
-                }, 3000);
-
-            },
-            reset() {
-                this.form = this.$inertia.form({
-                    title: this.hasTopic ? this.topic.title : null,
-                    content: this.hasTopic ? this.topic.content : null,
-                    parent_id: this.parentTopic ? this.parentTopic.id : null
-                });
-            },
+            }
         },
-        created(){
-
+    },
+    computed: {
+        hasTopic() {
+            return this.topic != null;
+        },
+        wantsToUpdate() {
+            return this.hasTopic && this.action === 'update';
+        },
+        wantsToDelete() {
+            return this.hasTopic && this.action === 'delete';
+        },
+        dialogTitle() {
+            if (this.wantsToUpdate) return 'Update Topic';
+            if (this.wantsToDelete) return 'Delete Topic';
+            return 'Add Topic';
+        },
+    },
+    created() {
+        this.reset();
+    },
+    methods: {
+        closeModal() {
+            this.showModal = false;
+        },
+        emitModelValue() {
+            this.$emit('update:modelValue', this.showModal);
+        },
+        create() {
+            this.form.post(route('create.topic', { project: route().params.project }), {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onSuccess: () => this.handleOnSuccess(),
+                onError: () => this.handleOnError(),
+            });
+        },
+        update() {
+            this.form.put(route('update.topic', { project: route().params.project, topic: this.topic.id }), {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onSuccess: () => this.handleOnSuccess(),
+                onError: () => this.handleOnError(),
+            });
+        },
+        destroy() {
+            this.form.delete(route('delete.topic', { project: route().params.project, topic: this.topic.id }), {
+                preserveState: true,
+                preserveScroll: true,
+                replace: true,
+                onSuccess: () => this.handleOnSuccess(true),
+                onError: () => this.handleOnError(),
+            });
+        },
+        handleOnSuccess(hasDeleted = false) {
             this.reset();
-
-        }
-    })
+            this.closeModal();
+            if (hasDeleted) this.$emit('onDeleted');
+        },
+        handleOnError() {
+            // Inertia keeps form.errors; InlineMessage will show them
+        },
+        reset() {
+            this.form = this.$inertia.form({
+                title: this.hasTopic ? this.topic.title : '',
+                content: this.hasTopic ? (this.topic.content ?? '') : '',
+                parent_id: this.parentTopic ? this.parentTopic.id : null,
+            });
+        },
+    },
+});
 </script>

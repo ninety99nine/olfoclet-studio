@@ -25,7 +25,20 @@ class UserController extends Controller
         //  Render the users view
         return Inertia::render('Users/List/Main', [
             'availablePermissions' => $availablePermissions,
+            'project' => $project,
             'usersPayload' => $usersPayload,
+        ]);
+    }
+
+    public function showUser(Project $project, User $user)
+    {
+        //  Ensure user belongs to this project
+        $projectUser = $project->users()->where('users.id', $user->id)->firstOrFail();
+
+        return Inertia::render('Users/Show/Main', [
+            'availablePermissions' => Project::PERMISSIONS,
+            'project' => $project,
+            'user' => $projectUser,
         ]);
     }
 

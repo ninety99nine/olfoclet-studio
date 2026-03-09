@@ -4,6 +4,7 @@ namespace App\Repositories;
 
 use App\Models\Project;
 use App\Models\Subscriber;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -77,7 +78,13 @@ class SubscriberRepository
      */
     public function getProjectSubscribers(?array $filters = null, array $relationships = [], array $countableRelationships = []): LengthAwarePaginator
     {
-        $query = $this->project->subscribers()->with($relationships)->withCount($countableRelationships);
+        $query = $this->project->subscribers()
+            ->select('subscribers.*')
+            ->addSelect([
+                DB::raw('(SELECT COALESCE(SUM(bt.amount), 0) FROM billing_transactions bt WHERE bt.subscriber_id = subscribers.id AND bt.is_successful = 1) as total_spend_amount'),
+            ])
+            ->with($relationships)
+            ->withCount($countableRelationships);
 
         // Apply filters if provided
         if ($filters) {
@@ -98,20 +105,106 @@ class SubscriberRepository
                 });
             }
 
-            // Billing status filter
+            // User billing status (last user-initiated billing)
             if (!empty($filters['billingStatus'])) {
                 $query->whereHas('latestUserBillingTransaction', function ($q) use ($filters) {
-                    if(strtolower($filters['billingStatus']) === 'successful') {
+                    if (strtolower($filters['billingStatus']) === 'successful') {
                         $q->successful();
-                    }else if(strtolower($filters['billingStatus']) === 'unsuccessful') {
+                    } elseif (strtolower($filters['billingStatus']) === 'unsuccessful') {
                         $q->unsuccessful();
                     }
                 });
             }
 
+            // Auto billing status (last auto billing transaction)
+            if (!empty($filters['autoBillingStatus'])) {
+                $query->whereHas('latestAutoBillingTransaction', function ($q) use ($filters) {
+                    if (strtolower($filters['autoBillingStatus']) === 'successful') {
+                        $q->successful();
+                    } elseif (strtolower($filters['autoBillingStatus']) === 'unsuccessful') {
+                        $q->unsuccessful();
+                    }
+                });
+            }
+
+            // Total spend: has spent (any successful payment) or has not spent
+            if (!empty($filters['spendStatus'])) {
+                $value = strtolower($filters['spendStatus']);
+                if ($value === 'has_spent') {
+                    $query->whereRaw('(SELECT COALESCE(SUM(bt.amount), 0) FROM billing_transactions bt WHERE bt.subscriber_id = subscribers.id AND bt.is_successful = 1) > 0');
+                } elseif ($value === 'has_not_spent') {
+                    $query->whereRaw('(SELECT COALESCE(SUM(bt.amount), 0) FROM billing_transactions bt WHERE bt.subscriber_id = subscribers.id AND bt.is_successful = 1) = 0');
+                }
+            }
+
+            // Scheduled for billing: scheduled (future) or past_due (date passed, will still be billed)
+            if (!empty($filters['scheduledBilling'])) {
+                $value = strtolower($filters['scheduledBilling']);
+                $query->whereHas('autoBillingSchedules', function ($q) use ($value) {
+                    $q->where('auto_billing_enabled', true);
+                    if ($value === 'scheduled') {
+                        $q->where('next_attempt_date', '>', now());
+                    } elseif ($value === 'past_due') {
+                        $q->where('next_attempt_date', '<=', now());
+                    }
+                });
+            }
+
+            // Scheduled for SMS: scheduled (future) or past_due (date passed, will still be sent)
+            if (!empty($filters['scheduledSms'])) {
+                $value = strtolower($filters['scheduledSms']);
+                $query->whereExists(function ($q) use ($value) {
+                    $q->select(DB::raw(1))
+                        ->from('sms_campaign_schedules')
+                        ->whereColumn('sms_campaign_schedules.subscriber_id', 'subscribers.id');
+                    if ($value === 'scheduled') {
+                        $q->where('sms_campaign_schedules.next_message_date', '>', now());
+                    } elseif ($value === 'past_due') {
+                        $q->where('sms_campaign_schedules.next_message_date', '<=', now());
+                    }
+                });
+            }
+
+            // Cancelled auto billing: yes = has at least one schedule with auto_billing_enabled = false; no = has none
+            if (!empty($filters['cancelledAutoBilling'])) {
+                $value = strtolower($filters['cancelledAutoBilling']);
+                if ($value === 'yes') {
+                    $query->whereHas('autoBillingSchedules', function ($q) {
+                        $q->where('auto_billing_enabled', false);
+                    });
+                } elseif ($value === 'no') {
+                    $query->whereDoesntHave('autoBillingSchedules', function ($q) {
+                        $q->where('auto_billing_enabled', false);
+                    });
+                }
+            }
+
+            // Date filters (subscriber created_at) — use range for index use
+            if (!empty($filters['date_from'])) {
+                $query->where('created_at', '>=', \Carbon\Carbon::parse($filters['date_from'])->startOfDay());
+            }
+            if (!empty($filters['date_to'])) {
+                $query->where('created_at', '<=', \Carbon\Carbon::parse($filters['date_to'])->endOfDay());
+            }
+
+            // Sort (e.g. created_at:desc, id:asc, subscriptions_count:desc, messages_count:asc)
+            if (!empty($filters['sort']) && preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'], $m)) {
+                $column = $m[1];
+                $direction = $m[2];
+                $allowed = ['created_at', 'id', 'subscriptions_count', 'messages_count', 'total_spend_amount'];
+                if (in_array($column, $allowed, true)) {
+                    $query->orderBy($column, $direction);
+                }
+            }
         }
 
-        return $query->latest()->paginate();
+        $perPage = (is_array($filters) && isset($filters['per_page'])) ? (int) $filters['per_page'] : 15;
+
+        if (empty($filters['sort']) || !preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'] ?? '', $m) || !in_array($m[1], ['created_at', 'id', 'subscriptions_count', 'messages_count', 'total_spend_amount'], true)) {
+            $query->latest();
+        }
+
+        return $query->paginate($perPage);
     }
 
     /**
@@ -166,6 +259,33 @@ class SubscriberRepository
         $this->subscriber->metadata = $metadata;
 
         return $this->subscriber->save();
+    }
+
+    /**
+     *  Wipe the metadata of the associated project subscriber (e.g. for data deletion requests).
+     *  The subscriber record is kept; only metadata is cleared.
+     *
+     *  @return bool True if the update is successful, false otherwise.
+     *  @throws ModelNotFoundException If the associated subscriber is not found or does not belong to the project.
+     */
+    public function wipeSubscriberMetadata(): bool
+    {
+        if ($this->subscriber === null || $this->subscriber->project_id !== $this->project->id) {
+            throw new ModelNotFoundException();
+        }
+
+        $this->subscriber->metadata = null;
+        return $this->subscriber->save();
+    }
+
+    /**
+     *  Get the subscriber instance associated with the repository.
+     *
+     *  @return Subscriber|null
+     */
+    public function getSubscriber(): ?Subscriber
+    {
+        return $this->subscriber;
     }
 
     /**

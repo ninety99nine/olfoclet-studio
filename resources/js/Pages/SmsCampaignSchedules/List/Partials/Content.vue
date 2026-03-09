@@ -1,276 +1,242 @@
 <template>
+    <div class="min-h-screen bg-slate-50/50 p-4 lg:p-8 font-sans antialiased text-slate-700">
+        <div class="max-w-[1600px] mx-auto mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h1 class="text-2xl font-black tracking-tight text-indigo-950">Sms Schedules</h1>
 
-    <div>
-
-        <div class="grid grid-cols-12 gap-4">
-
-            <div class="col-span-6">
-                <div class="bg-gray-50 border-b px-6 py-4 rounded-t text-gray-500 text-sm mb-4">
-                    <div class="text-2xl font-semibold leading-6 text-gray-500">Sms Campaign Schedules</div>
-                </div>
-            </div>
-
-        </div>
-
-        <div class="bg-white shadow-xl sm:rounded-lg">
-
-            <!-- Table -->
-            <div class="flex flex-col overflow-y-auto">
-                <div class="align-middle inline-block min-w-full">
-                    <div class="shadow border-b border-gray-200">
-                        <table class="min-w-full divide-y divide-gray-200">
-                            <thead class="bg-gray-50">
-
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
-
-                                    </th>
-                                    <th scope="col" colspan="7" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        <div class="font-bold text-teal-500">NEXT MESSAGE SCHEDULE</div>
-                                    </th>
-                                    <th scope="col" colspan="9" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <div class="font-bold text-fuchsia-500">SMS CAMPAIGN</div>
-                                    </th>
-                                </tr>
-
-                                <tr>
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider border-r border-dotted border-r-teal-300">
-                                        <span>Mobile</span>
-                                    </th>
-
-
-
-
-                                    <!-- Next Message Date -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Next Message Date</span>
-                                    </th>
-                                    <!-- Next Message Countdown -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Countdown</span>
-                                    </th>
-                                    <!-- Total Attempts -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Total Attempts</span>
-                                    </th>
-                                    <!-- Total Successful Attempts -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Total Successful Attempts</span>
-                                    </th>
-                                    <!-- Total Failed Attempts -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Total Failed Attempts</span>
-                                    </th>
-                                    <!-- Created Date -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50">
-                                        <span>Created Date</span>
-                                    </th>
-                                    <!-- Updated Date -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        <span>Updated Date</span>
-                                    </th>
-
-
-
-
-                                    <!-- Sms Campaign Name -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Name</span>
-                                    </th>
-                                    <!-- Sms Campaign Send Messages -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-left text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Send Messages</span>
-                                    </th>
-                                    <!-- Sms Campaign Status -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Status</span>
-                                    </th>
-                                    <!-- Sms Campaign Sprints -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Sprints</span>
-                                    </th>
-                                    <!-- Sms Campaign Total -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-100 border-l border-t border-dotted border-fuchsia-300">
-                                        <span>Total</span>
-                                    </th>
-                                    <!-- Sms Campaign Pending -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-100 border-t border-dotted border-fuchsia-300">
-                                        <span>Pending</span>
-                                    </th>
-                                    <!-- Sms Campaign Processed -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-100 border-t border-dotted border-fuchsia-300">
-                                        <span>Processed</span>
-                                    </th>
-                                    <!-- Sms Campaign Progress -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-100 border-r border-t border-dotted border-fuchsia-300">
-                                        <span>Progress</span>
-                                    </th>
-                                    <!-- Sms Campaign Last Sprint Date -->
-                                    <th scope="col" class="px-6 py-3 whitespace-nowrap text-center text-xs font-medium text-gray-500 uppercase tracking-wider bg-fuchsia-50">
-                                        <span>Last Sprint Date</span>
-                                    </th>
-
-                                </tr>
-
-                            </thead>
-                            <tbody class="bg-white divide-y divide-gray-200">
-
-                                <tr v-for="smsCampaignSchedule in smsCampaignSchedulesPayload.data" :key="smsCampaignSchedule.id">
-
-                                    <!-- Mobile -->
-                                    <td class="px-6 py-3 whitespace-nowrap border-r border-dotted border-r-teal-300">
-                                        <div class="text-sm text-gray-900">{{ smsCampaignSchedule.subscriber.msisdn }}</div>
-                                    </td>
-
-
-
-
-                                    <!-- Next Attempt Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        {{ smsCampaignSchedule.next_message_date == null ? '...' : moment(smsCampaignSchedule.next_message_date).format('lll') }}
-                                    </td>
-                                    <!-- Next Attempt Countdown -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        <Countdown :time="smsCampaignSchedule.next_message_date_milli_seconds_left"></Countdown>
-                                    </td>
-                                    <!-- Attempts -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ smsCampaignSchedule.attempts == null ? '...' : smsCampaignSchedule.attempts }}
-                                    </td>
-                                    <!-- Total Successful Attempts -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ smsCampaignSchedule.total_successful_attempts == null ? '...' : smsCampaignSchedule.total_successful_attempts }}
-                                    </td>
-                                    <!-- Total Failed Attempts -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ smsCampaignSchedule.total_failed_attempts == null ? '...' : smsCampaignSchedule.total_failed_attempts }}
-                                    </td>
-                                    <!-- Created Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50">
-                                        {{ smsCampaignSchedule.created_at == null ? '...' : moment(smsCampaignSchedule.created_at).format('lll') }}
-                                    </td>
-                                    <!-- Updated Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        {{ smsCampaignSchedule.updated_at == null ? '...' : moment(smsCampaignSchedule.updated_at).format('lll') }}
-                                    </td>
-
-
-
-
-
-                                    <!-- Name -->
-                                    <td class="px-6 py-3 whitespace-nowrap bg-fuchsia-50">
-                                        <div class="text-sm text-gray-900">{{ smsCampaignSchedule.sms_campaign.name }}</div>
-                                    </td>
-                                    <!-- Send SMS -->
-                                    <td class="px-6 py-3 bg-fuchsia-50">
-                                        <SmsCampaignCanSendSmsBadge :smsCampaign="smsCampaignSchedule.sms_campaign"></SmsCampaignCanSendSmsBadge>
-                                    </td>
-                                    <!-- Status -->
-                                    <td class="px-6 py-3 bg-fuchsia-50">
-                                        <SmsCampaignStatusBadge :smsCampaignBatchJob="getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign)"></SmsCampaignStatusBadge>
-                                    </td>
-                                    <!-- Sprints -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
-                                        <div class="text-sm text-gray-900">{{ smsCampaignSchedule.sms_campaign.sms_campaign_batch_jobs_count }}</div>
-                                    </td>
-                                    <!-- Total -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-100 border-l border-dotted border-fuchsia-300">
-                                        <div class="text-sm text-gray-900">{{ getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign).total_jobs }}</div>
-                                    </td>
-                                    <!-- Pending -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-100">
-                                        <div class="text-sm text-gray-900">{{ getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign).pending_jobs }}</div>
-                                    </td>
-                                    <!-- Processed -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-100">
-                                        <div class="text-sm text-gray-900">{{ getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign).processed_jobs }}</div>
-                                    </td>
-                                    <!-- Progress -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-100 border-r border-dotted border-fuchsia-300">
-                                        <span class="text-lg text-green-600">{{ getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign).progress }} {{ getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign).progress ? '%' : '' }}</span>
-                                    </td>
-                                    <!-- Last Sprint Date -->
-                                    <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 bg-fuchsia-50">
-                                        {{ getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign).created_at == null ? '...' : moment(getLatestSmsCampaignBatchJob(smsCampaignSchedule.sms_campaign).created_at).format('lll') }}
-                                    </td>
-
-                                </tr>
-
-                                <tr v-if="smsCampaignSchedulesPayload.data.length == 0">
-
-                                    <!-- Content -->
-                                    <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No sms campaign schedules</div>
-                                    </td>
-                                    <td :colspan="8" class="px-6 py-3 whitespace-nowrap">
-                                        <div class="text-center text-gray-900 text-sm p-6">No sms campaign schedules</div>
-                                    </td>
-
-                                </tr>
-
-                            </tbody>
-                        </table>
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 block mb-0.5">Total</span>
+                        <span class="text-xl font-bold text-indigo-900 tabular-nums leading-none">
+                            {{ (smsCampaignSchedulesPayload?.total ?? 0).toLocaleString() }}
+                        </span>
                     </div>
                 </div>
             </div>
-
-            <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="smsCampaignSchedulesPayload" :updateData="['smsCampaignSchedulesPayload']" />
-
         </div>
 
+        <div class="max-w-[1600px] mx-auto space-y-4">
+            <div class="flex flex-col xl:flex-row items-center justify-between gap-4">
+                <div class="flex-grow w-full xl:w-auto flex items-center gap-2">
+                    <button
+                        @click="refresh"
+                        class="h-11 px-4 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 text-[10px] font-black flex items-center justify-center gap-2 transition-all uppercase tracking-widest"
+                        title="Sync Data"
+                    >
+                        <RefreshCw :size="16" class="text-indigo-500" :class="{ 'animate-spin-smooth': loading }" />
+                        <span class="hidden lg:inline">Refresh</span>
+                    </button>
+                </div>
+
+                <div class="flex items-center gap-1">
+                    <button
+                        v-for="(link, index) in filteredPagination"
+                        :key="index"
+                        :disabled="!link.page"
+                        @click="link.page && changePage(link.page)"
+                        class="h-9 min-w-[36px] flex items-center justify-center rounded-lg transition-all font-bold text-[10px]"
+                        :class="[
+                            link.active
+                                ? 'bg-indigo-600 text-white shadow-sm px-3'
+                                : link.label === '...' ? 'text-slate-300 cursor-default' : 'bg-transparent text-slate-500 hover:bg-slate-100',
+                            !link.page && link.label !== '...' ? 'opacity-30 cursor-not-allowed' : 'cursor-pointer'
+                        ]"
+                    >
+                        <ChevronLeft v-if="link.label === 'prev'" :size="16" />
+                        <ChevronRight v-else-if="link.label === 'next'" :size="16" />
+                        <span v-else>{{ link.label }}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-3xl overflow-hidden shadow-sm">
+                <Transition name="content-switch" mode="out-in">
+                    <div v-if="loading" key="loading" class="py-24 px-8 flex flex-col items-center justify-center text-center">
+                        <span class="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 mb-6">
+                            <RefreshCw :size="24" class="text-indigo-500 animate-spin-smooth" />
+                        </span>
+                        <p class="text-sm font-medium text-slate-500">Loading SMS schedules...</p>
+                    </div>
+                    <div v-else-if="smsCampaignSchedulesPayload?.data?.length > 0" key="table-wrapper" class="overflow-x-auto">
+                        <table class="w-full min-w-[900px] border-collapse [&_th]:whitespace-nowrap [&_td]:whitespace-nowrap">
+                            <thead>
+                                <tr class="bg-slate-50/50 border-b border-slate-100">
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Subscriber</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Next message</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Messages sent</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Campaign</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-100">
+                                <tr
+                                    v-for="row in smsCampaignSchedulesPayload.data"
+                                    :key="row.id"
+                                    class="group hover:bg-indigo-50/20 transition-colors"
+                                >
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-all">
+                                                <Phone :size="14" class="text-xs" />
+                                            </div>
+                                            <div>
+                                                <div class="text-sm font-bold text-indigo-950">{{ row.subscriber?.msisdn ?? '—' }}</div>
+                                                <div class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">#{{ row.id }}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-top">
+                                        <div class="flex flex-col gap-1">
+                                            <span v-if="row.next_message_date_milli_seconds_left == null" class="text-slate-400 text-[10px]">—</span>
+                                            <Countdown v-else :time="row.next_message_date_milli_seconds_left" />
+                                            <span class="whitespace-nowrap text-[10px] text-slate-500">{{ row.next_message_date ? moment(row.next_message_date).format('DD MMM YY HH:mm') : '—' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-center whitespace-normal align-top">
+                                        <div class="flex flex-col items-center gap-0.5">
+                                            <span class="text-sm font-bold text-slate-800 tabular-nums">{{ row.attempts ?? '—' }}</span>
+                                            <span class="text-[10px] text-slate-500 tabular-nums">
+                                                <span :class="(row.total_successful_attempts ?? 0) >= 1 ? 'text-emerald-600' : 'text-slate-500'">{{ (row.total_successful_attempts ?? 0).toLocaleString() }}</span>
+                                                <span class="text-slate-400"> sent</span>
+                                                <span class="text-slate-300"> · </span>
+                                                <span :class="(row.total_failed_attempts ?? 0) >= 1 ? 'text-rose-600' : 'text-slate-500'">{{ (row.total_failed_attempts ?? 0).toLocaleString() }}</span>
+                                                <span class="text-slate-400"> failed</span>
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col gap-1">
+                                            <span class="text-sm font-medium text-slate-800">{{ row.sms_campaign?.name ?? '—' }}</span>
+                                            <span class="campaign-status-badge inline-block w-fit">
+                                            <Tag
+                                                :value="row.sms_campaign?.can_send_messages === true ? 'Active' : 'Inactive'"
+                                                :severity="row.sms_campaign?.can_send_messages === true ? 'success' : 'warn'"
+                                                :class="['text-xs scale-90 origin-left', { 'tag-amber': row.sms_campaign?.can_send_messages !== true }]"
+                                            />
+                                        </span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div v-else key="empty" class="py-24 px-8 flex flex-col items-center justify-center text-center">
+                        <div class="h-20 w-20 rounded-3xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 mb-6">
+                            <CalendarClock :size="40" class="text-slate-500" />
+                        </div>
+                        <h3 class="text-lg font-bold text-indigo-950 mb-1">No SMS schedules found</h3>
+                        <p class="text-sm text-slate-400 max-w-xs">There are no campaign schedules for this project yet.</p>
+                    </div>
+                </Transition>
+                <Pagination
+                    :pagination-payload="payload"
+                    :update-data="['smsCampaignSchedulesPayload']"
+                    :min-pages="1"
+                />
+            </div>
+        </div>
     </div>
-
 </template>
+
 <script>
-    import SmsCampaignCanSendSmsBadge from './../../../SmsCampaigns/List/JobBatches/List/Partials/SmsCampaignCanSendSmsBadge.vue';
-    import SmsCampaignStatusBadge from './../../../SmsCampaigns/List/JobBatches/List/Partials/SmsCampaignStatusBadge.vue';
-    import Pagination from '../../../../Partials/Pagination.vue';
-    import Countdown from './../../../../Partials/Countdown.vue';
-    import { defineComponent } from 'vue';
-    import moment from "moment";
+import { defineComponent, computed, ref, watch } from 'vue';
+import Pagination from '@/Partials/Pagination.vue';
+import { router, usePage } from '@inertiajs/vue3';
+import moment from 'moment';
+import { RefreshCw, ChevronLeft, ChevronRight, Phone, CalendarClock } from 'lucide-vue-next';
 
-    export default defineComponent({
-        components: {
-            SmsCampaignCanSendSmsBadge, SmsCampaignStatusBadge, Pagination, Countdown,
-        },
-        props: {
-            smsCampaignSchedulesPayload: Object
-        },
-        data() {
-            return {
-                refreshContentInterval: null,
-                moment: moment
-            }
-        },
-        methods: {
-            getLatestSmsCampaignBatchJob(smsCampaign)
-            {
-                if( smsCampaign.latest_sms_campaign_batch_job.length ) {
-                    return smsCampaign.latest_sms_campaign_batch_job[0];
-                }
-                return {};
-            },
-            refreshContent()
-            {
-                this.$inertia.reload();
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
-            }
-        },
-        created() {
+import Tag from 'primevue/tag';
+import Countdown from '@/Partials/Countdown.vue';
 
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
-        },
-        unmounted() {
-            this.cleanUp()
+export default defineComponent({
+    components: {
+        Pagination,
+        Tag,
+        Countdown,
+        RefreshCw,
+        ChevronLeft,
+        ChevronRight,
+        Phone,
+        CalendarClock,
+    },
+    props: {
+        smsCampaignSchedulesPayload: { type: Object, default: () => ({ data: [], total: 0, current_page: 1, last_page: 1, links: [] }) },
+    },
+    setup(props) {
+        const loading = ref(false);
+        const initialLoadComplete = ref(false);
+        const page = usePage();
+
+        const payload = computed(() => props.smsCampaignSchedulesPayload || {});
+
+        watch([loading, () => (payload.value?.data?.length ?? 0)], () => {
+            if (!loading.value && (payload.value?.data?.length ?? 0) > 0) initialLoadComplete.value = true;
+        });
+
+        const filteredPagination = computed(() => {
+            const current = payload.value.current_page ?? 1;
+            const last = payload.value.last_page ?? 1;
+            if (last <= 1) return [];
+            const pages = [];
+            pages.push({ label: 'prev', page: current > 1 ? current - 1 : null });
+            pages.push({ label: '1', active: current === 1, page: 1 });
+            if (current > 3) pages.push({ label: '...', active: false, page: null });
+            const start = Math.max(2, current - 1);
+            const end = Math.min(last - 1, current + 1);
+            for (let i = start; i <= end; i++) {
+                if (i !== 1 && i !== last) pages.push({ label: String(i), active: current === i, page: i });
+            }
+            if (current < last - 2) pages.push({ label: '...', active: false, page: null });
+            if (last > 1) pages.push({ label: String(last), active: current === last, page: last });
+            pages.push({ label: 'next', page: current < last ? current + 1 : null });
+            return pages;
+        });
+
+        function getProjectId() {
+            return page.props?.project?.id ?? route().params?.project;
         }
-    })
+
+        function changePage(pageNum) {
+            const projectId = getProjectId();
+            if (!projectId) return;
+            router.visit(route('show.sms.campaign.schedules', { project: projectId }), { data: { page: pageNum } });
+        }
+
+        function refresh() {
+            loading.value = true;
+            router.reload({ only: ['smsCampaignSchedulesPayload'], onFinish: () => { loading.value = false; } });
+        }
+
+        return { loading, initialLoadComplete, filteredPagination, changePage, refresh, moment };
+    },
+});
 </script>
+
+<style scoped>
+.content-switch-leave-active,
+.content-switch-enter-active {
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.content-switch-leave-to,
+.content-switch-enter-from {
+    opacity: 0;
+    transform: translateY(6px);
+}
+.content-switch-leave-from,
+.content-switch-enter-to {
+    opacity: 1;
+    transform: translateY(0);
+}
+@keyframes spin-smooth {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+.animate-spin-smooth {
+    animation: spin-smooth 0.8s linear infinite;
+    transform-origin: center;
+}
+.campaign-status-badge :deep(.p-tag) {
+    width: fit-content;
+    min-width: 0;
+}
+</style>

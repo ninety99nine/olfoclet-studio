@@ -1,157 +1,109 @@
 <script setup>
 
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import Toast from 'primevue/toast';
 import Banner from '@/Components/Banner.vue';
 import NavLink from '@/Components/NavLink.vue';
-import Dropdown from '@/Components/Dropdown.vue';
-import DropdownLink from '@/Components/DropdownLink.vue';
 import SpiningLoader from '@/Components/SpiningLoader.vue';
 import { Head, Link, router, usePage } from '@inertiajs/vue3';
-import ApplicationMark from '@/Components/ApplicationMark.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
+import SlideUpDown from 'vue-slide-up-down';
 
 defineProps({
     title: String,
 });
 
-const links = ref([
+// Main tabs: Subscribers, Subscriptions, Transactions, Schedules, Analytics, Reports, SMS; then "More"
+const navItems = ref([
+    // —— Main tabs ——
+    { type: 'link', label: 'Subscriptions', routeName: 'show.subscriptions', activeRouteNames: ['show.subscriptions', 'show.subscription'], permission: 'View subscriptions' },
+    { type: 'link', label: 'Transactions', routeName: 'show.transactions', activeRouteNames: ['show.transactions', 'show.transaction'], permission: 'View billing transactions' },
+    { type: 'link', label: 'Subscribers', routeName: 'show.subscribers', activeRouteNames: ['show.subscribers', 'show.subscriber'], permission: 'View subscribers' },
     {
-        label: 'About',
-        routeName: 'show.project.about',
-        activeRouteNames: [
-            'show.project.about'
-        ]
-    },
-    {
-        label: 'Users',
-        routeName: 'show.users',
-        activeRouteNames: [
-            'show.users',
+        type: 'group',
+        label: 'Schedules',
+        children: [
+            { label: 'Auto Billing Schedules', routeName: 'show.auto.billing.schedules', activeRouteNames: ['show.auto.billing.schedules'], permission: 'View auto billing schedules' },
+            { label: 'SMS Schedules', routeName: 'show.sms.campaign.schedules', activeRouteNames: ['show.sms.campaign.schedules'], permission: 'View sms campaign schedules' },
         ],
-        permission: 'View users'
     },
+    { type: 'link', label: 'Analytics', routeName: 'show.analytics', activeRouteNames: ['show.analytics'] },
+    { type: 'link', label: 'Reports', routeName: 'show.billing.reports', activeRouteNames: ['show.billing.reports', 'show.billing.report'], permission: 'View billing reports' },
+    { type: 'link', label: 'SMS', routeName: 'show.subscriber.messages', activeRouteNames: ['show.subscriber.messages', 'show.subscriber.message'], permission: 'View subscriber messages' },
+    // —— Secondary (not center of attention) ——
     {
-        label: 'Topics',
-        routeName: 'show.topics',
-        activeRouteNames: [
-            'show.topics',
-            'show.topic'
+        type: 'group',
+        label: 'More',
+        secondary: true,
+        children: [
+            { label: 'Profile', routeName: 'profile.show', activeRouteNames: ['profile.show'] },
+            { label: 'Server', routeName: 'show.server', activeRouteNames: ['show.server'], requiresSuperAdmin: true },
+            { label: 'About', routeName: 'show.project.about', activeRouteNames: ['show.project.about'] },
+            { label: 'Users', routeName: 'show.users', activeRouteNames: ['show.users', 'show.user'], permission: 'View users' },
+            { label: 'Topics', routeName: 'show.topics', activeRouteNames: ['show.topics', 'show.topic'], permission: 'View topics' },
+            { label: 'Messages', routeName: 'show.messages', activeRouteNames: ['show.messages', 'show.message'], permission: 'View messages' },
+            { label: 'Pricing Plans', routeName: 'show.pricing.plans', activeRouteNames: ['show.pricing.plans', 'show.pricing.plan'], permission: 'View pricing plans' },
+            { label: 'Sms Campaigns', routeName: 'show.sms.campaigns', activeRouteNames: ['show.sms.campaigns', 'show.sms.campaign.job.batches'], permission: 'View sms campaigns' },
         ],
-        permission: 'View topics'
-    },
-    {
-        label: 'Messages',
-        routeName: 'show.messages',
-        activeRouteNames: [
-            'show.messages',
-            'show.message',
-        ],
-        permission: 'View messages'
-    },
-    {
-        label: 'Auto Billing',
-        routeName: 'show.auto.billing.pricing.plans',
-        activeRouteNames: [
-            'show.auto.billing.pricing.plans',
-            'show.auto.billing.pricing.plan.job.batches'
-        ],
-        permission: 'View auto billing pricing plans'
-    },
-    {
-        label: 'Subscribers',
-        routeName: 'show.subscribers',
-        activeRouteNames: [
-            'show.subscribers',
-        ],
-        permission: 'View subscribers'
-    },
-    {
-        label: 'Subscriptions',
-        routeName: 'show.subscriptions',
-        activeRouteNames: [
-            'show.subscriptions'
-        ],
-        permission: 'View subscriptions'
-    },
-    {
-        label: 'Billing Reports',
-        routeName: 'show.billing.reports',
-        activeRouteNames: [
-            'show.billing.reports'
-        ],
-        permission: 'View billing reports'
-    },
-    {
-        label: 'Sms Campaigns',
-        routeName: 'show.sms.campaigns',
-        activeRouteNames: [
-            'show.sms.campaigns',
-            'show.sms.campaign.job.batches',
-        ],
-        permission: 'View sms campaigns'
-    },
-    {
-        label: 'Pricing Plans',
-        routeName: 'show.pricing.plans',
-        activeRouteNames: [
-            'show.pricing.plans',
-            'show.pricing.plan'
-        ],
-        permission: 'View pricing plans'
-    },
-    {
-        label: 'Billing Transactions',
-        routeName: 'show.billing.transactions',
-        activeRouteNames: [
-            'show.billing.transactions'
-        ],
-        permission: 'View billing transactions'
-    },
-    {
-        label: 'Subscriber Messages',
-        routeName: 'show.subscriber.messages',
-        activeRouteNames: [
-            'show.subscriber.messages',
-        ],
-        permission: 'View subscriber messages'
-    },
-    {
-        label: 'Auto Billing Reminders',
-        routeName: 'show.auto.billing.reminder.pricing.plans',
-        activeRouteNames: [
-            'show.auto.billing.reminder.pricing.plans',
-            'show.auto.billing.pricing.plan.reminder.job.batches'
-        ],
-        permission: 'View auto billing reminder pricing plans'
-    },
-    {
-        label: 'Auto Billing Schedules',
-        routeName: 'show.auto.billing.schedules',
-        activeRouteNames: [
-            'show.auto.billing.schedules',
-        ],
-        permission: 'View auto billing schedules'
-    },
-    {
-        label: 'Sms Campaign Schedules',
-        routeName: 'show.sms.campaign.schedules',
-        activeRouteNames: [
-            'show.sms.campaign.schedules',
-        ],
-        permission: 'View sms campaign schedules'
     },
 ]);
 
-const filteredLinks = computed(() => {
-    return links.value.filter(link => canShowLink(link.permission ?? null));
+const expandedGroups = ref(new Set());
+
+const filteredNavItems = computed(() => {
+    return navItems.value
+        .map((item) => {
+            if (item.type === 'link') {
+                return canShowLink(item.permission ?? null) ? item : null;
+            }
+            const filteredChildren = item.children.filter((c) => {
+                if (c.requiresSuperAdmin && !page.props.auth?.user?.is_super_admin) return false;
+                return canShowLink(c.permission ?? null);
+            });
+            return filteredChildren.length ? { ...item, children: filteredChildren } : null;
+        })
+        .filter(Boolean);
 });
 
-const page = usePage()
+function isGroupActive(group) {
+    return group.children.some((c) => c.activeRouteNames.some((name) => route().current(name)));
+}
+
+function toggleGroup(label) {
+    const isCurrentlyOpen = expandedGroups.value.has(label);
+    if (isCurrentlyOpen) {
+        expandedGroups.value = new Set();
+    } else {
+        expandedGroups.value = new Set([label]);
+    }
+}
+
+function isGroupExpanded(label) {
+    return expandedGroups.value.has(label);
+}
+
+function expandActiveGroup() {
+    const current = route().current();
+    if (!current) return;
+    for (const item of filteredNavItems.value) {
+        if (item.type === 'group' && item.children.some((c) => c.activeRouteNames.includes(current))) {
+            expandedGroups.value = new Set([item.label]);
+            break;
+        }
+    }
+}
+
+const page = usePage();
 const isLoggingOut = ref(false);
+
+onMounted(expandActiveGroup);
+watch(() => page.url, expandActiveGroup);
 
 const isShowingProject = computed(() => {
     return route().params.hasOwnProperty('project');
 });
+
+const isProjectsListPage = computed(() => route().current('show.projects'));
 
 const canShowLink = (permission) => {
     if(permission == null) return true;
@@ -161,7 +113,7 @@ const canShowLink = (permission) => {
 const activeLinkClasses = (activeRouteNames) => {
     for (let i = 0; i < activeRouteNames.length; i++) {
         var routeName = activeRouteNames[i];
-        if(route().current(routeName)) return 'bg-gray-200';
+        if(route().current(routeName)) return 'bg-gray-100 dark:bg-gray-700/50 border-l-2 border-gray-300 dark:border-gray-500';
     }
     return '';
 };
@@ -196,12 +148,16 @@ watch(
   },
   { immediate: true }
 );
+
+const currentProjectName = computed(() => page.props.project?.name ?? null);
 </script>
 
 <template>
     <div>
 
         <Head :title="title" />
+
+        <Toast position="top-right" />
 
         <Banner />
 
@@ -212,84 +168,95 @@ watch(
             </svg>
         </button>
 
-        <aside id="main-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" aria-label="Sidebar">
+        <aside id="main-sidebar" class="fixed top-0 left-0 z-40 w-64 h-screen transition-transform -translate-x-full sm:translate-x-0" :class="{ '!translate-x-0': isProjectsListPage }" aria-label="Sidebar">
 
-            <div class="h-full px-3 py-4 overflow-y-auto bg-gray-50 dark:bg-gray-800">
+            <div class="h-full flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
 
-                <div class="flex justify-center">
-
-                    <!-- Logo -->
-                    <Link :href="route('show.projects')">
-                        <ApplicationMark class="block mt-4" />
-                    </Link>
-
+                <!-- Profile at top -->
+                <div class="shrink-0 px-4 pt-4 pb-1.5 border-b border-gray-100 dark:border-gray-600">
+                    <p class="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{{ $page.props.auth.user.name }}</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5" :title="$page.props.auth.user.email">{{ $page.props.auth.user.email }}</p>
                 </div>
 
-                <div class="text-center px-4 py-4 mb-2">
-                    <p>{{ $page.props.auth.user.name }}</p>
-                    <p class="text-sm text-gray-500">{{ $page.props.auth.user.email }}</p>
-                </div>
-
-                <ul class="space-y-1 font-medium">
-
+                <!-- Nav: scrollable -->
+                <nav class="flex-1 overflow-y-auto min-h-0 px-3 py-1.5 sidebar-nav-scroll">
+                <ul class="space-y-0.5">
                     <template v-if="isShowingProject">
-
-                        <li><div class="border-t my-2"></div></li>
-
-                        <li v-for="(link, index) in filteredLinks" :key="index" @click="navigateToNavMenu(link.routeName)" :class="[activeLinkClasses(link.activeRouteNames), 'w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg']">
-                            <span>{{ link.label }}</span>
-                        </li>
-
-                        <li><div class="border-t my-2"></div></li>
-
+                        <li class="mt-1 pt-1.5" aria-hidden="true" />
+                        <template v-for="(item, index) in filteredNavItems" :key="index">
+                            <!-- Single link (main tabs) -->
+                            <li v-if="item.type === 'link'" @click="navigateToNavMenu(item.routeName)" :class="['w-full pl-4 pr-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700 cursor-pointer rounded-r-lg border-l-2 border-transparent', activeLinkClasses(item.activeRouteNames)]">
+                                <span>{{ item.label }}</span>
+                            </li>
+                            <!-- Collapsible group: Billing, Schedule -->
+                            <li v-else-if="item.type === 'group' && !item.secondary" class="space-y-0.5">
+                                <div
+                                    @click="toggleGroup(item.label)"
+                                    :class="[isGroupActive(item) ? 'bg-gray-100 dark:bg-gray-700/50 border-l-2 border-gray-300 dark:border-gray-500' : 'border-l-2 border-transparent', 'w-full pl-4 pr-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700 cursor-pointer rounded-r-lg flex items-center justify-between']"
+                                >
+                                    <span>{{ item.label }}</span>
+                                    <svg class="w-4 h-4 transition-transform shrink-0 text-gray-500" :class="{ 'rotate-180': isGroupExpanded(item.label) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                <SlideUpDown :active="isGroupExpanded(item.label)" :duration="200" tag="ul" class="ml-3 pl-3 space-y-0.5 border-l border-gray-200 dark:border-gray-600">
+                                    <li v-for="(child, childIndex) in item.children" :key="childIndex" @click.stop="navigateToNavMenu(child.routeName)" :class="['w-full pl-3 pr-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer rounded-r-lg border-l-2 border-transparent', activeLinkClasses(child.activeRouteNames)]">
+                                        <span>{{ child.label }}</span>
+                                    </li>
+                                </SlideUpDown>
+                            </li>
+                            <!-- Secondary "More" (About, Users, Topics, etc.) – divider + muted -->
+                            <li v-else-if="item.type === 'group' && item.secondary" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 space-y-0.5">
+                                <div
+                                    @click="toggleGroup(item.label)"
+                                    :class="[isGroupActive(item) ? 'bg-gray-50 dark:bg-gray-700/30' : '', 'w-full pl-4 pr-3 py-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer rounded-r-lg flex items-center justify-between']"
+                                >
+                                    <span>{{ item.label }}</span>
+                                    <svg class="w-3.5 h-3.5 transition-transform shrink-0" :class="{ 'rotate-180': isGroupExpanded(item.label) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </div>
+                                <SlideUpDown :active="isGroupExpanded(item.label)" :duration="200" tag="ul" class="ml-3 pl-3 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-gray-600">
+                                    <li v-for="(child, childIndex) in item.children" :key="childIndex" @click.stop="navigateToNavMenu(child.routeName)" :class="['w-full pl-3 pr-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer rounded-r-lg border-l-2 border-transparent', activeLinkClasses(child.activeRouteNames)]">
+                                        <span>{{ child.label }}</span>
+                                    </li>
+                                </SlideUpDown>
+                            </li>
+                        </template>
                     </template>
 
-                    <li @click="navigateToNavMenu('show.projects')" :class="[activeLinkClasses(['show.projects']), 'flex items-center space-x-2 w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg']">
-                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12.75V12A2.25 2.25 0 0 1 4.5 9.75h15A2.25 2.25 0 0 1 21.75 12v.75m-8.69-6.44-2.12-2.12a1.5 1.5 0 0 0-1.061-.44H4.5A2.25 2.25 0 0 0 2.25 6v12a2.25 2.25 0 0 0 2.25 2.25h15A2.25 2.25 0 0 0 21.75 18V9a2.25 2.25 0 0 0-2.25-2.25h-5.379a1.5 1.5 0 0 1-1.06-.44Z" />
+                </ul>
+                </nav>
+
+                <!-- Sidebar footer: current project, My Projects, Sign Out -->
+                <div class="shrink-0 px-4 pt-3 pb-10 border-t border-gray-200 dark:border-gray-600 space-y-2">
+                    <!-- Current project indicator -->
+                    <div v-if="currentProjectName" class="py-1.5">
+                        <p class="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-gray-500">Current project</p>
+                        <p class="text-sm font-medium text-gray-800 dark:text-gray-200 truncate" :title="currentProjectName">{{ currentProjectName }}</p>
+                    </div>
+                    <!-- My Projects link -->
+                    <div @click="navigateToNavMenu('show.projects')" :class="[activeLinkClasses(['show.projects']), 'flex items-center gap-2 w-full py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-100 cursor-pointer rounded-r-lg border-l-2 border-transparent -ml-4 pl-4']">
+                        <svg class="w-4 h-4 shrink-0 text-gray-500 dark:text-gray-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75a2.25 2.25 0 0 1 2.25-2.25H6a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 6 20.25h-.75a2.25 2.25 0 0 1-2.25-2.25v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
                         </svg>
-
-                        <span>Projects</span>
-                    </li>
-
-                    <li @click="navigateToNavMenu('profile.show')" :class="[activeLinkClasses(['profile.show']), 'flex items-center space-x-2 w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg']">
-                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                        </svg>
-
-                        <span>Profile</span>
-                    </li>
-
-                    <li v-if="$page.props.auth.user.is_super_admin" @click="navigateToNavMenu('show.server')" class="flex items-center space-x-2 w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg">
-
-                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 17.25v-.228a4.5 4.5 0 0 0-.12-1.03l-2.268-9.64a3.375 3.375 0 0 0-3.285-2.602H7.923a3.375 3.375 0 0 0-3.285 2.602l-2.268 9.64a4.5 4.5 0 0 0-.12 1.03v.228m19.5 0a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3m19.5 0a3 3 0 0 0-3-3H5.25a3 3 0 0 0-3 3m16.5 0h.008v.008h-.008v-.008Zm-3 0h.008v.008h-.008v-.008Z" />
-                        </svg>
-
-                        <span>Server</span>
-
-                    </li>
-
-                    <li @click="logout" class="flex items-center space-x-2 w-full px-4 py-2 text-sm hover:bg-gray-200 active:bg-gray-300 cursor-pointer rounded-lg">
-
-                        <SpiningLoader v-if="isLoggingOut" class="my-1"></SpiningLoader>
-                        <svg v-else class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <span>My Projects</span>
+                    </div>
+                    <!-- Sign Out -->
+                    <div @click="logout" class="flex items-center gap-3 w-full py-2 -ml-4 pl-4 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer rounded-r-lg border-l-2 border-transparent">
+                        <SpiningLoader v-if="isLoggingOut" class="my-1 shrink-0" />
+                        <svg v-else class="w-5 h-5 shrink-0 text-gray-500 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                         </svg>
-
                         <span>Sign Out</span>
-
-                    </li>
-
-                </ul>
+                    </div>
+                </div>
 
             </div>
 
         </aside>
 
-        <div class="sm:ml-64">
-
-            <!-- Page Content -->
+        <div class="min-h-screen bg-slate-50 dark:bg-slate-900/30" :class="{ 'sm:ml-64': !isProjectsListPage, 'ml-64': isProjectsListPage }">
             <slot />
 
         </div>

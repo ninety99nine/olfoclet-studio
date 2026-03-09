@@ -1,33 +1,33 @@
 <template>
-    <app-layout title="Dashboard">
-        <div class="py-12">
-            <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
-                <manage-topic-modal :parentTopic="parentTopic" :topicsPayload="topicsPayload" :breadcrumbs="breadcrumbs" :showHeader="true" />
-
-                <topics-content :parentTopic="parentTopic" :topicsPayload="topicsPayload" :breadcrumbs="breadcrumbs" />
-
+    <app-layout title="Topics">
+        <div class="min-h-screen bg-slate-50 pb-12">
+            <div class="max-w-7xl mx-auto px-6 pt-6 pb-12">
+                <TopicsContent
+                    :parent-topic="parentTopic"
+                    :topics-payload="topicsPayload"
+                    :breadcrumbs="breadcrumbs"
+                    :project-permissions="projectPermissions"
+                />
             </div>
         </div>
     </app-layout>
 </template>
 
 <script>
-    import { defineComponent } from 'vue'
-    import AppLayout from '@/Layouts/AppLayout.vue'
-    import TopicsContent from './Partials/Content.vue'
-    import ManageTopicModal from './Partials/ManageTopicModal.vue'
+import { defineComponent } from 'vue';
+import AppLayout from '@/Layouts/AppLayout.vue';
+import TopicsContent from './Partials/Content.vue';
 
-    export default defineComponent({
-        components: {
-            AppLayout,
-            TopicsContent,
-            ManageTopicModal
-        },
-        props: {
-            parentTopic: Object,
-            topicsPayload: Object,
-            breadcrumbs: Array
-        }
-    })
+export default defineComponent({
+    components: {
+        AppLayout,
+        TopicsContent,
+    },
+    props: {
+        parentTopic: { type: Object, default: null },
+        topicsPayload: { type: Object, required: true },
+        breadcrumbs: { type: Array, default: () => [] },
+        projectPermissions: { type: Array, default: () => [] },
+    },
+});
 </script>

@@ -133,17 +133,17 @@
 
                                     <!-- Amount -->
                                     <td class="px-6 py-3 whitespace-nowrap text-md text-gray-500 text-center font-bold bg-teal-50">
-                                        <span>{{ billingTransaction.amount.amount_with_currency }}</span>
+                                        <span>{{ formatMoney(billingTransaction.amount) }}</span>
                                     </td>
 
                                     <!-- Funds Before Deduction -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ billingTransaction.funds_before_deduction == null ? '...' : billingTransaction.funds_before_deduction.amount_with_currency }}
+                                        {{ formatMoney(billingTransaction.funds_before_deduction) }}
                                     </td>
 
                                     <!-- Funds After Deduction -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-teal-50">
-                                        {{ billingTransaction.funds_after_deduction == null ? '...' : billingTransaction.funds_after_deduction.amount_with_currency }}
+                                        {{ formatMoney(billingTransaction.funds_after_deduction) }}
                                     </td>
 
                                     <!-- Rating Type -->
@@ -233,7 +233,7 @@
                                     <!-- Pricing Plan Price -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-violet-50">
                                         <div v-if="billingTransaction.pricing_plan == null">...</div>
-                                        <div v-else>{{ billingTransaction.pricing_plan.price == null ? '...' : billingTransaction.pricing_plan.price.amount_with_currency }}</div>
+                                        <div v-else>{{ formatMoney(billingTransaction.pricing_plan.price) }}</div>
                                     </td>
                                     <!-- Pricing Plan Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
@@ -262,7 +262,7 @@
             </div>
 
             <!-- Pagination Links -->
-            <pagination class="mt-6" :paginationPayload="billingTransactionsPayload" :updateData="['billingTransactionsPayload']" />
+            <Pagination class="mt-6" :pagination-payload="billingTransactionsPayload" :update-data="['billingTransactionsPayload']" />
 
         </div>
 
@@ -275,12 +275,13 @@
     import SubscriptionActiveStatusBadge from './../../../Subscriptions/List/Partials/ActiveStatusBadge.vue';
     import BillingTransactionStatusBadge from './BillingTransactionStatusBadge.vue';
     import CreatedUsingAutoBillingBadge from './CreatedUsingAutoBillingBadge.vue';
-    import Pagination from '../../../../Partials/Pagination.vue';
+    import Pagination from '@/Partials/Pagination.vue';
     import JetInputError from '@/Components/InputError.vue';
     import RatingTypeBadge from './RatingTypeBadge.vue';
     import JetInput from '@/Components/TextInput.vue';
     import { defineComponent } from 'vue';
     import moment from "moment";
+    import { formatMoney } from '@/utils/formatMoney';
 
     export default defineComponent({
         components: {
@@ -292,7 +293,6 @@
         },
         data() {
             return {
-                refreshContentInterval: null,
                 moment: moment,
                 form: this.$inertia.form({
                     search: ''
@@ -300,25 +300,10 @@
             }
         },
         methods: {
-            refreshContent()
-            {
+            formatMoney,
+            refreshContent() {
                 this.$inertia.reload();
-            },
-            cleanUp()
-            {
-                clearInterval( this.refreshContentInterval );
-                this.refreshContentInterval = null;
             }
-        },
-        created() {
-
-            //  Keep refreshing this page content every 5 seconds
-            this.refreshContentInterval = setInterval(function() {
-                this.refreshContent();
-            }.bind(this), 5000);
-        },
-        unmounted() {
-            this.cleanUp()
         }
     })
 </script>

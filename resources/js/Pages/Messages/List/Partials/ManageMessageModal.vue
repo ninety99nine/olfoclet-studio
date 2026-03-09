@@ -50,23 +50,23 @@
         <div>
 
             <!-- Success Message -->
-            <div v-if="showSuccessMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
+            <div v-if="showSuccessMessage" class="bg-indigo-50 border border-indigo-200 text-indigo-800 px-4 py-3 rounded-xl relative mb-6 mt-3" role="alert">
                 <strong v-if="wantsToUpdate" class="font-bold">Message updated successfully</strong>
                 <strong v-else-if="wantsToDelete" class="font-bold">Message deleted successfully</strong>
                 <strong v-else class="font-bold">Message created successfully</strong>
 
-                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer hover:text-indigo-900">
                     <svg class="fill-current h-6 w-6 text-green-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
                 </span>
             </div>
 
             <!-- Error Message -->
-            <div v-if="showErrorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6 mt-3" role="alert">
+            <div v-if="showErrorMessage" class="bg-rose-50 border border-rose-200 text-rose-700 px-4 py-3 rounded-xl relative mb-6 mt-3" role="alert">
                 <strong v-if="wantsToUpdate" class="font-bold">Message update failed</strong>
                 <strong v-else-if="wantsToDelete" class="font-bold">Message delete failed</strong>
                 <strong v-else class="font-bold">Message creation failed</strong>
 
-                <span @click="showSuccessMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3">
+                <span @click="showErrorMessage = false" class="absolute top-0 bottom-0 right-0 px-4 py-3 cursor-pointer hover:text-rose-900">
                     <svg class="fill-current h-6 w-6 text-red-500" role="button" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><title>Close</title><path d="M14.348 14.849a1.2 1.2 0 0 1-1.697 0L10 11.819l-2.651 3.029a1.2 1.2 0 1 1-1.697-1.697l2.758-3.15-2.759-3.152a1.2 1.2 0 1 1 1.697-1.697L10 8.183l2.651-3.031a1.2 1.2 0 1 1 1.697 1.697l-2.758 3.152 2.758 3.15a1.2 1.2 0 0 1 0 1.698z"/></svg>
                 </span>
             </div>
@@ -92,7 +92,7 @@
 
                         <span class="block mt-6 mb-6">Are you sure you want to delete this message?</span>
 
-                        <p class="text-sm text-gray-500">{{ message.content }}</p>
+                        <p class="text-sm text-slate-600">{{ message.content }}</p>
 
                     </template>
 
@@ -102,20 +102,20 @@
 
                             <span v-if="parentMessage">
                                 You are {{ wantsToUpdate ? 'updating' : 'adding' }} a message for
-                                <span class="rounded-lg py-1 px-2 border border-green-400 text-green-500 text-sm">
+                                <span class="rounded-lg py-1 px-2 border border-indigo-200 bg-indigo-50 text-indigo-700 text-sm font-medium">
                                     {{ parentMessage.content }}
                                 </span>
                             </span>
 
-                            <div v-if="parentMessage" class="bg-gray-50 py-3 px-3 mt-6 mb-2">
+                            <div v-if="parentMessage" class="bg-slate-50 rounded-xl py-3 px-3 mt-6 mb-2 border border-slate-100">
 
                                 <el-breadcrumb separator=">">
                                     <el-breadcrumb-item>
-                                        <span class="hover:text-green-600 text-green-500 font-semibold">Messages</span>
+                                        <span class="text-indigo-600 font-semibold">Messages</span>
                                     </el-breadcrumb-item>
 
                                     <el-breadcrumb-item v-for="breadcrumb in breadcrumbs" :key="breadcrumb.id">
-                                        <span class="text-green-500 font-semibold">{{ breadcrumb.content }}</span>
+                                        <span class="text-slate-600 font-medium">{{ breadcrumb.content }}</span>
                                     </el-breadcrumb-item>
                                 </el-breadcrumb>
 

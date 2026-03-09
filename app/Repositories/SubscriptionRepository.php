@@ -52,15 +52,60 @@ class SubscriptionRepository
     }
 
     /**
-     *  Get the subscriptions for the project with optional relationships
+     *  Get the subscriptions for the project with optional filters, relationships and countable relationships.
      *
+     *  @param array|null $filters Optional filters (msisdn, status, pricing_plan_id, date_from, date_to, per_page, sort).
      *  @param array $relationships The relationships to eager load on the subscriptions.
      *  @param array $countableRelationships The relationships to count on the subscriptions.
      *  @return LengthAwarePaginator The paginated list of project subscriptions.
      */
-    public function getProjectSubscriptions($relationships = [], $countableRelationships = []): LengthAwarePaginator
+    public function getProjectSubscriptions(?array $filters = null, array $relationships = [], array $countableRelationships = []): LengthAwarePaginator
     {
-        return $this->project->subscriptions()->with($relationships)->withCount($countableRelationships)->latest()->paginate();
+        $query = $this->project->subscriptions()->with($relationships)->withCount($countableRelationships);
+
+        if ($filters) {
+            if (!empty($filters['msisdn'])) {
+                $query->whereHas('subscriber', function (Builder $q) use ($filters) {
+                    $q->where('msisdn', 'like', '%' . $filters['msisdn'] . '%');
+                });
+            }
+
+            if (!empty($filters['status'])) {
+                if (strtolower($filters['status']) === 'active') {
+                    $query->active();
+                } elseif (strtolower($filters['status']) === 'inactive') {
+                    $query->inActive();
+                }
+            }
+
+            if (!empty($filters['pricing_plan_id'])) {
+                $query->where('pricing_plan_id', (int) $filters['pricing_plan_id']);
+            }
+
+            if (!empty($filters['date_from'])) {
+                $query->where('subscriptions.created_at', '>=', Carbon::parse($filters['date_from'])->startOfDay());
+            }
+            if (!empty($filters['date_to'])) {
+                $query->where('subscriptions.created_at', '<=', Carbon::parse($filters['date_to'])->endOfDay());
+            }
+
+            if (!empty($filters['sort']) && preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'], $m)) {
+                $column = $m[1];
+                $direction = $m[2];
+                $allowed = ['created_at', 'id', 'start_at', 'end_at'];
+                if (in_array($column, $allowed, true)) {
+                    $query->orderBy('subscriptions.' . $column, $direction);
+                }
+            }
+        }
+
+        $perPage = (is_array($filters) && isset($filters['per_page'])) ? (int) $filters['per_page'] : 15;
+
+        if (empty($filters['sort']) || !preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'] ?? '', $m) || !in_array($m[1], ['created_at', 'id', 'start_at', 'end_at'], true)) {
+            $query->latest('subscriptions.created_at');
+        }
+
+        return $query->paginate($perPage);
     }
 
     /**
