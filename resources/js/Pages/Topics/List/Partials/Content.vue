@@ -168,8 +168,11 @@
                     </button>
                 </div>
                 <Pagination
+                    v-if="(topicsPayload.data?.length ?? 0) > 0 || (topicsPayload.total ?? 0) > 0"
                     :pagination-payload="topicsPayload"
                     :update-data="['topicsPayload']"
+                    :min-pages="1"
+                    @page-change="changePage"
                 />
             </div>
         </div>

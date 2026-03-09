@@ -189,9 +189,11 @@
                     </div>
                 </Transition>
                 <Pagination
+                    v-if="showPaginationFooter"
                     :pagination-payload="billingReportsPayload"
                     :api-mode="true"
-                    @page-change="fetchBillingReports"
+                    :min-pages="1"
+                    @page-change="changePage"
                 />
             </div>
         </div>
@@ -328,6 +330,11 @@ export default defineComponent({
         },
     },
     computed: {
+        /** Show footer only after first load; keep visible during refetch; hide when no data. */
+        showPaginationFooter() {
+            const hasData = (this.billingReportsPayload?.data?.length ?? 0) > 0 || (this.billingReportsPayload?.total ?? 0) > 0;
+            return hasData || (this.initialLoadComplete && this.loading);
+        },
         hasActiveFilters() {
             const hasTextSearch = this.searchQuery.trim().length > 0;
             const hasDateFilter = this.selectedDateOption?.value !== 'all';

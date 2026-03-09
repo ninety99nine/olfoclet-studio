@@ -318,8 +318,10 @@
                     </div>
                 </Transition>
                 <Pagination
+                    v-if="showPaginationFooter"
                     :pagination-payload="subscribersPayload"
                     :api-mode="true"
+                    :min-pages="1"
                     @page-change="changePage"
                 />
             </div>
@@ -703,6 +705,11 @@ export default defineComponent({
                 tags.push({ key: 'cancelledAutoBilling', label: `Cancelled auto billing: ${sub}` });
             }
             return tags;
+        },
+        /** Show footer only after first load; keep visible during refetch; hide when no data. */
+        showPaginationFooter() {
+            const hasData = (this.subscribersPayload?.data?.length ?? 0) > 0 || (this.subscribersPayload?.total ?? 0) > 0;
+            return hasData || (this.initialLoadComplete && this.loading);
         },
         filteredPagination() {
             const current = this.subscribersPayload.current_page;

@@ -17,14 +17,18 @@ echo "==> 1. Stopping queue workers..."
 supervisorctl stop all
 
 echo "==> 2. Pulling main..."
-# Run git pull as root so it can always write to .git (avoids "cannot open .git/FETCH_HEAD: Permission denied")
+# Run git pull as root so it can always write to .git
 cd "$APP_DIR" && git pull origin main
 
 echo "==> 3. Running migrations..."
 cd "$APP_DIR"
 php artisan migrate --force
 
-echo "==> 4. Clearing caches..."
+echo "==> 4. Resetting stuck processing locks..."
+# This ensures no one is 'stuck' from the previous crash before we start workers
+php artisan db:seed --class=ResetStuckProcessingLocks
+
+echo "==> 5. Clearing caches..."
 cd "$APP_DIR"
 php artisan cache:clear
 php artisan config:clear
@@ -32,29 +36,30 @@ php artisan event:clear
 php artisan route:clear
 php artisan view:clear
 
-echo "==> 5. Rebuilding caches..."
+echo "==> 6. Rebuilding caches..."
 # 'optimize' automatically runs config:cache, route:cache, view:cache, and event:cache.
 php artisan optimize
 
-echo "==> 6. Fixing storage & bootstrap/cache permissions..."
+echo "==> 7. Fixing storage & bootstrap/cache permissions..."
 # CRITICAL: After cache commands, hand ownership to APP_USER so workers/cron can write
 chown -R "$APP_USER":"$APP_USER" "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 chmod -R 775 "$APP_DIR/storage" "$APP_DIR/bootstrap/cache"
 
-echo "==> 7. Pruning failed and stuck jobs..."
+echo "==> 8. Pruning failed and stuck jobs..."
+# We prune failed jobs older than 72 hours and batches older than 24 hours
 sudo -u "$APP_USER" php artisan queue:prune-failed --hours=72
 sudo -u "$APP_USER" php artisan queue:prune-batches --hours=24 --unfinished=72
 
-echo "==> 8. Restarting queue workers (so they load new code and avoid class/property mismatches)..."
+echo "==> 9. Restarting queue workers (to load new code and avoid class mismatches)..."
 cd "$APP_DIR"
 sudo -u "$APP_USER" php artisan queue:restart
 
-echo "==> 9. Reloading Supervisor and starting queue workers..."
+echo "==> 10. Reloading Supervisor and starting queue workers..."
 supervisorctl reread
-supervisorctl update  # Added update to actually apply any new config changes
+supervisorctl update
 supervisorctl start all
 
-echo "==> 10. Checking services..."
+echo "==> 11. Checking services..."
 for svc in nginx mysql supervisor; do
   if systemctl is-active --quiet "$svc" 2>/dev/null; then
     echo "  $svc: running"
@@ -67,11 +72,11 @@ for f in /etc/init.d/php*-fpm; do
   [ -e "$f" ] && echo "  $(basename "$f"): $(systemctl is-active "$(basename "$f")" 2>/dev/null || echo '?')"
 done
 
-echo "==> 11. Verifying scheduler (no fatal error)..."
+echo "==> 12. Verifying scheduler (no fatal error)..."
 sudo -u "$APP_USER" php artisan schedule:run
 
-echo "==> 12. Applying Logrotate Configuration..."
-# Copy the config and enforce strict root permissions so Linux doesn't reject it
+echo "==> 13. Applying Logrotate Configuration..."
+# Copy the config and enforce strict root permissions
 cp "$APP_DIR/config/logrotate-telcoflo.conf" /etc/logrotate.d/telcoflo
 chown root:root /etc/logrotate.d/telcoflo
 chmod 644 /etc/logrotate.d/telcoflo

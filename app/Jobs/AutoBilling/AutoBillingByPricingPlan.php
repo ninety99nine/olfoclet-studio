@@ -6,6 +6,7 @@ use Throwable;
 use Carbon\Carbon;
 use App\Models\Project;
 use App\Models\PricingPlan;
+use Illuminate\Support\Str;
 use Illuminate\Bus\Batch;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\DB;
@@ -23,46 +24,15 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Project instance.
-     *
-     * @var \App\Models\Project
-     */
     protected $project;
-
-    /**
-     * Pricing plan
-     *
-     * @var \App\Models\PricingPlan
-     */
     protected $pricingPlan;
-
-    /**
-     * Auto billing job batches count
-     *
-     * @var int
-     */
     protected $autoBillingJobBatchesCount;
 
-    /**
-     * The unique ID of the job.
-     *
-     * @return string
-     */
     public function uniqueId()
     {
         return $this->pricingPlan->id;
     }
 
-    /**
-     * Create a new job instance.
-     *
-     * @param \App\Models\Project $project
-     * @param \App\Models\PricingPlan $pricingPlan
-     * @param int $autoBillingJobBatchesCount
-     *
-     * @return void
-     */
     public function __construct(Project $project, PricingPlan $pricingPlan, int $autoBillingJobBatchesCount)
     {
         $this->onQueue('billing');
@@ -71,65 +41,62 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
         $this->autoBillingJobBatchesCount = $autoBillingJobBatchesCount;
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
     public function handle()
     {
         try {
-            // If this project does not have billing credentials, exit early
+            Log::info("AutoBillingByPricingPlan Started for Plan: {$this->pricingPlan->id}");
+
             if (!$this->project->hasBillingCredentials()) {
                 return;
             }
 
-            // Build the query
             $subscribersQuery = $this->project->subscribers()
                 ->select('subscribers.id', 'subscribers.msisdn')
                 ->whereHas('autoBillingSchedules', function (Builder $query) {
                     $query->where('auto_billing_enabled', '1')
+                        ->where('is_processing', false)
                         ->where('next_attempt_date', '<=', Carbon::now())
                         ->where('pricing_plan_id', $this->pricingPlan->id);
                 })
                 ->orderBy('subscribers.id');
 
-            /**
-             * Extract properties to local variables to prevent binding the entire
-             * job instance ($this) into the closure, which prevents memory leaks.
-             */
             $pricingPlan = $this->pricingPlan;
             $project = $this->project;
             $batchCount = $this->autoBillingJobBatchesCount;
             $batchIndex = 0;
 
-            /**
-             * Use chunk() (not chunkById) because chunkById can abort with "column does not exist
-             * or was modified during chunking" when the query uses whereHas (subquery).
-             */
             $subscribersQuery->chunk(1000, function ($chunked_subscribers) use ($project, $pricingPlan, &$batchIndex, $batchCount) {
 
-                $chunkJobs = [];
+                $subscriberIds = $chunked_subscribers->pluck('id')->toArray();
+                $token = Str::uuid()->toString(); // Unique token for this specific claim batch
 
-                // Create the individual subscriber billing jobs
-                foreach ($chunked_subscribers as $subscriber) {
-                    $chunkJobs[] = new AutoBillSubscriber($project, $subscriber, $pricingPlan);
+                // ATOMIC CLAIM: Mark as processing and assign the token
+                $affected = DB::table('auto_billing_schedules')
+                    ->where('pricing_plan_id', $pricingPlan->id)
+                    ->whereIn('subscriber_id', $subscriberIds)
+                    ->where('is_processing', false)
+                    ->update([
+                        'is_processing' => true,
+                        'processing_token' => $token,
+                        'updated_at' => Carbon::now()
+                    ]);
+
+                if ($affected === 0) {
+                    return;
                 }
 
-                // If no jobs were created, skip batch creation
-                if (empty($chunkJobs)) {
-                    return;
+                $chunkJobs = [];
+                foreach ($chunked_subscribers as $subscriber) {
+                    $chunkJobs[] = new AutoBillSubscriber($project, $subscriber, $pricingPlan, $token);
                 }
 
                 $sprintName = 'Sprint #' . ($batchCount + $batchIndex + 1);
 
-                // Create and dispatch the batch for this chunk
                 $batch = Bus::batch($chunkJobs)
                     ->name($sprintName)
                     ->allowFailures()
                     ->dispatch();
 
-                // Record the batch in the database
                 DB::table('auto_billing_job_batches')->insert([
                     'pricing_plan_id' => $pricingPlan->id,
                     'job_batch_id'    => $batch->id,
@@ -138,17 +105,10 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
                 ]);
 
                 $batchIndex++;
-
-                // Explicitly free the memory used by this chunk's jobs
-                unset($chunkJobs);
-
             });
 
         } catch (\Throwable $th) {
-
-            Log::error('AutoBillingByPricingPlan Job Failed: ' . $th->getMessage());
-
-            // Re-throw the exception so the Laravel Queue Worker knows the job failed
+            Log::error('AutoBillingByPricingPlan Failed: ' . $th->getMessage());
             throw $th;
         }
     }

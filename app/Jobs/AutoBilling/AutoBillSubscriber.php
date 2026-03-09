@@ -27,129 +27,116 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
     public $project;
     public $subscriber;
     public $pricingPlan;
+    public $token; // The unique lock token
     public $billingAttemptAt;
 
-    /**
-     * The number of times the job may be attempted.
-     *
-     * @var int
-     */
     public $tries = 3;
+    public $retryAfter = 3600;
 
-    /**
-     * The number of seconds to wait before retrying the job.
-     *
-     * @var int
-     */
-    public $retryAfter = 3600;  // 3600 seconds = 1 hour
-
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan)
+    public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan, string $token)
     {
         $this->onQueue('billing');
-
-        // Ensure we don't serialize any eager-loaded relationships into the queue payload
         $this->project = $project->withoutRelations();
         $this->subscriber = $subscriber->withoutRelations();
         $this->pricingPlan = $pricingPlan->withoutRelations();
+        $this->token = $token;
     }
 
-    /**
-     * The unique ID of the job.
-     *
-     * @return string
-     */
     public function uniqueId()
     {
-        $planId = isset($this->pricingPlan) && $this->pricingPlan !== null
-            ? $this->pricingPlan->id
-            : 'unknown-plan';
-        $subscriberId = isset($this->subscriber) && $this->subscriber !== null
-            ? $this->subscriber->id
-            : 'unknown-subscriber';
-
-        return $planId . '-' . $subscriberId;
+        return $this->pricingPlan->id . '-' . $this->subscriber->id;
     }
 
-    /**
-     * Get the middleware the job should pass through.
-     */
     public function middleware(): array
     {
         return [new SkipIfBatchCancelled];
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
     public function handle()
     {
-        try {
-            /**
-             * Bill the subscriber using airtime.
-             *
-             * @var BillingTransaction $billingTransaction
-             */
-            $billingTransaction = BillingService::billUsingAirtime(
-                $this->project,
-                $this->pricingPlan,
-                $this->subscriber,
-                CreatedUsingAutoBilling::YES
-            );
+        // 1. TOKEN VALIDATION (Anti-Zombie Check)
+        // If the token in DB doesn't match ours, this job is stale.
+        $currentLock = DB::table('auto_billing_schedules')
+            ->where([
+                'subscriber_id' => $this->subscriber->id,
+                'pricing_plan_id' => $this->pricingPlan->id
+            ])->select('processing_token', 'is_processing')->first();
 
-            // Set the billing attempt datetime
+        if (!$currentLock || $currentLock->processing_token !== $this->token) {
+            Log::warning("Zombie Job Terminated: Subscriber {$this->subscriber->id} was reclaimed by a newer process or Janitor.");
+            return;
+        }
+
+        try {
+            Log::info("AutoBillSubscriber Started: Subscriber {$this->subscriber->id}");
+
+            // 2. DYNAMIC IDEMPOTENCY CHECK
+            $lookBackMinutes = match ($this->pricingPlan->frequency) {
+                'Minutes' => (int) $this->pricingPlan->duration,
+                'Hours'   => (int) $this->pricingPlan->duration * 60,
+                default   => 1440,
+            };
+
+            $checkTime = now()->subMinutes(max(5, $lookBackMinutes - 2));
+
+            $existingSuccessfulTransaction = BillingTransaction::where('subscriber_id', $this->subscriber->id)
+                ->where('pricing_plan_id', $this->pricingPlan->id)
+                ->where('is_successful', true)
+                ->where('created_at', '>', $checkTime)
+                ->latest()
+                ->first();
+
+            if ($existingSuccessfulTransaction) {
+                if ($existingSuccessfulTransaction->subscription_id !== null) {
+                    Log::info("Idempotency: Subscriber {$this->subscriber->id} already fulfilled. Skipping.");
+                    return;
+                }
+                Log::warning("Idempotency: Fulfilling partial success for Subscriber {$this->subscriber->id}.");
+                $billingTransaction = $existingSuccessfulTransaction;
+            } else {
+                $billingTransaction = BillingService::billUsingAirtime(
+                    $this->project,
+                    $this->pricingPlan,
+                    $this->subscriber,
+                    CreatedUsingAutoBilling::YES
+                );
+            }
+
             $this->billingAttemptAt = $billingTransaction->created_at;
 
-            // If the subscriber was billed successfully
+            // 3. FULFILLMENT
             if ($billingTransaction->is_successful) {
-
-                // Create a new subscription
                 (new SubscriptionRepository($this->project))->createProjectSubscription(
                     $this->subscriber,
                     $this->pricingPlan,
                     CreatedUsingAutoBilling::YES,
                     $billingTransaction
                 );
-
             } else {
-
-                // Update the billing schedule for business failures (e.g., insufficient funds)
                 $this->updateBillingScheduleOnUnsuccessfulAttempt();
-
             }
 
-            // Only unset local var; do NOT unset $this->project, $this->subscriber, $this->pricingPlan
-            // because Laravel calls uniqueId() again after handle() returns to release the unique lock.
-            unset($billingTransaction);
-
         } catch (\Throwable $th) {
-
-            Log::error('AutoBillSubscriber Job Failed: ' . $th->getMessage());
-
-            /**
-             * CRITICAL FIX:
-             * Returning 'false' does NOT trigger a queue retry in Laravel. It marks the job as
-             * successful and discards it. To actually trigger your 3 tries / 1-hour delay
-             * (for network/API failures), you MUST throw the exception so the worker knows it crashed.
-             */
+            Log::error("AutoBillSubscriber Crash: " . $th->getMessage());
             throw $th;
+        } finally {
+            // 4. ATOMIC RELEASE
+            // Only unlock if our token is still the one in the seat.
+            DB::table('auto_billing_schedules')
+                ->where([
+                    'subscriber_id' => $this->subscriber->id,
+                    'pricing_plan_id' => $this->pricingPlan->id,
+                    'processing_token' => $this->token
+                ])->update([
+                    'is_processing' => false,
+                    'processing_token' => null,
+                    'updated_at' => now()
+                ]);
         }
     }
 
-    /**
-     * Update the billing schedule on an unsuccessful attempt
-     *
-     * @return void
-     */
     private function updateBillingScheduleOnUnsuccessfulAttempt()
     {
-        // Query ONLY the columns we need to save memory
         $existingSchedule = DB::table('auto_billing_schedules')
             ->select('attempt', 'overall_attempts', 'overall_failed_attempts')
             ->where([
@@ -157,25 +144,15 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
                 'pricing_plan_id' => $this->pricingPlan->id
             ])->first();
 
-        // If the schedule is missing for some reason, abort safely
-        if (!$existingSchedule) {
-            return;
-        }
+        if (!$existingSchedule) return;
 
         $attempt = $existingSchedule->attempt + 1;
-
-        // Determine if auto-billing is still enabled based on max attempts
         $maxAttempts = $this->pricingPlan->max_auto_billing_attempts;
         $autoBillingEnabled = ($maxAttempts == 0 || $attempt < $maxAttempts);
 
-        if ($autoBillingEnabled) {
-            $nextAttemptDate = now()->addDay();
-        } else {
-            $attempt = 0;
-            $nextAttemptDate = null;
-        }
+        $nextAttemptDate = $autoBillingEnabled ? now()->addDay() : null;
+        if (!$autoBillingEnabled) $attempt = 0;
 
-        // Update the existing auto billing schedule
         DB::table('auto_billing_schedules')
             ->where([
                 'subscriber_id' => $this->subscriber->id,
@@ -184,12 +161,11 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
                 'attempt'                 => $attempt,
                 'overall_attempts'        => $existingSchedule->overall_attempts + 1,
                 'overall_failed_attempts' => $existingSchedule->overall_failed_attempts + 1,
-                'updated_at'              => $this->billingAttemptAt,
+                'updated_at'              => $this->billingAttemptAt ?? now(),
                 'next_attempt_date'       => $nextAttemptDate,
                 'auto_billing_enabled'    => $autoBillingEnabled,
             ]);
 
-        // If auto billing has been disabled, notify the user
         if (!$autoBillingEnabled && !empty($this->pricingPlan->auto_billing_disabled_sms_message)) {
             SendAutoBillingDisabledSms::dispatch($this->project, $this->subscriber, $this->pricingPlan);
         }

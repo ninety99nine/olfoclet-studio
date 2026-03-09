@@ -104,16 +104,21 @@
                         </tr>
                     </tbody>
                 </table>
+                <Pagination
+                    v-if="(usersPayload.data?.length ?? 0) > 0 || (usersPayload.total ?? 0) > 0"
+                    :pagination-payload="usersPayload"
+                    :update-data="['usersPayload']"
+                    :min-pages="1"
+                    @page-change="changePage"
+                />
             </div>
-
-            <Pagination class="mt-6" :pagination-payload="usersPayload" :update-data="['usersPayload']" />
         </div>
     </div>
 </template>
 
 <script>
 import { defineComponent, computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { usePage, router } from '@inertiajs/vue3';
 import ManageUserModal from './ManageUserModal.vue';
 import Pagination from '@/Partials/Pagination.vue';
 import { Plus, User } from 'lucide-vue-next';
@@ -147,6 +152,11 @@ export default defineComponent({
         permissionsCount(u) {
             const perms = u.pivot?.permissions;
             return Array.isArray(perms) ? perms.length : 0;
+        },
+        changePage(page) {
+            const project = this.project?.id ?? route().params.project;
+            if (!project) return;
+            router.get(route('show.users', { project }), { page }, { preserveState: true });
         },
         goToUser(userId) {
             if (!this.project?.id || !userId) return;

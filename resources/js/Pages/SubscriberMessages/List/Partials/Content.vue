@@ -203,8 +203,10 @@
                     </div>
                 </Transition>
                 <Pagination
+                    v-if="showPaginationFooter"
                     :pagination-payload="subscriberMessagesPayload"
                     :api-mode="true"
+                    :min-pages="1"
                     @page-change="changePage"
                 />
             </div>
@@ -347,6 +349,11 @@ export default defineComponent({
         },
     },
     computed: {
+        /** Show footer only after first load; keep visible during refetch; hide when no data. */
+        showPaginationFooter() {
+            const hasData = (this.subscriberMessagesPayload?.data?.length ?? 0) > 0 || (this.subscriberMessagesPayload?.total ?? 0) > 0;
+            return hasData || (this.initialLoadComplete && this.loading);
+        },
         hasActiveFilters() {
             const hasTextSearch = this.searchQuery.trim().length > 0;
             const hasDateFilter = this.selectedDateOption?.value !== 'all';

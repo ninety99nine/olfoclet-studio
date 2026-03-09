@@ -198,8 +198,11 @@
                     </table>
                 </div>
                 <Pagination
+                    v-if="(smsCampaignsPayload.data?.length ?? 0) > 0 || (smsCampaignsPayload.total ?? 0) > 0"
                     :pagination-payload="smsCampaignsPayload"
                     :update-data="['smsCampaignsPayload']"
+                    :min-pages="1"
+                    @page-change="changePage"
                 />
             </div>
         </div>
@@ -208,7 +211,7 @@
 
 <script>
 import { defineComponent, computed } from 'vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import Pagination from '@/Partials/Pagination.vue';
 import ManageSmsCampaignModal from './ManageSmsCampaignModal.vue';
 import SmsCampaignCanSendSmsBadge from '../JobBatches/List/Partials/SmsCampaignCanSendSmsBadge.vue';
@@ -255,6 +258,11 @@ export default defineComponent({
         },
     },
     methods: {
+        changePage(page) {
+            const project = route().params.project;
+            if (!project) return;
+            router.get(route('show.sms.campaigns', { project }), { page }, { preserveState: true });
+        },
         refresh() {
             this.$inertia.reload();
         },

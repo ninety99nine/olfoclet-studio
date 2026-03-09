@@ -28,6 +28,7 @@ class ListSubscriptionsRequest extends FormRequest
         return [
             'msisdn' => ['nullable', 'string', 'max:20'],
             'status' => ['nullable', 'string', 'in:active,inactive'],
+            'trial' => ['nullable', 'string', 'in:trial,non_trial'],
             'pricing_plan_id' => ['nullable', 'integer', 'exists:pricing_plans,id'],
             'date_from' => ['nullable', 'date'],
             'date_to' => ['nullable', 'date', 'after_or_equal:date_from'],

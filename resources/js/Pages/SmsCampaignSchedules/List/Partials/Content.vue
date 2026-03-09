@@ -129,9 +129,11 @@
                     </div>
                 </Transition>
                 <Pagination
+                    v-if="showPaginationFooter"
                     :pagination-payload="payload"
                     :update-data="['smsCampaignSchedulesPayload']"
                     :min-pages="1"
+                    @page-change="changePage"
                 />
             </div>
         </div>
@@ -173,6 +175,12 @@ export default defineComponent({
             if (!loading.value && (payload.value?.data?.length ?? 0) > 0) initialLoadComplete.value = true;
         });
 
+        /** Show footer when there is data or pagination; hide only when no data and not refetching. */
+        const showPaginationFooter = computed(() => {
+            const hasData = (payload.value?.data?.length ?? 0) > 0 || (payload.value?.total ?? 0) > 0 || (payload.value?.last_page ?? 0) > 0;
+            return hasData || (initialLoadComplete.value && loading.value);
+        });
+
         const filteredPagination = computed(() => {
             const current = payload.value.current_page ?? 1;
             const last = payload.value.last_page ?? 1;
@@ -207,7 +215,7 @@ export default defineComponent({
             router.reload({ only: ['smsCampaignSchedulesPayload'], onFinish: () => { loading.value = false; } });
         }
 
-        return { loading, initialLoadComplete, filteredPagination, changePage, refresh, moment };
+        return { loading, initialLoadComplete, showPaginationFooter, filteredPagination, changePage, refresh, moment };
     },
 });
 </script>

@@ -269,6 +269,7 @@
                         </table>
                     </div>
                     <Pagination
+                        v-if="!loadingTransactions"
                         class="border-t border-slate-100"
                         :pagination-payload="transactionsPayload"
                         :api-mode="true"

@@ -31,7 +31,6 @@ class BillingService
     {
         $msisdn = $subscriber->msisdn;
         $referenceCode = Str::uuid();
-        $traceRef = (string) $referenceCode;
         $clientCorrelator = Str::uuid();
         $amount = $pricingPlan->price->amount;
         $description = $pricingPlan->description;
@@ -91,7 +90,7 @@ class BillingService
              *      ]
              *  ]
              */
-            $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret, $traceRef);
+            $response = self::requestNewAirtimeBillingAccessToken($clientId, $clientSecret);
 
             if($status = $response['status']) {
 
@@ -132,7 +131,7 @@ class BillingService
                  *      ]
                  *  ]
                  */
-                $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken, $traceRef);
+                $response = self::requestAirtimeBillingProductInventory($msisdn, $accessToken);
 
                 if($status = $response['status']) {
 
@@ -211,7 +210,7 @@ class BillingService
                              *      ]
                              *  ]
                              */
-                            $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken, $traceRef);
+                            $response = self::requestAirtimeBillingUsageConsumption($msisdn, $accessToken);
 
                             if($status = $response['status']) {
 
@@ -391,8 +390,6 @@ class BillingService
             $failureReason = 'Could not process this transaction, please try again';
 
             Log::error('Airtime Billing Fatal Error', [
-                'stage' => 'billUsingAirtime_catch',
-                'reference_code' => $traceRef,
                 'code' => $e->getCode(),
                 'message' => $e->getMessage(),
                 'msisdn' => $msisdn,
@@ -447,7 +444,7 @@ class BillingService
      *     "error": "invalid_client"
      * }
      */
-    public static function requestNewAirtimeBillingAccessToken($clientId, $clientSecret, ?string $traceRef = null): array
+    public static function requestNewAirtimeBillingAccessToken($clientId, $clientSecret): array
     {
         $cacheManager = new CacheManager(CacheName::AIRTIME_BILLING_ACCESS_TOKEN_RESPONSE);
 
@@ -524,7 +521,6 @@ class BillingService
                 }else{
 
                     Log::error('Airtime Billing Token Generation API Error (Stage 1)', [
-                        'reference_code' => $traceRef,
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
                         'status_code' => $statusCode,
@@ -547,7 +543,6 @@ class BillingService
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
                 Log::error('Airtime Billing Token Generation API Error (Stage 2)', [
-                    'reference_code' => $traceRef,
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
                     'status_code' => $statusCode,
@@ -565,7 +560,6 @@ class BillingService
             } catch (Throwable $e) {
 
                 Log::error('Airtime Billing Token Generation API Fatal Error (Stage 3)', [
-                    'reference_code' => $traceRef,
                     'attempt' => $attempts,
                     'code' => $e->getCode(),
                     'message' => $e->getMessage()
@@ -623,7 +617,7 @@ class BillingService
      *     "description": "Parameter publicKey is missing, null or empty"
      * }
      */
-    public static function requestAirtimeBillingProductInventory(string $msisdn, string $accessToken, ?string $traceRef = null): array
+    public static function requestAirtimeBillingProductInventory(string $msisdn, string $accessToken): array
     {
         $endpoint = config('app.ORANGE_BILLING_ENDPOINT') . "/customer/productInventory/v1/product?publicKey=$msisdn";
 
@@ -674,7 +668,6 @@ class BillingService
                 }else{
 
                     Log::error('Airtime Billing Product Inventory API Error (Stage 1)', [
-                        'reference_code' => $traceRef,
                         'msisdn' => $msisdn,
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
@@ -698,7 +691,6 @@ class BillingService
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
                 Log::error('Airtime Billing Product Inventory API Error (Stage 2)', [
-                    'reference_code' => $traceRef,
                     'msisdn' => $msisdn,
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
@@ -717,7 +709,6 @@ class BillingService
             } catch (Throwable $e) {
 
                 Log::error('Airtime Billing Product Inventory API Fatal Error (Stage 3)', [
-                    'reference_code' => $traceRef,
                     'msisdn' => $msisdn,
                     'attempt' => $attempts,
                     'code' => $e->getCode(),
@@ -814,7 +805,7 @@ class BillingService
      *     "description": "Parameter publicKey is missing, null or empty"
      * }
      */
-    public static function requestAirtimeBillingUsageConsumption(string $msisdn, string $accessToken, ?string $traceRef = null): array
+    public static function requestAirtimeBillingUsageConsumption(string $msisdn, string $accessToken): array
     {
         $endpoint = config('app.ORANGE_BILLING_ENDPOINT') . "/customer/usageConsumption/v1/usageConsumptionReport?publicKey=$msisdn";
 
@@ -863,7 +854,6 @@ class BillingService
                 }else{
 
                     Log::error('Airtime Billing Usage Consumption API Error (Stage 1)', [
-                        'reference_code' => $traceRef,
                         'msisdn' => $msisdn,
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
@@ -887,7 +877,6 @@ class BillingService
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
                 Log::error('Airtime Billing Usage Consumption API Error (Stage 2)', [
-                    'reference_code' => $traceRef,
                     'msisdn' => $msisdn,
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
@@ -906,7 +895,6 @@ class BillingService
             } catch (Throwable $e) {
 
                 Log::error('Airtime Billing Usage Consumption API Fatal Error (Stage 3)', [
-                    'reference_code' => $traceRef,
                     'msisdn' => $msisdn,
                     'attempt' => $attempts,
                     'code' => $e->getCode(),
@@ -1080,7 +1068,6 @@ class BillingService
                 }else{
 
                     Log::error('Airtime Billing Deduct Fee API Error (Stage 1)', [
-                        'reference_code' => $referenceCode,
                         'msisdn' => $msisdn,
                         'endpoint' => $endpoint,
                         'attempts' => $attempts,
@@ -1104,7 +1091,6 @@ class BillingService
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
                 Log::error('Airtime Billing Deduct Fee API Error (Stage 2)', [
-                    'reference_code' => $referenceCode,
                     'msisdn' => $msisdn,
                     'endpoint' => $endpoint,
                     'attempts' => $attempts,
@@ -1123,7 +1109,6 @@ class BillingService
             } catch (Throwable $e) {
 
                 Log::error('Airtime Billing Deduct Fee Fatal API Error (Stage 3)', [
-                    'reference_code' => $referenceCode,
                     'msisdn' => $msisdn,
                     'attempt' => $attempts,
                     'code' => $e->getCode(),

@@ -53,6 +53,7 @@ class SubscriptionController extends Controller
         return [
             'msisdn' => $validated['msisdn'] ?? null,
             'status' => $validated['status'] ?? null,
+            'trial' => $validated['trial'] ?? null,
             'pricing_plan_id' => $validated['pricing_plan_id'] ?? null,
             'date_from' => $validated['date_from'] ?? null,
             'date_to' => $validated['date_to'] ?? null,

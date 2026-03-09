@@ -6,8 +6,8 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use App\Jobs\SmsCampaign\StartSmsCampaigns;
 use Illuminate\Console\Scheduling\Schedule;
-use App\Jobs\BillingReport\StartCreatingBillingReports;
 use App\Jobs\AutoBilling\AutoBillingByPricingPlans;
+use App\Jobs\BillingReport\StartCreatingBillingReports;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 use App\Jobs\SmsDeliveryStatus\StartSmsDeliveryStatusUpdate;
 use App\Jobs\AutoBillingReminder\NextAutoBillingByPricingPlans;
@@ -73,6 +73,18 @@ class Kernel extends ConsoleKernel
             DB::table('sms_campaign_job_batches')->where('created_at', '<', $cutoff)->delete();
 
         })->daily()->name('PruneCustomJobBatches')->withoutOverlapping();
+
+        // Clear stale Auto Billing locks (4-hour window)
+        $schedule->command('billing:clear-stale-locks')
+            ->name('ClearStaleBillingLocks')
+            ->withoutOverlapping()
+            ->hourly();
+
+        // Clear stale SMS Campaign locks (4-hour window)
+        $schedule->command('sms:clear-stale-locks')
+            ->name('ClearStaleSmsLocks')
+            ->withoutOverlapping()
+            ->hourly();
 
         //  If we can create Billing Reports
         if(config('app.CAN_CREATE_BILLING_REPORTS')) {

@@ -54,7 +54,7 @@ class SubscriptionRepository
     /**
      *  Get the subscriptions for the project with optional filters, relationships and countable relationships.
      *
-     *  @param array|null $filters Optional filters (msisdn, status, pricing_plan_id, date_from, date_to, per_page, sort).
+     *  @param array|null $filters Optional filters (msisdn, status, trial, pricing_plan_id, date_from, date_to, per_page, sort).
      *  @param array $relationships The relationships to eager load on the subscriptions.
      *  @param array $countableRelationships The relationships to count on the subscriptions.
      *  @return LengthAwarePaginator The paginated list of project subscriptions.
@@ -80,6 +80,14 @@ class SubscriptionRepository
 
             if (!empty($filters['pricing_plan_id'])) {
                 $query->where('pricing_plan_id', (int) $filters['pricing_plan_id']);
+            }
+
+            if (!empty($filters['trial'])) {
+                if (strtolower($filters['trial']) === 'trial') {
+                    $query->doesntHave('billingTransactions');
+                } elseif (strtolower($filters['trial']) === 'non_trial') {
+                    $query->has('billingTransactions');
+                }
             }
 
             if (!empty($filters['date_from'])) {

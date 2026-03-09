@@ -301,8 +301,10 @@
                     </div>
                 </Transition>
                 <Pagination
+                    v-if="showPaginationFooter"
                     :pagination-payload="subscriptionsPayload"
                     :api-mode="true"
+                    :min-pages="1"
                     @page-change="changePage"
                 />
             </div>
@@ -394,6 +396,10 @@
                 pcCloseButton: { root: { class: 'h-8 w-8 bg-slate-50 text-slate-400 hover:text-rose-500 transition-all !border-0 !border-none shadow-none' } }
             }">
             <div class="pt-4 pb-6 space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Type</label>
+                    <Select v-model="tempFilters.trial" :options="trialOptions" option-label="label" option-value="value" class="w-full" showClear placeholder="Any" />
+                </div>
                 <div class="space-y-1">
                     <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Status</label>
                     <Select v-model="tempFilters.status" :options="statusOptions" option-label="label" option-value="value" class="w-full" showClear />
@@ -546,8 +552,8 @@ export default defineComponent({
             subscription: null,
             subscriptionsPayload: { data: [], current_page: 1, last_page: 1, total: 0, links: [] },
             searchQuery: '',
-            filters: { status: '', pricing_plan_id: null, date_from: '', date_to: '' },
-            tempFilters: { status: '', pricing_plan_id: null },
+            filters: { status: '', trial: '', pricing_plan_id: null, date_from: '', date_to: '' },
+            tempFilters: { status: '', trial: '', pricing_plan_id: null },
             dateModalVisible: false,
             filterModalVisible: false,
             sortModalVisible: false,
@@ -566,6 +572,7 @@ export default defineComponent({
             customDateFrom: null,
             customDateTo: null,
             statusOptions: [{ label: 'All', value: '' }, { label: 'Active', value: 'active' }, { label: 'Inactive', value: 'inactive' }],
+            trialOptions: [{ label: 'Any', value: '' }, { label: 'Trial', value: 'trial' }, { label: 'Non-trial', value: 'non_trial' }],
             dateFilterOptions: [{ value: 'all', label: 'All Time' }, { value: 'today', label: 'Today' }, { value: 'this_week', label: 'Week' }, { value: 'this_month', label: 'Month' }, { value: 'this_year', label: 'Year' }, { value: 'custom', label: 'Custom' }],
             billingDetailModalVisible: false,
             billingDetailRecord: null,
@@ -584,6 +591,11 @@ export default defineComponent({
         },
     },
     computed: {
+        /** Show footer only after first load; keep visible during refetch; hide when no data. */
+        showPaginationFooter() {
+            const hasData = (this.subscriptionsPayload?.data?.length ?? 0) > 0 || (this.subscriptionsPayload?.total ?? 0) > 0;
+            return hasData || (this.initialLoadComplete && this.loading);
+        },
         subscriptionList() {
             return (this.subscriptionsPayload?.data && Array.isArray(this.subscriptionsPayload.data))
                 ? this.subscriptionsPayload.data
@@ -616,7 +628,7 @@ export default defineComponent({
         hasActiveFilters() {
             const hasTextSearch = this.searchQuery.trim().length > 0;
             const hasDateFilter = this.selectedDateOption?.value !== 'all';
-            const hasLogicFilters = this.filters.status !== '' || this.filters.pricing_plan_id != null;
+            const hasLogicFilters = this.filters.status !== '' || this.filters.trial !== '' || this.filters.pricing_plan_id != null;
             const hasSort = this.selectedSortOptions.length > 0;
             return hasTextSearch || hasDateFilter || hasLogicFilters || hasSort;
         },
@@ -629,6 +641,7 @@ export default defineComponent({
         selectedFilterTags() {
             const tags = [];
             if (this.filters.status) tags.push({ key: 'status', label: this.filters.status === 'active' ? 'Active' : 'Inactive' });
+            if (this.filters.trial) tags.push({ key: 'trial', label: this.filters.trial === 'trial' ? 'Trial' : 'Non-trial' });
             if (this.filters.pricing_plan_id != null) {
                 const plan = (this.pricingPlans || []).find((p) => p.id === this.filters.pricing_plan_id);
                 tags.push({ key: 'pricing_plan_id', label: plan ? plan.name : 'Plan' });
@@ -700,6 +713,7 @@ export default defineComponent({
                     per_page: 15,
                     msisdn: this.searchQuery || undefined,
                     status: this.filters.status || undefined,
+                    trial: this.filters.trial || undefined,
                     pricing_plan_id: this.filters.pricing_plan_id ?? undefined,
                     date_from: this.filters.date_from || undefined,
                     date_to: this.filters.date_to || undefined,
@@ -731,8 +745,8 @@ export default defineComponent({
         applyFilters() { this.fetchSubscriptions(1); },
         clearAll() {
             this.selectedDateOption = { value: 'all', label: 'All Time' };
-            this.filters = { status: '', pricing_plan_id: null, date_from: '', date_to: '' };
-            this.tempFilters = { status: '', pricing_plan_id: null };
+            this.filters = { status: '', trial: '', pricing_plan_id: null, date_from: '', date_to: '' };
+            this.tempFilters = { status: '', trial: '', pricing_plan_id: null };
             this.selectedSortOptions = [];
             this.searchQuery = '';
             this.fetchSubscriptions(1);
@@ -768,8 +782,9 @@ export default defineComponent({
             this.fetchSubscriptions(1);
         },
         removeFilterTag(tag) {
-            this.filters[tag.key] = tag.key === 'pricing_plan_id' ? null : '';
-            this.tempFilters[tag.key] = tag.key === 'pricing_plan_id' ? null : '';
+            const empty = tag.key === 'pricing_plan_id' ? null : '';
+            this.filters[tag.key] = empty;
+            this.tempFilters[tag.key] = empty;
             this.fetchSubscriptions(1);
         },
         applyDateOption(opt) {

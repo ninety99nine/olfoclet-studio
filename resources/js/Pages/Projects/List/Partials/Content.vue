@@ -69,7 +69,11 @@
 
                 var url = null;
 
-                if(project.website_url != null || project.pdf_path != null) {
+                if(this.canShowLink(project, 'View subscriptions')) {
+
+                    url = route('show.subscriptions', { project: project.id });
+
+                }else if(project.website_url != null || project.pdf_path != null) {
 
                     url = route('show.project.about', { project: project.id });
 

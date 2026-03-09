@@ -259,7 +259,7 @@
                                 </table>
                                 <p v-else class="text-slate-500 text-center py-8">No subscriptions.</p>
                                 <Pagination
-                                    v-if="tabData.subscriptions.total > 0"
+                                    v-if="tabData.subscriptions.total > 0 && !loadingTabs.subscriptions"
                                     :pagination-payload="tabData.subscriptions"
                                     :api-mode="true"
                                     @page-change="(p) => fetchTab('subscriptions', p)"
@@ -295,7 +295,7 @@
                                 </table>
                                 <p v-else class="text-slate-500 text-center py-8">No messages.</p>
                                 <Pagination
-                                    v-if="tabData.messages.total > 0"
+                                    v-if="tabData.messages.total > 0 && !loadingTabs.messages"
                                     :pagination-payload="tabData.messages"
                                     :api-mode="true"
                                     @page-change="(p) => fetchTab('messages', p)"
@@ -361,7 +361,7 @@
                                 </table>
                                 <p v-else class="text-slate-500 text-center py-8">No billing transactions.</p>
                                 <Pagination
-                                    v-if="tabData.billing.total > 0"
+                                    v-if="tabData.billing.total > 0 && !loadingTabs.billing"
                                     :pagination-payload="tabData.billing"
                                     :api-mode="true"
                                     @page-change="(p) => fetchTab('billing', p)"

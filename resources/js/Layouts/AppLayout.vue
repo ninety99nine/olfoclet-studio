@@ -36,8 +36,6 @@ const navItems = ref([
         label: 'More',
         secondary: true,
         children: [
-            { label: 'Profile', routeName: 'profile.show', activeRouteNames: ['profile.show'] },
-            { label: 'Server', routeName: 'show.server', activeRouteNames: ['show.server'], requiresSuperAdmin: true },
             { label: 'About', routeName: 'show.project.about', activeRouteNames: ['show.project.about'] },
             { label: 'Users', routeName: 'show.users', activeRouteNames: ['show.users', 'show.user'], permission: 'View users' },
             { label: 'Topics', routeName: 'show.topics', activeRouteNames: ['show.topics', 'show.topic'], permission: 'View topics' },
@@ -172,11 +170,35 @@ const currentProjectName = computed(() => page.props.project?.name ?? null);
 
             <div class="h-full flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700">
 
-                <!-- Profile at top -->
-                <div class="shrink-0 px-4 pt-4 pb-1.5 border-b border-gray-100 dark:border-gray-600">
-                    <p class="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">{{ $page.props.auth.user.name }}</p>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5" :title="$page.props.auth.user.email">{{ $page.props.auth.user.email }}</p>
-                </div>
+                <!-- Profile at top (clickable to open profile) -->
+                <button
+                    type="button"
+                    @click="navigateToNavMenu('profile.show')"
+                    class="shrink-0 px-4 pt-4 pb-1.5 border-b border-gray-100 dark:border-gray-600 w-full text-left cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/40 focus:outline-none"
+                >
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="font-semibold text-gray-900 dark:text-gray-100 text-sm truncate">
+                                {{ $page.props.auth.user.name }}
+                            </p>
+                            <p
+                                class="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5"
+                                :title="$page.props.auth.user.email"
+                            >
+                                {{ $page.props.auth.user.email }}
+                            </p>
+                        </div>
+                        <svg
+                            class="w-4 h-4 text-gray-400 shrink-0"
+                            aria-hidden="true"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </button>
 
                 <!-- Nav: scrollable -->
                 <nav class="flex-1 overflow-y-auto min-h-0 px-3 py-1.5 sidebar-nav-scroll">
@@ -205,19 +227,19 @@ const currentProjectName = computed(() => page.props.project?.name ?? null);
                                     </li>
                                 </SlideUpDown>
                             </li>
-                            <!-- Secondary "More" (About, Users, Topics, etc.) – divider + muted -->
+                            <!-- More (same design as Schedules) -->
                             <li v-else-if="item.type === 'group' && item.secondary" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-600 space-y-0.5">
                                 <div
                                     @click="toggleGroup(item.label)"
-                                    :class="[isGroupActive(item) ? 'bg-gray-50 dark:bg-gray-700/30' : '', 'w-full pl-4 pr-3 py-2 text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/30 cursor-pointer rounded-r-lg flex items-center justify-between']"
+                                    :class="[isGroupActive(item) ? 'bg-gray-100 dark:bg-gray-700/50 border-l-2 border-gray-300 dark:border-gray-500' : 'border-l-2 border-transparent', 'w-full pl-4 pr-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 active:bg-gray-100 dark:active:bg-gray-700 cursor-pointer rounded-r-lg flex items-center justify-between']"
                                 >
                                     <span>{{ item.label }}</span>
-                                    <svg class="w-3.5 h-3.5 transition-transform shrink-0" :class="{ 'rotate-180': isGroupExpanded(item.label) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <svg class="w-4 h-4 transition-transform shrink-0 text-gray-500" :class="{ 'rotate-180': isGroupExpanded(item.label) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
                                     </svg>
                                 </div>
-                                <SlideUpDown :active="isGroupExpanded(item.label)" :duration="200" tag="ul" class="ml-3 pl-3 mt-0.5 space-y-0.5 border-l border-gray-200 dark:border-gray-600">
-                                    <li v-for="(child, childIndex) in item.children" :key="childIndex" @click.stop="navigateToNavMenu(child.routeName)" :class="['w-full pl-3 pr-2 py-1.5 text-sm text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer rounded-r-lg border-l-2 border-transparent', activeLinkClasses(child.activeRouteNames)]">
+                                <SlideUpDown :active="isGroupExpanded(item.label)" :duration="200" tag="ul" class="ml-3 pl-3 space-y-0.5 border-l border-gray-200 dark:border-gray-600">
+                                    <li v-for="(child, childIndex) in item.children" :key="childIndex" @click.stop="navigateToNavMenu(child.routeName)" :class="['w-full pl-3 pr-2 py-2 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer rounded-r-lg border-l-2 border-transparent', activeLinkClasses(child.activeRouteNames)]">
                                         <span>{{ child.label }}</span>
                                     </li>
                                 </SlideUpDown>

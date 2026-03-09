@@ -80,9 +80,6 @@ class SubscriberRepository
     {
         $query = $this->project->subscribers()
             ->select('subscribers.*')
-            ->addSelect([
-                DB::raw('(SELECT COALESCE(SUM(bt.amount), 0) FROM billing_transactions bt WHERE bt.subscriber_id = subscribers.id AND bt.is_successful = 1) as total_spend_amount'),
-            ])
             ->with($relationships)
             ->withCount($countableRelationships);
 
@@ -127,13 +124,13 @@ class SubscriberRepository
                 });
             }
 
-            // Total spend: has spent (any successful payment) or has not spent
+            // Total spend: has spent (any successful payment) or has not spent (uses cached column)
             if (!empty($filters['spendStatus'])) {
                 $value = strtolower($filters['spendStatus']);
                 if ($value === 'has_spent') {
-                    $query->whereRaw('(SELECT COALESCE(SUM(bt.amount), 0) FROM billing_transactions bt WHERE bt.subscriber_id = subscribers.id AND bt.is_successful = 1) > 0');
+                    $query->where('subscribers.total_spend_amount', '>', 0);
                 } elseif ($value === 'has_not_spent') {
-                    $query->whereRaw('(SELECT COALESCE(SUM(bt.amount), 0) FROM billing_transactions bt WHERE bt.subscriber_id = subscribers.id AND bt.is_successful = 1) = 0');
+                    $query->where('subscribers.total_spend_amount', '=', 0);
                 }
             }
 
@@ -187,13 +184,13 @@ class SubscriberRepository
                 $query->where('created_at', '<=', \Carbon\Carbon::parse($filters['date_to'])->endOfDay());
             }
 
-            // Sort (e.g. created_at:desc, id:asc, subscriptions_count:desc, messages_count:asc)
+            // Sort (e.g. created_at:desc, id:asc, subscriptions_count:desc, messages_count:asc, total_spend_amount:desc)
             if (!empty($filters['sort']) && preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'], $m)) {
                 $column = $m[1];
                 $direction = $m[2];
                 $allowed = ['created_at', 'id', 'subscriptions_count', 'messages_count', 'total_spend_amount'];
                 if (in_array($column, $allowed, true)) {
-                    $query->orderBy($column, $direction);
+                    $query->orderBy($column === 'total_spend_amount' ? 'subscribers.total_spend_amount' : $column, $direction);
                 }
             }
         }

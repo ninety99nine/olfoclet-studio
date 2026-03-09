@@ -8,6 +8,7 @@ use App\Models\Project;
 use Illuminate\Bus\Batch;
 use App\Enums\MessageType;
 use App\Models\SmsCampaign;
+use Illuminate\Support\Str;
 use Illuminate\Bus\Queueable;
 use App\Helpers\PhpCodeExecuter;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +49,9 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     public function handle()
     {
         try {
+
+            Log::info('StartSmsCampaign Job Started');
+
             // Exit early if credentials are missing or campaign cannot start
             if (!$this->project->hasSmsCredentials() || !$this->smsCampaign->canStartSmsCampaign()) {
                 return;
@@ -84,9 +88,13 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
              **********************************/
             $subscribersQuery = $this->project->subscribers()
                 ->select('subscribers.id', 'subscribers.msisdn', 'subscribers.metadata')
-                ->whereDoesntHave('smsCampaigns', function (Builder $query) {
+                ->whereHas('smsCampaigns', function (Builder $query) {
                     $query->where('sms_campaigns.id', $this->smsCampaign->id)
-                          ->where('next_message_date', '>', Carbon::now());
+                          ->where('is_processing', false) // Critical: Only target non-locked records
+                          ->where(function($q) {
+                              $q->whereNull('next_message_date')
+                                ->orWhere('next_message_date', '<=', Carbon::now());
+                          });
                 })
                 ->with(['latestSubscription', 'messages' => function ($query) {
                     return $query->where('is_successful', '1')
@@ -120,7 +128,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
 
                 $pricingPlanIds = collect($pricingPlans)->pluck('id')->toArray();
 
-                // Safety Check: If plans were required but none were found in the DB, abort to prevent sending to EVERYONE.
                 if (empty($pricingPlanIds)) {
                     return;
                 }
@@ -132,26 +139,38 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
              * DISPATCH BATCHES EFFICIENTLY   *
              **********************************/
 
-            // Extract variables for the closure to prevent binding the whole $this instance
             $project = $this->project;
             $smsCampaign = $this->smsCampaign;
             $batchCount = $this->smsCampaignBatchJobsCount;
             $batchIndex = 0;
 
-            /**
-             * Use chunk() (not chunkById) because chunkById can abort when the query
-             * uses whereDoesntHave or scope-based subqueries (e.g. hasActiveNonCancelledSubscription).
-             */
             $subscribersQuery->chunk(1000, function ($chunked_subscribers) use ($project, $smsCampaign, $messages, &$batchIndex, $batchCount) {
 
+                $subscriberIds = $chunked_subscribers->pluck('id')->toArray();
+                $token = Str::uuid()->toString();
+
+                // ATOMIC LOCK: Claim these subscribers for this specific batch
+                $affected = DB::table('sms_campaign_schedules')
+                    ->where('sms_campaign_id', $smsCampaign->id)
+                    ->whereIn('subscriber_id', $subscriberIds)
+                    ->where('is_processing', false)
+                    ->update([
+                        'is_processing' => true,
+                        'processing_token' => $token,
+                        'updated_at' => Carbon::now()
+                    ]);
+
+                if ($affected === 0) {
+                    return; // Skip if already claimed by another process
+                }
+
                 $chunkJobs = [];
+                $dispatchedSubscriberIds = [];
 
                 foreach ($chunked_subscribers as $subscriber) {
 
-                    // CRITICAL BUG FIX: Reset $message to null on every iteration!
                     $messageToSend = null;
 
-                    // Check validation code
                     $code = $smsCampaign->validation_code;
                     if (!empty($code)) {
                         $canSendMessage = PhpCodeExecuter::runCode($code, [
@@ -168,11 +187,8 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     $hasReceivedEveryMessage = $sentMessageIds->count() >= $messages->count();
 
                     if ($hasReceivedEveryMessage == false) {
-
                         $messageToSend = $messages->whereNotIn('id', $sentMessageIds->all())->first();
-
                     } elseif ($hasReceivedEveryMessage == true && $smsCampaign->can_repeat_messages == true) {
-
                         foreach ($sentMessageIds as $sentMessageId) {
                             foreach ($messages as $currMessage) {
                                 if ($sentMessageId == $currMessage->id) {
@@ -181,15 +197,14 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                                 }
                             }
                         }
-
                     }
 
                     if ($messageToSend) {
-                        $chunkJobs[] = new SendSmsCampaignMessage($project, $subscriber, $messageToSend, $smsCampaign);
+                        $chunkJobs[] = new SendSmsCampaignMessage($project, $subscriber, $messageToSend, $smsCampaign, $token);
+                        $dispatchedSubscriberIds[] = $subscriber->id;
                     }
                 }
 
-                // If this chunk yielded jobs, dispatch them as a batch
                 if (!empty($chunkJobs)) {
 
                     $sprintName = 'Sprint #' . ($batchCount + $batchIndex + 1);
@@ -209,16 +224,27 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
                     $batchIndex++;
                 }
 
-                // Explicitly free memory for the next chunk
+                // UNLOCK SKIPPED SUBSCRIBERS: Immediately release users who failed validation
+                // so they aren't stuck until the janitor runs.
+                $skippedIds = array_diff($subscriberIds, $dispatchedSubscriberIds);
+                if (!empty($skippedIds)) {
+                    DB::table('sms_campaign_schedules')
+                        ->where('sms_campaign_id', $smsCampaign->id)
+                        ->whereIn('subscriber_id', $skippedIds)
+                        ->where('processing_token', $token)
+                        ->update([
+                            'is_processing' => false,
+                            'processing_token' => null,
+                            'updated_at' => Carbon::now()
+                        ]);
+                }
+
                 unset($chunkJobs);
 
             });
 
         } catch (Throwable $th) {
-
             Log::error('StartSmsCampaign Job Failed: ' . $th->getMessage());
-
-            // Re-throw the exception so the queue worker registers the failure
             throw $th;
         }
     }

@@ -139,8 +139,9 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/24/solid';
 import { Link } from '@inertiajs/vue3';
 import { defineComponent } from 'vue';
 
-const MIN_PAGES_DEFAULT = 5;
-/** When last_page exceeds this, show "Last" instead of the actual page number and show "Go to page" input. */
+/** Show footer when there are at least this many pages (default 1 = show whenever there is data). */
+const MIN_PAGES_DEFAULT = 1;
+/** When last_page exceeds this, show "Last" instead of the actual page number. */
 const LARGE_PAGE_THRESHOLD = 100;
 
 export default defineComponent({
@@ -168,8 +169,12 @@ export default defineComponent({
     computed: {
         showFooter() {
             const p = this.paginationPayload;
-            if (!p || !p.total || p.total <= 0) return false;
-            const lastPage = p.last_page ?? 1;
+            if (!p) return false;
+            const total = p.total ?? 0;
+            const hasData = Array.isArray(p.data) && p.data.length > 0;
+            const hasTotal = total > 0;
+            if (!hasTotal && !hasData) return false;
+            const lastPage = p.last_page ?? (hasTotal ? Math.max(1, Math.ceil(total / (p.per_page ?? 15))) : 1);
             return lastPage >= this.minPages;
         },
         displayFrom() {
@@ -246,9 +251,10 @@ export default defineComponent({
             }
             return items;
         },
+        /** Show "Go to page" input whenever there are at least 2 pages so users can jump. */
         showGoToPage() {
             const last = this.paginationPayload?.last_page ?? 0;
-            return last > LARGE_PAGE_THRESHOLD;
+            return last >= 2;
         },
     },
     data() {

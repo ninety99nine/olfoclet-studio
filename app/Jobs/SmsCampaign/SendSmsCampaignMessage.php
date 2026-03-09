@@ -30,42 +30,22 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
     public $message;
     public $subscriber;
     public $smsCampaign;
+    public $token;
 
-    /**
-     * The number of times the job may be attempted.
-     *
-     * @var int
-     */
     public $tries = 3;
+    public $retryAfter = 3600;
 
-    /**
-     * The number of seconds to wait before retrying the job.
-     *
-     * @var int
-     */
-    public $retryAfter = 3600; // 3600 seconds = 1 hour
-
-    /**
-     * Create a new job instance.
-     *
-     * @return void
-     */
-    public function __construct(Project $project, Subscriber $subscriber, Message $message, SmsCampaign $smsCampaign)
+    public function __construct(Project $project, Subscriber $subscriber, Message $message, SmsCampaign $smsCampaign, string $token)
     {
         $this->onQueue('sms');
 
-        // Strip relationships from ALL models to prevent massive serialized queue payloads
         $this->project = $project->withoutRelations();
         $this->message = $message->withoutRelations();
         $this->smsCampaign = $smsCampaign->withoutRelations();
         $this->subscriber = $subscriber->withoutRelations();
+        $this->token = $token;
     }
 
-    /**
-     * The unique ID of the job.
-     *
-     * @return string
-     */
     public function uniqueId()
     {
         $campaignId = (isset($this->smsCampaign) && $this->smsCampaign) ? $this->smsCampaign->id : '0';
@@ -74,80 +54,91 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
         return $campaignId . '-' . $subscriberId;
     }
 
-    /**
-     * Get the middleware the job should pass through.
-     */
     public function middleware(): array
     {
         return [new SkipIfBatchCancelled];
     }
 
-    /**
-     * Execute the job.
-     *
-     * @return void
-     */
     public function handle()
     {
+        // 1. LOCK VALIDATION
+        $currentLock = DB::table('sms_campaign_schedules')
+            ->where([
+                'subscriber_id' => $this->subscriber->id,
+                'sms_campaign_id' => $this->smsCampaign->id
+            ])->select('processing_token', 'is_processing')->first();
+
+        if (!$currentLock || $currentLock->processing_token !== $this->token) {
+            Log::warning("Duplicate SMS Job Prevented: Subscriber {$this->subscriber->id} lock mismatch.");
+            return;
+        }
+
+        $subscriberMessage = null;
+
         try {
 
-            // Set the message type
-            $messageType = MessageType::Content;
+            Log::info('SendSmsCampaignMessage Job Started');
 
-            /**
-             * Send the SMS
-             * @var SubscriberMessage $subscriberMessage
-             */
             $subscriberMessage = SmsService::sendSms(
                 $this->project,
                 $this->subscriber,
                 $this->message,
-                $messageType
+                MessageType::Content
             );
 
-            // Update the sms campaign schedule
+            // ALWAYS UPDATE: Push schedule forward even if SMS failed to prevent 1-minute loops
             $this->updateSmsCampaignSubscriber($subscriberMessage);
 
-            /**
-             * CRITICAL FIX:
-             * Returning 'false' does NOT trigger Laravel's retry mechanism. It assumes success and deletes the job.
-             * To utilize $tries = 3 and $retryAfter = 3600, we MUST throw an exception when it fails.
-             */
             if (!$subscriberMessage->is_successful) {
-                throw new Exception('SMS Campaign Message sending failed or was rejected by the provider.');
+                throw new Exception('SMS provider rejected the message.');
             }
 
-            // Explicitly free memory for the daemon worker before it picks up the next job
-            unset($this->project, $this->subscriber, $this->message, $this->smsCampaign, $subscriberMessage);
-
         } catch (Throwable $th) {
-
             Log::error('SendSmsCampaignMessage Job Failed: ' . $th->getMessage());
 
-            // Re-throw the exception so the queue worker knows it crashed and schedules the retry
-            throw $th;
+            // EMERGENCY BUMP: If the service crashed before creating a message object,
+            // ensure the next_message_date is still updated to avoid spamming the user.
+            if (!$subscriberMessage) {
+                $this->emergencyUpdateSchedule();
+            }
 
+            throw $th;
+        } finally {
+            // 2. ATOMIC RELEASE
+            DB::table('sms_campaign_schedules')
+                ->where([
+                    'subscriber_id' => $this->subscriber->id,
+                    'sms_campaign_id' => $this->smsCampaign->id,
+                    'processing_token' => $this->token
+                ])->update([
+                    'is_processing' => false,
+                    'processing_token' => null,
+                    'updated_at' => now()
+                ]);
+
+            unset($this->project, $this->subscriber, $this->message, $this->smsCampaign, $subscriberMessage);
         }
     }
 
-    /**
-     * Update the sms campaign schedule record.
-     *
-     * @param SubscriberMessage $subscriberMessage
-     * @return void
-     */
+    private function emergencyUpdateSchedule()
+    {
+        DB::table('sms_campaign_schedules')
+            ->where([
+                'subscriber_id' => $this->subscriber->id,
+                'sms_campaign_id' => $this->smsCampaign->id
+            ])->update([
+                'next_message_date' => $this->smsCampaign->nextSmsCampaignMessageDate(),
+                'updated_at' => now()
+            ]);
+    }
+
     private function updateSmsCampaignSubscriber($subscriberMessage)
     {
-        // Set the smsSentAt datetime
-        $smsSentAt = $subscriberMessage->created_at;
+        Log::info('UpdateSmsCampaignSubscriber Started');
 
-        // Determine success state
+        $smsSentAt = $subscriberMessage->created_at;
         $isSuccessful = $subscriberMessage->is_successful;
 
-        /**
-         * Select ONLY the columns we actually need to calculate the updates.
-         * Grabbing the entire row into memory for thousands of jobs creates memory bloat.
-         */
         $existingSchedule = DB::table('sms_campaign_schedules')
             ->select('attempts', 'total_successful_attempts', 'total_failed_attempts')
             ->where([
@@ -155,10 +146,8 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
                 'sms_campaign_id' => $this->smsCampaign->id
             ])->first();
 
-        // Calculate the next sms campaign message date
         $nextMessageDate = $this->smsCampaign->nextSmsCampaignMessageDate();
 
-        // If the matching sms campaign schedule exists
         if ($existingSchedule) {
 
             $attempts = $existingSchedule->attempts + 1;
@@ -171,7 +160,6 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
                 $totalFailedAttempts = $existingSchedule->total_failed_attempts + 1;
             }
 
-            // Update the matching sms campaign schedule
             DB::table('sms_campaign_schedules')->where([
                 'subscriber_id' => $this->subscriber->id,
                 'sms_campaign_id' => $this->smsCampaign->id
@@ -183,10 +171,8 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
                 'updated_at'                => $smsSentAt,
             ]);
 
-        // If the matching sms campaign schedule does not exist
         } else {
 
-            // Create the sms campaign schedule record
             DB::table('sms_campaign_schedules')->insert([
                 'project_id'                => $this->message->project_id,
                 'sms_campaign_id'           => $this->smsCampaign->id,

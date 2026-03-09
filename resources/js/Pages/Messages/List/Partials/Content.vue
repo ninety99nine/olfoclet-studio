@@ -155,8 +155,11 @@
                     </button>
                 </div>
                 <Pagination
+                    v-if="(messagesPayload.data?.length ?? 0) > 0 || (messagesPayload.total ?? 0) > 0"
                     :pagination-payload="messagesPayload"
                     :update-data="['messagesPayload']"
+                    :min-pages="1"
+                    @page-change="changePage"
                 />
             </div>
         </div>
@@ -246,7 +249,8 @@ export default defineComponent({
         goToMessage(message) {
             const project = route().params.project;
             if (!project || !message?.id) return;
-            router.visit(route('show.message', { project, message: message.id }));
+            const url = route('show.message', { project, message: message.id });
+            router.get(url);
         },
         changePage(page) {
             const project = route().params.project;

@@ -212,6 +212,8 @@
                     class="border-t border-slate-100"
                     :pagination-payload="pricingPlansPayload"
                     :update-data="['pricingPlansPayload']"
+                    :min-pages="1"
+                    @page-change="changePage"
                 />
             </div>
         </div>
@@ -281,6 +283,15 @@ export default defineComponent({
         },
         onDeleted() {
             this.pricingPlan = null;
+        },
+        changePage(page) {
+            const project = this.$page?.props?.project?.id ?? route().params.project;
+            if (!project) return;
+            if (this.parentPricingPlan) {
+                router.get(route('show.pricing.plan', { project, pricing_plan: this.parentPricingPlan.id }), { page }, { preserveState: true });
+            } else {
+                router.get(route('show.pricing.plans', { project }), { page }, { preserveState: true });
+            }
         },
         refresh() {
             router.reload({ only: ['pricingPlansPayload'] });
