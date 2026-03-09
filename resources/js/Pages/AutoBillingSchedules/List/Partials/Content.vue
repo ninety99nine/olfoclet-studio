@@ -15,6 +15,24 @@
             </div>
         </div>
 
+        <!-- Auto billing progress: subscribers due vs processed -->
+        <div v-if="(autoBillingProgress?.total_due ?? 0) > 0" class="max-w-[1600px] mx-auto mb-6">
+            <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
+                    <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Auto billing progress</span>
+                    <span class="text-sm font-semibold text-slate-700 tabular-nums">
+                        {{ (autoBillingProgress?.processed ?? 0).toLocaleString() }} of {{ (autoBillingProgress?.total_due ?? 0).toLocaleString() }} subscribers processed
+                    </span>
+                </div>
+                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div
+                        class="h-full bg-indigo-600 rounded-full transition-all duration-500 ease-out min-w-0"
+                        :style="{ width: progressPercent + '%' }"
+                    />
+                </div>
+            </div>
+        </div>
+
         <div class="max-w-[1600px] mx-auto space-y-4">
             <div class="flex flex-col xl:flex-row items-center justify-between gap-4">
                 <div class="flex-grow w-full xl:w-auto flex items-center gap-2">
@@ -186,10 +204,17 @@ export default defineComponent({
     },
     props: {
         autoBillingSchedulesPayload: { type: Object, default: () => ({ data: [], current_page: 1, last_page: 1, total: 0, links: [] }) },
+        autoBillingProgress: { type: Object, default: () => ({ total_due: 0, processed: 0, total_in_batches: 0 }) },
     },
     setup(props) {
         const payload = computed(() => props.autoBillingSchedulesPayload || { data: [], current_page: 1, last_page: 1, total: 0, links: [] });
-        return { payload };
+        const progressPercent = computed(() => {
+            const totalDue = props.autoBillingProgress?.total_due ?? 0;
+            if (totalDue <= 0) return 0;
+            const processed = props.autoBillingProgress?.processed ?? 0;
+            return Math.min(100, Math.round((processed / totalDue) * 100));
+        });
+        return { payload, progressPercent };
     },
     data() {
         return { moment, loading: false, initialLoadComplete: false };

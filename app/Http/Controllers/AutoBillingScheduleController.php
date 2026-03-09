@@ -18,7 +18,11 @@ class AutoBillingScheduleController extends Controller
         $this->project = Project::findOrFail(request()->route('project'));
         $this->autoBillingSchedule = request()->route('auto_billing_schedule') ? AutoBillingSchedule::findOrFail(request()->route('auto_billing_schedule'))->load(['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders']) : null;
 
-        $this->autoBillingScheduleRepository = new AutoBillingScheduleRepository($this->project, $this->autoBillingSchedule);
+        // Only create repository when we have a single-schedule route (showAutoBillingSchedule).
+        // List page creates the repository on demand to keep full-page load as light as possible.
+        if ($this->autoBillingSchedule !== null) {
+            $this->autoBillingScheduleRepository = new AutoBillingScheduleRepository($this->project, $this->autoBillingSchedule);
+        }
     }
 
     public function showAutoBillingSchedules()
@@ -26,10 +30,11 @@ class AutoBillingScheduleController extends Controller
         $isInertiaRequest = request()->header('X-Inertia');
 
         if ($isInertiaRequest) {
-            $autoBillingSchedules = $this->autoBillingScheduleRepository->getProjectAutoBillingSchedules(null,
+            $repo = $this->autoBillingScheduleRepository ?? new AutoBillingScheduleRepository($this->project, null);
+            $autoBillingSchedules = $repo->getProjectAutoBillingSchedules(null,
                 ['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders'], []
             );
-            $autoBillingProgress = $this->autoBillingScheduleRepository->getAutoBillingProgress();
+            $autoBillingProgress = $repo->getAutoBillingProgress();
 
             return Inertia::render('AutoBillingSchedules/List/Main', [
                 'deferredSchedules'           => false,
@@ -38,14 +43,15 @@ class AutoBillingScheduleController extends Controller
             ]);
         }
 
-        // Full page load (e.g. browser refresh): defer heavy data to avoid 502 (timeout/OOM).
-        // Frontend will request these props via partial reload once the page has loaded.
+        // Full page load (e.g. browser refresh): no repository, no heavy queries. Frontend will
+        // partial-reload to fetch schedules and progress, avoiding 502 (timeout/OOM).
         return Inertia::render('AutoBillingSchedules/List/Main', [
             'deferredSchedules'           => true,
-            'autoBillingSchedulesPayload' => Inertia::lazy(fn () => $this->autoBillingScheduleRepository->getProjectAutoBillingSchedules(null,
-                ['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders'], []
-            )),
-            'autoBillingProgress' => Inertia::lazy(fn () => $this->autoBillingScheduleRepository->getAutoBillingProgress()),
+            'autoBillingSchedulesPayload' => Inertia::lazy(function () {
+                return (new AutoBillingScheduleRepository($this->project, null))
+                    ->getProjectAutoBillingSchedules(null, ['subscriber.latestAutoBillingTransaction', 'pricingPlan.autoBillingReminders'], []);
+            }),
+            'autoBillingProgress' => Inertia::lazy(fn () => (new AutoBillingScheduleRepository($this->project, null))->getAutoBillingProgress()),
         ]);
     }
 
