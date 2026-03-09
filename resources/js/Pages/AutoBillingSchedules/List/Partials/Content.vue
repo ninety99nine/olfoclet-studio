@@ -15,13 +15,13 @@
             </div>
         </div>
 
-        <!-- Auto billing progress: subscribers due vs processed -->
-        <div v-if="(autoBillingProgress?.total_due ?? 0) > 0" class="max-w-[1600px] mx-auto mb-6">
+        <!-- Auto billing progress: batch jobs processed (uses total_in_batches so numerator/denominator match) -->
+        <div v-if="progressDenominator > 0" class="max-w-[1600px] mx-auto mb-6">
             <div class="bg-white border border-slate-200 rounded-2xl shadow-sm p-5">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
                     <span class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Auto billing progress</span>
                     <span class="text-sm font-semibold text-slate-700 tabular-nums">
-                        {{ (autoBillingProgress?.processed ?? 0).toLocaleString() }} of {{ (autoBillingProgress?.total_due ?? 0).toLocaleString() }} subscribers processed
+                        {{ (autoBillingProgress?.processed ?? 0).toLocaleString() }} of {{ progressDenominator.toLocaleString() }} subscribers processed
                     </span>
                 </div>
                 <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
@@ -208,13 +208,18 @@ export default defineComponent({
     },
     setup(props) {
         const payload = computed(() => props.autoBillingSchedulesPayload || { data: [], current_page: 1, last_page: 1, total: 0, links: [] });
-        const progressPercent = computed(() => {
+        const progressDenominator = computed(() => {
+            const totalInBatches = props.autoBillingProgress?.total_in_batches ?? 0;
             const totalDue = props.autoBillingProgress?.total_due ?? 0;
-            if (totalDue <= 0) return 0;
-            const processed = props.autoBillingProgress?.processed ?? 0;
-            return Math.min(100, Math.round((processed / totalDue) * 100));
+            return totalInBatches > 0 ? totalInBatches : totalDue;
         });
-        return { payload, progressPercent };
+        const progressPercent = computed(() => {
+            const denom = progressDenominator.value;
+            if (denom <= 0) return 0;
+            const processed = props.autoBillingProgress?.processed ?? 0;
+            return Math.min(100, Math.round((processed / denom) * 100));
+        });
+        return { payload, progressDenominator, progressPercent };
     },
     data() {
         return { moment, loading: false, initialLoadComplete: false };
