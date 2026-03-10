@@ -4,6 +4,7 @@ namespace App\Jobs\SmsDeliveryStatus;
 
 use Throwable;
 use App\Services\QueueBackpressure;
+use App\Enums\UpdateDeliveryStatusFailureType;
 use Illuminate\Bus\Queueable;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
@@ -41,12 +42,24 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
         try {
 
             /**
-             * Build the query for subscriber messages that are waiting.
-             * * Note: oldest() has been removed because chunkById() inherently orders
+             * Build the query for subscriber messages that need delivery updates:
+             *  - Messages still in "MessageWaiting" state, OR
+             *  - Messages whose last delivery status update failed with
+             *    "Delivery Status Request Failed" (now that the URL bug is fixed,
+             *    we want to re-check these using the corrected endpoint construction).
+             *
+             * Note: oldest() has been removed because chunkById() inherently orders
              * by the ID column ascending, which achieves the exact same chronological
              * result but with vastly superior database performance.
              */
-            $query = SubscriberMessage::messageWaiting()
+            $query = SubscriberMessage::query()
+                ->where(function ($q) {
+                    $q->messageWaiting()
+                        ->orWhere(function ($q2) {
+                            $q2->where('delivery_status_update_is_successful', false)
+                                ->where('delivery_status_update_failure_type', UpdateDeliveryStatusFailureType::DeliveryStatusRequestFailed->value);
+                        });
+                })
                 ->with(['project' => function($query) {
                     return $query->select('id', 'settings');
                 }])
