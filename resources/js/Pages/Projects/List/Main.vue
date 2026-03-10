@@ -1,12 +1,8 @@
 <template>
     <app-layout title="Dashboard">
-        <div class="py-12">
+        <div class="py-10 sm:py-12">
             <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-
-                <create-project-modal :showAddbutton="true" />
-
                 <projects-content :projectsPayload="projectsPayload" />
-
             </div>
         </div>
     </app-layout>
