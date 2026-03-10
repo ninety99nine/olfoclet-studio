@@ -41,7 +41,6 @@
                                     <span v-if="subscriberMessage?.created_at" class="text-slate-400"> · {{ moment(subscriberMessage.created_at).format('DD MMM YYYY [at] HH:mm') }}</span>
                                 </p>
                             </div>
-                            <SubscriberMessageStatusBadge :subscriber-message="subscriberMessage" class="scale-90 origin-left shrink-0" />
                         </div>
 
                         <!-- Content (compact) -->
@@ -90,10 +89,81 @@
                             </div>
                         </div>
 
-                        <!-- Delivery endpoint full width, compact -->
-                        <div v-if="subscriberMessage?.delivery_status_endpoint" class="mt-3">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">Delivery status endpoint</p>
-                            <p class="text-xs text-slate-700 font-mono break-all bg-slate-50 rounded-lg px-3 py-2 border border-slate-100">{{ subscriberMessage.delivery_status_endpoint }}</p>
+                        <!-- Timeline + Endpoints -->
+                        <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 lg:grid-cols-2 gap-3">
+                            <div class="bg-slate-50 rounded-xl border border-slate-100 p-3">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Timeline</p>
+                                <div class="space-y-2">
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-slate-700">Created</p>
+                                            <p class="text-[10px] text-slate-400">When the record was created</p>
+                                        </div>
+                                        <p class="text-xs font-mono text-slate-700 whitespace-nowrap">{{ formatDateTime(subscriberMessage?.created_at) }}</p>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-slate-700">Sent</p>
+                                            <p class="text-[10px] text-slate-400">When we attempted to send to the provider</p>
+                                        </div>
+                                        <p class="text-xs font-mono text-slate-700 whitespace-nowrap">{{ formatDateTime(subscriberMessage?.sent_at) }}</p>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-slate-700">Delivery checked</p>
+                                            <p class="text-[10px] text-slate-400">Last attempt to confirm delivery</p>
+                                        </div>
+                                        <p class="text-xs font-mono text-slate-700 whitespace-nowrap">{{ formatDateTime(subscriberMessage?.delivery_status_checked_at) }}</p>
+                                    </div>
+                                    <div class="flex items-start justify-between gap-4">
+                                        <div class="min-w-0">
+                                            <p class="text-xs font-bold text-slate-700">Last updated</p>
+                                            <p class="text-[10px] text-slate-400">Last DB update for this message</p>
+                                        </div>
+                                        <p class="text-xs font-mono text-slate-700 whitespace-nowrap">{{ formatDateTime(subscriberMessage?.updated_at) }}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 rounded-xl border border-slate-100 p-3">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-2">Endpoints</p>
+
+                                <div class="space-y-3">
+                                    <div>
+                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Send endpoint</p>
+                                            <button
+                                                v-if="subscriberMessage?.send_endpoint"
+                                                type="button"
+                                                @click="copyToClipboard('send', subscriberMessage.send_endpoint)"
+                                                class="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest"
+                                            >
+                                                {{ copiedKey === 'send' ? 'Copied!' : 'Copy' }}
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-slate-700 font-mono break-all bg-white rounded-lg px-3 py-2 border border-slate-100">
+                                            {{ subscriberMessage?.send_endpoint ?? '—' }}
+                                        </p>
+                                    </div>
+
+                                    <div>
+                                        <div class="flex items-center justify-between gap-2 mb-1">
+                                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider">Delivery status endpoint</p>
+                                            <button
+                                                v-if="subscriberMessage?.delivery_status_endpoint"
+                                                type="button"
+                                                @click="copyToClipboard('delivery', subscriberMessage.delivery_status_endpoint)"
+                                                class="text-[10px] font-black text-indigo-600 hover:text-indigo-700 uppercase tracking-widest"
+                                            >
+                                                {{ copiedKey === 'delivery' ? 'Copied!' : 'Copy' }}
+                                            </button>
+                                        </div>
+                                        <p class="text-xs text-slate-700 font-mono break-all bg-white rounded-lg px-3 py-2 border border-slate-100">
+                                            {{ subscriberMessage?.delivery_status_endpoint ?? '—' }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
                         <!-- Subscriber + Message template side by side -->
@@ -136,7 +206,7 @@
 </template>
 
 <script>
-import { defineComponent, computed } from 'vue';
+import { defineComponent, computed, ref } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import moment from 'moment';
@@ -159,6 +229,9 @@ export default defineComponent({
         subscriberMessage: { type: Object, default: null },
     },
     setup(props) {
+        const copiedKey = ref(null);
+        const copiedTimer = ref(null);
+
         const projectId = computed(() => {
             try {
                 return route().params.project;
@@ -171,7 +244,7 @@ export default defineComponent({
             if (!m) return 'Message';
             return `#${m.id} · ${m.subscriber?.msisdn ?? '—'}`;
         });
-        return { projectId, messageTitle, moment };
+        return { copiedKey, copiedTimer, projectId, messageTitle, moment };
     },
     methods: {
         formatType(type) {
@@ -183,6 +256,22 @@ export default defineComponent({
                 AutoBillingDisabled: 'Auto billing disabled',
             };
             return map[type] ?? type;
+        },
+        formatDateTime(value) {
+            if (!value) return '—';
+            return moment(value).format('DD MMM YYYY [at] HH:mm');
+        },
+        async copyToClipboard(key, text) {
+            try {
+                if (this.copiedTimer) clearTimeout(this.copiedTimer);
+                await navigator.clipboard.writeText(String(text));
+                this.copiedKey = key;
+                this.copiedTimer = setTimeout(() => {
+                    if (this.copiedKey === key) this.copiedKey = null;
+                }, 2500);
+            } catch {
+                // no-op: clipboard permissions may be blocked by the browser context
+            }
         },
     },
 });

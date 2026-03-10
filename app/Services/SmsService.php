@@ -35,6 +35,11 @@ class SmsService
 
         $content = $message instanceof Message ? $message->content : $message;
 
+        $senderNumber = $project->settings['sms_sender_number'] ?? null;
+        $sendEndpoint = $senderNumber
+            ? rtrim((string) config('app.ORANGE_SMS_ENDPOINT'), '/') . '/smsmessaging/v1/outbound/tel%3A%2B' . $senderNumber . '/requests'
+            : null;
+
         //  Create the subscriber message record
         $subscriberMessage = SubscriberMessage::create([
             'subscriber_id' => $subscriber->id,
@@ -42,6 +47,8 @@ class SmsService
             'message_id' => $messageId,
             'type' => $messageType,
             'content' => $content,
+            'send_endpoint' => $sendEndpoint,
+            'sent_at' => now(),
             'created_at' => now(),
             'updated_at' => now()
         ]);
@@ -423,6 +430,9 @@ class SmsService
     public static function updateSmsDeliveryStatus($project, $subscriberMessage): SubscriberMessage
     {
         try {
+            $subscriberMessage->update([
+                'delivery_status_checked_at' => now(),
+            ]);
 
             //  Set the client credentials
             $clientCredentials = $project->settings['sms_client_credentials'];
@@ -580,7 +590,18 @@ class SmsService
         try {
 
             //  Set the request endpoint
-            $endpoint = config('app.ORANGE_SMS_ENDPOINT'). str_replace('tel:+','tel%3A%2B', $subscriberMessage->delivery_status_endpoint);
+            $deliveryStatusEndpoint = trim((string) $subscriberMessage->delivery_status_endpoint);
+
+            if (str_starts_with($deliveryStatusEndpoint, 'http://') || str_starts_with($deliveryStatusEndpoint, 'https://')) {
+                $endpoint = $deliveryStatusEndpoint;
+            } else {
+                $endpoint = rtrim((string) config('app.ORANGE_SMS_ENDPOINT'), '/') . '/' . ltrim($deliveryStatusEndpoint, '/');
+            }
+
+            // Orange uses "tel:+..." in the resource URL, but the gateway expects it encoded in the request path.
+            if (str_contains($endpoint, 'tel:+')) {
+                $endpoint = str_replace('tel:+', 'tel%3A%2B', $endpoint);
+            }
 
             //  Set the request options
             $options = [

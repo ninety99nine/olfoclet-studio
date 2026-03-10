@@ -91,7 +91,6 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
         }
 
         try {
-
             /**
              * Update the delivery status via the service
              * * @var SubscriberMessage $updatedSubscriberMessage

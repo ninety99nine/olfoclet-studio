@@ -53,10 +53,13 @@ class SubscriberMessage extends Pivot
     protected $casts = [
         'is_successful' => 'boolean',
         'delivery_status_update_is_successful' => 'boolean',
+        'sent_at' => 'datetime',
+        'delivery_status_checked_at' => 'datetime',
     ];
 
     const VISIBLE_COLUMNS = [
         'content', 'type', 'is_successful', 'failure_type', 'failure_reason', 'delivery_status', 'delivery_status_endpoint',
+        'send_endpoint', 'sent_at', 'delivery_status_checked_at',
         'delivery_status_update_is_successful', 'delivery_status_update_failure_type', 'delivery_status_update_failure_reason'
     ];
 
