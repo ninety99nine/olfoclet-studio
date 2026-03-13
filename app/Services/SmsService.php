@@ -592,10 +592,33 @@ class SmsService
             //  Set the request endpoint
             $deliveryStatusEndpoint = trim((string) $subscriberMessage->delivery_status_endpoint);
 
+            /**
+             * Normalise the delivery status endpoint so that:
+             *  - We ALWAYS call the FAC internal gateway host configured by ORANGE_SMS_ENDPOINT
+             *  - We preserve the original path/query returned by Orange (even if it was a full URL)
+             *  - We URL-encode "tel:+..." in the path as required by the gateway
+             */
+            if ($deliveryStatusEndpoint === '') {
+                return [
+                    'status' => false,
+                    'body' => [
+                        'message' => 'Missing delivery status endpoint.',
+                    ],
+                ];
+            }
+
+            $baseEndpoint = rtrim((string) config('app.ORANGE_SMS_ENDPOINT'), '/');
+
             if (str_starts_with($deliveryStatusEndpoint, 'http://') || str_starts_with($deliveryStatusEndpoint, 'https://')) {
-                $endpoint = $deliveryStatusEndpoint;
+
+                $parsed = parse_url($deliveryStatusEndpoint);
+
+                $path = $parsed['path'] ?? '';
+                $query = isset($parsed['query']) && $parsed['query'] !== '' ? ('?' . $parsed['query']) : '';
+
+                $endpoint = $baseEndpoint . '/' . ltrim($path, '/') . $query;
             } else {
-                $endpoint = rtrim((string) config('app.ORANGE_SMS_ENDPOINT'), '/') . '/' . ltrim($deliveryStatusEndpoint, '/');
+                $endpoint = $baseEndpoint . '/' . ltrim($deliveryStatusEndpoint, '/');
             }
 
             // Orange uses "tel:+..." in the resource URL, but the gateway expects it encoded in the request path.
