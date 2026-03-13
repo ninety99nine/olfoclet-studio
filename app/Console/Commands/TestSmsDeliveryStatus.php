@@ -67,10 +67,12 @@ class TestSmsDeliveryStatus extends Command
             $subscriberMessage = new SubscriberMessage();
             $subscriberMessage->delivery_status_endpoint = $endpoint;
         } else {
-            $this->info('No --endpoint provided. Selecting the most recent subscriber message with a delivery_status_endpoint for this project...');
+            $this->info('No --endpoint provided. Selecting the newest sent subscriber message for this project with a delivery_status_endpoint...');
 
             $existing = SubscriberMessage::where('project_id', $projectId)
                 ->whereNotNull('delivery_status_endpoint')
+                ->where('is_successful', true)
+                ->orderByDesc('sent_at')
                 ->orderByDesc('id')
                 ->first();
 

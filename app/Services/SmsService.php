@@ -9,6 +9,7 @@ use App\Models\Subscriber;
 use App\Enums\MessageType;
 use App\Helpers\CacheManager;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Enums\SendMessageFailureType;
 use App\Models\Pivots\SubscriberMessage;
 use App\Enums\UpdateDeliveryStatusFailureType;
@@ -89,13 +90,19 @@ class SmsService
 
             $failureType = SendMessageFailureType::InternalFailure;
 
-            Log::error('SMS Sending Fatal Error', [
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-                'project_id' => $project->id,
-                'message_id' => $message->id,
-                'subscriber_id' => $subscriber->id,
-            ]);
+            $cacheKey = 'log:sms_send_fatal:' . $project->id . ':' . $subscriber->id . ':' . md5($e->getMessage());
+
+            if (! Cache::has($cacheKey)) {
+                Log::error('SMS Sending Fatal Error', [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage(),
+                    'project_id' => $project->id,
+                    'message_id' => $message->id,
+                    'subscriber_id' => $subscriber->id,
+                ]);
+
+                Cache::put($cacheKey, true, now()->addMinutes(5));
+            }
 
             $subscriberMessage->update([
                 'is_successful' => false,
@@ -430,9 +437,9 @@ class SmsService
     public static function updateSmsDeliveryStatus($project, $subscriberMessage): SubscriberMessage
     {
         try {
-            $subscriberMessage->update([
-                'delivery_status_checked_at' => now(),
-            ]);
+            $subscriberMessage->delivery_status_checked_at = now();
+            $subscriberMessage->delivery_status_update_attempts = ($subscriberMessage->delivery_status_update_attempts ?? 0) + 1;
+            $subscriberMessage->save();
 
             //  Set the client credentials
             $clientCredentials = $project->settings['sms_client_credentials'];

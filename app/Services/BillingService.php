@@ -12,6 +12,7 @@ use App\Helpers\CacheManager;
 use App\Models\PricingPlan;
 use App\Models\BillingTransaction;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use App\Enums\CreatedUsingAutoBilling;
 use App\Enums\BillingTransactionFailureType;
 
@@ -389,14 +390,20 @@ class BillingService
             $failureType = BillingTransactionFailureType::InternalFailure;
             $failureReason = 'Could not process this transaction, please try again';
 
-            Log::error('Airtime Billing Fatal Error', [
-                'code' => $e->getCode(),
-                'message' => $e->getMessage(),
-                'msisdn' => $msisdn,
-                'subscriber_id' => $subscriber->id,
-                'pricing_plan_id' => $pricingPlan->id,
-                'billing_transaction_id' => $billingTransaction->id,
-            ]);
+            $cacheKey = 'log:billing_fatal:' . $project->id . ':' . $subscriber->id . ':' . $pricingPlan->id . ':' . md5($e->getMessage());
+
+            if (! Cache::has($cacheKey)) {
+                Log::error('Airtime Billing Fatal Error', [
+                    'code' => $e->getCode(),
+                    'message' => $e->getMessage(),
+                    'msisdn' => $msisdn,
+                    'subscriber_id' => $subscriber->id,
+                    'pricing_plan_id' => $pricingPlan->id,
+                    'billing_transaction_id' => $billingTransaction->id,
+                ]);
+
+                Cache::put($cacheKey, true, now()->addMinutes(5));
+            }
 
             $failedAttempts = [
                 [
@@ -520,12 +527,16 @@ class BillingService
 
                 }else{
 
-                    Log::error('Airtime Billing Token Generation API Error (Stage 1)', [
-                        'endpoint' => $endpoint,
-                        'attempts' => $attempts,
-                        'status_code' => $statusCode,
-                        'response' => $bodyAsArray ?? $bodyAsJson
-                    ]);
+                    $logKey = 'log:billing_token_stage1:' . md5($endpoint . ':' . $statusCode);
+                    if (! Cache::has($logKey)) {
+                        Log::error('Airtime Billing Token Generation API Error (Stage 1)', [
+                            'endpoint' => $endpoint,
+                            'attempts' => $attempts,
+                            'status_code' => $statusCode,
+                            'response' => $bodyAsArray ?? $bodyAsJson
+                        ]);
+                        Cache::put($logKey, true, now()->addMinutes(5));
+                    }
 
                     $failedAttempts[] = [
                         'attempts' => $attempts,
@@ -542,13 +553,17 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::error('Airtime Billing Token Generation API Error (Stage 2)', [
-                    'endpoint' => $endpoint,
-                    'attempts' => $attempts,
-                    'status_code' => $statusCode,
-                    'message' => $e->getMessage(),
-                    'response' => $bodyAsArray ?? $bodyAsJson
-                ]);
+                $logKey = 'log:billing_token_stage2:' . md5($endpoint . ':' . $statusCode . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Token Generation API Error (Stage 2)', [
+                        'endpoint' => $endpoint,
+                        'attempts' => $attempts,
+                        'status_code' => $statusCode,
+                        'message' => $e->getMessage(),
+                        'response' => $bodyAsArray ?? $bodyAsJson
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
@@ -559,11 +574,15 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Token Generation API Fatal Error (Stage 3)', [
-                    'attempt' => $attempts,
-                    'code' => $e->getCode(),
-                    'message' => $e->getMessage()
-                ]);
+                $logKey = 'log:billing_token_stage3:' . md5($e->getCode() . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Token Generation API Fatal Error (Stage 3)', [
+                        'attempt' => $attempts,
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage()
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
@@ -667,13 +686,17 @@ class BillingService
 
                 }else{
 
-                    Log::error('Airtime Billing Product Inventory API Error (Stage 1)', [
-                        'msisdn' => $msisdn,
-                        'endpoint' => $endpoint,
-                        'attempts' => $attempts,
-                        'status_code' => $statusCode,
-                        'response' => $bodyAsArray ?? $bodyAsJson
-                    ]);
+                    $logKey = 'log:billing_inventory_stage1:' . md5($msisdn . ':' . $statusCode);
+                    if (! Cache::has($logKey)) {
+                        Log::error('Airtime Billing Product Inventory API Error (Stage 1)', [
+                            'msisdn' => $msisdn,
+                            'endpoint' => $endpoint,
+                            'attempts' => $attempts,
+                            'status_code' => $statusCode,
+                            'response' => $bodyAsArray ?? $bodyAsJson
+                        ]);
+                        Cache::put($logKey, true, now()->addMinutes(5));
+                    }
 
                     $failedAttempts[] = [
                         'attempts' => $attempts,
@@ -690,14 +713,18 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::error('Airtime Billing Product Inventory API Error (Stage 2)', [
-                    'msisdn' => $msisdn,
-                    'endpoint' => $endpoint,
-                    'attempts' => $attempts,
-                    'status_code' => $statusCode,
-                    'message' => $e->getMessage(),
-                    'response' => $bodyAsArray ?? $bodyAsJson
-                ]);
+                $logKey = 'log:billing_inventory_stage2:' . md5($msisdn . ':' . $statusCode . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Product Inventory API Error (Stage 2)', [
+                        'msisdn' => $msisdn,
+                        'endpoint' => $endpoint,
+                        'attempts' => $attempts,
+                        'status_code' => $statusCode,
+                        'message' => $e->getMessage(),
+                        'response' => $bodyAsArray ?? $bodyAsJson
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
@@ -708,12 +735,16 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Product Inventory API Fatal Error (Stage 3)', [
-                    'msisdn' => $msisdn,
-                    'attempt' => $attempts,
-                    'code' => $e->getCode(),
-                    'message' => $e->getMessage()
-                ]);
+                $logKey = 'log:billing_inventory_stage3:' . md5($msisdn . ':' . $e->getCode() . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Product Inventory API Fatal Error (Stage 3)', [
+                        'msisdn' => $msisdn,
+                        'attempt' => $attempts,
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage()
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
@@ -853,13 +884,17 @@ class BillingService
 
                 }else{
 
-                    Log::error('Airtime Billing Usage Consumption API Error (Stage 1)', [
-                        'msisdn' => $msisdn,
-                        'endpoint' => $endpoint,
-                        'attempts' => $attempts,
-                        'status_code' => $statusCode,
-                        'response' => $bodyAsArray ?? $bodyAsJson
-                    ]);
+                    $logKey = 'log:billing_usage_stage1:' . md5($msisdn . ':' . $statusCode);
+                    if (! Cache::has($logKey)) {
+                        Log::error('Airtime Billing Usage Consumption API Error (Stage 1)', [
+                            'msisdn' => $msisdn,
+                            'endpoint' => $endpoint,
+                            'attempts' => $attempts,
+                            'status_code' => $statusCode,
+                            'response' => $bodyAsArray ?? $bodyAsJson
+                        ]);
+                        Cache::put($logKey, true, now()->addMinutes(5));
+                    }
 
                     $failedAttempts[] = [
                         'attempts' => $attempts,
@@ -876,14 +911,18 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::error('Airtime Billing Usage Consumption API Error (Stage 2)', [
-                    'msisdn' => $msisdn,
-                    'endpoint' => $endpoint,
-                    'attempts' => $attempts,
-                    'status_code' => $statusCode,
-                    'message' => $e->getMessage(),
-                    'response' => $bodyAsArray ?? $bodyAsJson
-                ]);
+                $logKey = 'log:billing_usage_stage2:' . md5($msisdn . ':' . $statusCode . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Usage Consumption API Error (Stage 2)', [
+                        'msisdn' => $msisdn,
+                        'endpoint' => $endpoint,
+                        'attempts' => $attempts,
+                        'status_code' => $statusCode,
+                        'message' => $e->getMessage(),
+                        'response' => $bodyAsArray ?? $bodyAsJson
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
@@ -894,12 +933,16 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Usage Consumption API Fatal Error (Stage 3)', [
-                    'msisdn' => $msisdn,
-                    'attempt' => $attempts,
-                    'code' => $e->getCode(),
-                    'message' => $e->getMessage()
-                ]);
+                $logKey = 'log:billing_usage_stage3:' . md5($msisdn . ':' . $e->getCode() . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Usage Consumption API Fatal Error (Stage 3)', [
+                        'msisdn' => $msisdn,
+                        'attempt' => $attempts,
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage()
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
@@ -1067,13 +1110,17 @@ class BillingService
 
                 }else{
 
-                    Log::error('Airtime Billing Deduct Fee API Error (Stage 1)', [
-                        'msisdn' => $msisdn,
-                        'endpoint' => $endpoint,
-                        'attempts' => $attempts,
-                        'status_code' => $statusCode,
-                        'response' => $bodyAsArray ?? $bodyAsJson
-                    ]);
+                    $logKey = 'log:billing_deduct_stage1:' . md5($msisdn . ':' . $statusCode);
+                    if (! Cache::has($logKey)) {
+                        Log::error('Airtime Billing Deduct Fee API Error (Stage 1)', [
+                            'msisdn' => $msisdn,
+                            'endpoint' => $endpoint,
+                            'attempts' => $attempts,
+                            'status_code' => $statusCode,
+                            'response' => $bodyAsArray ?? $bodyAsJson
+                        ]);
+                        Cache::put($logKey, true, now()->addMinutes(5));
+                    }
 
                     $failedAttempts[] = [
                         'attempts' => $attempts,
@@ -1090,14 +1137,18 @@ class BillingService
                 $bodyAsJson = $response->getBody()->getContents();
                 $bodyAsArray = json_decode($bodyAsJson, true);
 
-                Log::error('Airtime Billing Deduct Fee API Error (Stage 2)', [
-                    'msisdn' => $msisdn,
-                    'endpoint' => $endpoint,
-                    'attempts' => $attempts,
-                    'status_code' => $statusCode,
-                    'message' => $e->getMessage(),
-                    'response' => $bodyAsArray ?? $bodyAsJson
-                ]);
+                $logKey = 'log:billing_deduct_stage2:' . md5($msisdn . ':' . $statusCode . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Deduct Fee API Error (Stage 2)', [
+                        'msisdn' => $msisdn,
+                        'endpoint' => $endpoint,
+                        'attempts' => $attempts,
+                        'status_code' => $statusCode,
+                        'message' => $e->getMessage(),
+                        'response' => $bodyAsArray ?? $bodyAsJson
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
@@ -1108,12 +1159,16 @@ class BillingService
 
             } catch (Throwable $e) {
 
-                Log::error('Airtime Billing Deduct Fee Fatal API Error (Stage 3)', [
-                    'msisdn' => $msisdn,
-                    'attempt' => $attempts,
-                    'code' => $e->getCode(),
-                    'message' => $e->getMessage()
-                ]);
+                $logKey = 'log:billing_deduct_stage3:' . md5($msisdn . ':' . $e->getCode() . ':' . $e->getMessage());
+                if (! Cache::has($logKey)) {
+                    Log::error('Airtime Billing Deduct Fee Fatal API Error (Stage 3)', [
+                        'msisdn' => $msisdn,
+                        'attempt' => $attempts,
+                        'code' => $e->getCode(),
+                        'message' => $e->getMessage()
+                    ]);
+                    Cache::put($logKey, true, now()->addMinutes(5));
+                }
 
                 $failedAttempts[] = [
                     'attempts' => $attempts,
