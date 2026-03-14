@@ -140,7 +140,8 @@
                                     <tr
                                         v-for="row in scheduleList"
                                         :key="row.id"
-                                        class="group hover:bg-indigo-50/20 transition-colors"
+                                        class="group hover:bg-indigo-50/20 transition-colors cursor-pointer"
+                                        @click="goToSmsCampaignSchedule(row.id)"
                                     >
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
@@ -261,6 +262,7 @@
 
 <script>
 import { defineComponent } from 'vue';
+import { router } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import Select from 'primevue/select';
 import debounce from 'lodash/debounce';
@@ -448,6 +450,11 @@ export default defineComponent({
             this.selectedSortOptions = [];
             this.hideSortModal();
             this.fetchSchedules(1);
+        },
+        goToSmsCampaignSchedule(scheduleId) {
+            const project = route().params?.project;
+            if (!project || !scheduleId) return;
+            router.visit(route('show.sms.campaign.schedule', { project, sms_campaign_schedule: scheduleId }));
         },
     },
 });
