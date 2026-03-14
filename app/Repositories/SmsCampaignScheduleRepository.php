@@ -98,8 +98,14 @@ class SmsCampaignScheduleRepository
             $allowed = ['id', 'next_message_date', 'attempts', 'total_successful_attempts', 'total_failed_attempts', 'created_at'];
             if (in_array($column, $allowed, true)) {
                 if ($column === 'next_message_date' && $direction === 'asc') {
-                    // Next message soonest: rows with a datetime first (soonest first), nulls last
-                    $query->orderByRaw('CASE WHEN sms_campaign_schedules.next_message_date IS NULL THEN 1 ELSE 0 END ASC')
+                    // Next message soonest: prioritize rows with a displayable next message (active subscription) first,
+                    // then by soonest date; blanks (inactive / no subscription) last.
+                    $now = Carbon::now();
+                    $query->orderByRaw(
+                        '(SELECT 1 FROM subscriptions s WHERE s.subscriber_id = sms_campaign_schedules.subscriber_id AND s.cancelled_at IS NULL AND s.start_at <= ? AND s.end_at > ? LIMIT 1) DESC',
+                        [$now, $now]
+                    )
+                        ->orderByRaw('CASE WHEN sms_campaign_schedules.next_message_date IS NULL THEN 1 ELSE 0 END ASC')
                         ->orderBy('sms_campaign_schedules.next_message_date', 'asc');
                 } else {
                     $query->orderBy('sms_campaign_schedules.' . $column, $direction);
