@@ -28,7 +28,8 @@ class SmsCampaignScheduleController extends Controller
 
     public function showSmsCampaignSchedules(Request $request)
     {
-        if ($request->expectsJson()) {
+        // Return list JSON only for Axios list fetch; Inertia page loads send X-Inertia and must get the Inertia response.
+        if ($request->expectsJson() && ! $request->header('X-Inertia')) {
             $validated = $request->validate((new ListSmsCampaignSchedulesRequest())->rules());
             $filters = [
                 'msisdn'          => $validated['msisdn'] ?? null,

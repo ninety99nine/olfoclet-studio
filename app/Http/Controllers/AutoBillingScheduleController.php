@@ -30,8 +30,8 @@ class AutoBillingScheduleController extends Controller
 
     public function showAutoBillingSchedules(Request $request)
     {
-        // JSON request (e.g. from Axios): validate and return paginated list + progress
-        if ($request->expectsJson()) {
+        // JSON request (e.g. from Axios): validate and return paginated list + progress. Inertia page loads send X-Inertia and must get the Inertia response.
+        if ($request->expectsJson() && ! $request->header('X-Inertia')) {
             $validated = $request->validate((new ListAutoBillingSchedulesRequest())->rules());
             $filters = [
                 'msisdn'          => $validated['msisdn'] ?? null,
