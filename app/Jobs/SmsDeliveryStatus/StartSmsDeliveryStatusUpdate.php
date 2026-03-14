@@ -47,12 +47,17 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
              *  - Messages whose last delivery status update failed with
              *    "Delivery Status Request Failed" (now that the URL bug is fixed,
              *    we want to re-check these using the corrected endpoint construction).
+             *  - Only messages with fewer than 3 total attempts (attempt 1, wait 24h, attempt 2, wait 24h, attempt 3, then stop).
              *
              * Note: oldest() has been removed because chunkById() inherently orders
              * by the ID column ascending, which achieves the exact same chronological
              * result but with vastly superior database performance.
              */
             $query = SubscriberMessage::query()
+                ->where(function ($q) {
+                    $q->whereNull('delivery_status_update_attempts')
+                        ->orWhere('delivery_status_update_attempts', '<', 3);
+                })
                 ->where(function ($q) {
                     $q->messageWaiting()
                         ->orWhere(function ($q2) {
@@ -99,15 +104,6 @@ class StartSmsDeliveryStatusUpdate implements ShouldQueue
             }, 'id');
 
         } catch (Throwable $th) {
-
-            Log::error('StartSmsDeliveryStatusUpdate Job Failed', [
-                'message' => $th->getMessage(),
-                'file'    => $th->getFile(),
-                'line'    => $th->getLine(),
-                // Removed getTraceAsString() to prevent log file bloat
-            ]);
-
-            // Re-throw so the queue worker registers the failure
             throw $th;
         }
 
