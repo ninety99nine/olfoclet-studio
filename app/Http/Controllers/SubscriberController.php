@@ -206,6 +206,23 @@ class SubscriberController extends Controller
             ->orderBy('next_message_date')
             ->first();
 
+        $smsSchedules = SmsCampaignSchedule::where('subscriber_id', $subscriber->id)
+            ->with('smsCampaign:id,name')
+            ->orderBy('next_message_date')
+            ->get()
+            ->map(fn (SmsCampaignSchedule $schedule) => [
+                'id' => $schedule->id,
+                'next_message_date' => $schedule->next_message_date?->toIso8601String(),
+                'total_successful_attempts' => $schedule->total_successful_attempts,
+                'total_failed_attempts' => $schedule->total_failed_attempts,
+                'sms_campaign' => $schedule->smsCampaign ? [
+                    'id' => $schedule->smsCampaign->id,
+                    'name' => $schedule->smsCampaign->name,
+                ] : null,
+            ])
+            ->values()
+            ->all();
+
         $scheduleNextAutoBilling = $nextAutoBilling ? [
             'at' => $nextAutoBilling->next_attempt_date->toIso8601String(),
             'pricing_plan_name' => $nextAutoBilling->pricingPlan?->name,
@@ -224,6 +241,7 @@ class SubscriberController extends Controller
             'project' => $this->project,
             'scheduleNextAutoBilling' => $scheduleNextAutoBilling,
             'scheduleNextSms' => $scheduleNextSms,
+            'smsSchedules' => $smsSchedules,
         ]);
     }
 

@@ -153,6 +153,64 @@
                             </div>
                         </div>
 
+                        <!-- All SMS Schedules (all campaigns) -->
+                        <div class="mt-6 pt-6 border-t border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-3">SMS Schedules (all campaigns)</p>
+                            <p v-if="!smsSchedules || smsSchedules.length === 0" class="text-sm text-slate-500">No SMS schedules for this subscriber.</p>
+                            <div v-else class="rounded-xl border border-slate-200 overflow-hidden bg-white">
+                                <table class="w-full border-collapse text-sm">
+                                    <thead>
+                                        <tr class="bg-slate-50 border-b border-slate-200">
+                                            <th class="text-left py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Campaign</th>
+                                            <th class="text-left py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Next message</th>
+                                            <th class="text-left py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Messages sent</th>
+                                            <th class="text-right py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-wider">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100">
+                                        <tr
+                                            v-for="schedule in smsSchedules"
+                                            :key="schedule.id"
+                                            class="hover:bg-violet-50/30 transition-colors"
+                                        >
+                                            <td class="py-3 px-4 font-medium text-slate-800">
+                                                {{ schedule.sms_campaign?.name ?? '—' }}
+                                            </td>
+                                            <td class="py-3 px-4 text-slate-600">
+                                                <template v-if="schedule.next_message_date">
+                                                    <span class="whitespace-nowrap">{{ formatScheduleDate(schedule.next_message_date) }}</span>
+                                                    <span
+                                                        v-if="getScheduleNextMessageMs(schedule) > 0"
+                                                        class="inline-flex items-center gap-1 text-[10px] text-violet-600 mt-0.5"
+                                                    >
+                                                        <Clock :size="10" />
+                                                        <Countdown :time="getScheduleNextMessageMs(schedule)" />
+                                                    </span>
+                                                    <span v-else class="block text-[10px] text-slate-400 mt-0.5">Past / due</span>
+                                                </template>
+                                                <span v-else class="text-slate-400">—</span>
+                                            </td>
+                                            <td class="py-3 px-4">
+                                                <span class="tabular-nums text-slate-700">{{ (schedule.total_successful_attempts ?? 0) + (schedule.total_failed_attempts ?? 0) }}</span>
+                                                <span class="text-[10px] text-slate-500 ml-1">
+                                                    ({{ schedule.total_successful_attempts ?? 0 }} sent · {{ schedule.total_failed_attempts ?? 0 }} failed)
+                                                </span>
+                                            </td>
+                                            <td class="py-3 px-4 text-right">
+                                                <Link
+                                                    :href="route('show.sms.campaign.schedule', { project: project?.id, sms_campaign_schedule: schedule.id })"
+                                                    class="inline-flex items-center gap-1 text-xs font-bold text-violet-600 hover:text-violet-700"
+                                                >
+                                                    View schedule
+                                                    <ChevronRight :size="12" />
+                                                </Link>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <!-- Metadata (collapsible) -->
                         <div class="mt-6 pt-6 border-t border-slate-100">
                             <button
@@ -526,9 +584,10 @@ import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
 import Tag from 'primevue/tag';
 import Tooltip from 'primevue/tooltip';
-import { User, Pencil, Trash2, ArrowLeft, ChevronRight, ChevronDown, RefreshCw, Copy } from 'lucide-vue-next';
+import { User, Pencil, Trash2, ArrowLeft, ChevronRight, ChevronDown, RefreshCw, Copy, Clock } from 'lucide-vue-next';
 import moment from 'moment';
 import { formatMoney } from '@/utils/formatMoney';
+import Countdown from '@/Partials/Countdown.vue';
 import SubscriberShowStats from './Partials/SubscriberShowStats.vue';
 
 const emptyPaginated = () => ({ data: [], current_page: 1, last_page: 1, total: 0, from: 0, to: 0, links: [] });
@@ -555,6 +614,8 @@ export default defineComponent({
         ChevronDown,
         RefreshCw,
         Copy,
+        Clock,
+        Countdown,
         SubscriberShowStats,
     },
     directives: { Tooltip },
@@ -563,6 +624,7 @@ export default defineComponent({
         project: { type: Object, required: true },
         scheduleNextAutoBilling: { type: Object, default: null },
         scheduleNextSms: { type: Object, default: null },
+        smsSchedules: { type: Array, default: () => [] },
     },
     setup(props) {
         const projectPermissions = computed(() => usePage().props.projectPermissions ?? []);
@@ -678,6 +740,12 @@ export default defineComponent({
         formatScheduleDate(isoString) {
             if (!isoString) return '—';
             return moment(isoString).format('DD MMM YYYY HH:mm');
+        },
+        getScheduleNextMessageMs(schedule) {
+            const at = schedule?.next_message_date;
+            if (!at) return 0;
+            const ms = new Date(at).getTime() - Date.now();
+            return Math.max(0, ms);
         },
         getSubscriptionPlanName(sub) {
             return sub?.pricing_plan?.name ?? '—';
