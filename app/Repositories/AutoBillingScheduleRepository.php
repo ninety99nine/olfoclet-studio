@@ -99,7 +99,13 @@ class AutoBillingScheduleRepository
             $direction = $m[2];
             $allowed = ['id', 'next_attempt_date', 'attempt', 'overall_attempts', 'created_at'];
             if (in_array($column, $allowed, true)) {
-                $query->orderBy('auto_billing_schedules.' . $column, $direction);
+                if ($column === 'next_attempt_date' && $direction === 'asc') {
+                    // Next attempt soonest: rows with a datetime first (soonest first), nulls last
+                    $query->orderByRaw('CASE WHEN auto_billing_schedules.next_attempt_date IS NULL THEN 1 ELSE 0 END ASC')
+                        ->orderBy('auto_billing_schedules.next_attempt_date', 'asc');
+                } else {
+                    $query->orderBy('auto_billing_schedules.' . $column, $direction);
+                }
                 $sortApplied = true;
             }
         }
