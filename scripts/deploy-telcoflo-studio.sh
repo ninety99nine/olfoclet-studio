@@ -26,7 +26,7 @@ php artisan migrate --force
 
 echo "==> 4. Resetting stuck processing locks..."
 # This ensures no one is 'stuck' from the previous crash before we start workers
-php artisan db:seed --class=ResetStuckProcessingLocks
+php artisan db:seed --class=ResetStuckProcessingLocks --force
 
 echo "==> 5. Trimming Laravel logs (keep last 2 days, free disk)..."
 find "$APP_DIR/storage/logs" -maxdepth 1 -name 'laravel-*.log' -mtime +2 -delete 2>/dev/null || true
