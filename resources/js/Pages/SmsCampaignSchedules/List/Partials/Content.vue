@@ -161,9 +161,6 @@
                                                 <span v-if="row.next_message_date_milli_seconds_left == null" class="text-slate-400 text-[10px]">—</span>
                                                 <Countdown v-else :time="row.next_message_date_milli_seconds_left" />
                                                 <span class="whitespace-nowrap text-[10px] text-slate-500">{{ row.next_message_date ? moment(row.next_message_date).format('DD MMM YY HH:mm') : '—' }}</span>
-                                                <p v-if="row.next_message_block_reason" class="text-[10px] text-amber-700 mt-1 font-medium" :title="row.next_message_block_reason">
-                                                    {{ row.next_message_block_reason }}
-                                                </p>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 text-center whitespace-normal align-top">
