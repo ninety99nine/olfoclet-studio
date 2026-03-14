@@ -67,7 +67,7 @@ class AutoBillingScheduleRepository
     /**
      *  Get the project auto billing schedules with filters (search, up_for_schedule, sort).
      *
-     *  @param array<string, mixed> $filters Optional filters: msisdn (search by subscriber msisdn or schedule id), up_for_schedule (bool), sort (column:direction), per_page, page.
+     *  @param array<string, mixed> $filters Optional filters: msisdn (search by subscriber msisdn or schedule id), up_for_schedule (bool), billing_history (billed_before|not_billed_yet), sort (column:direction), per_page, page.
      *  @param array $relationships The relationships to eager load.
      *  @param array $countableRelationships The relationships to count.
      *  @return LengthAwarePaginator
@@ -93,11 +93,20 @@ class AutoBillingScheduleRepository
                 ->where('next_attempt_date', '<=', Carbon::now());
         }
 
+        if (!empty($filters['billing_history'])) {
+            if ($filters['billing_history'] === 'billed_before') {
+                $query->where('overall_successful_attempts', '>=', 1);
+            }
+            if ($filters['billing_history'] === 'not_billed_yet') {
+                $query->where('overall_successful_attempts', 0);
+            }
+        }
+
         $sortApplied = false;
         if (!empty($filters['sort']) && preg_match('/^([\w_]+):(asc|desc)$/', $filters['sort'], $m)) {
             $column = $m[1];
             $direction = $m[2];
-            $allowed = ['id', 'next_attempt_date', 'attempt', 'overall_attempts', 'created_at'];
+            $allowed = ['id', 'next_attempt_date', 'attempt', 'overall_attempts', 'overall_successful_attempts', 'overall_failed_attempts', 'created_at'];
             if (in_array($column, $allowed, true)) {
                 if ($column === 'next_attempt_date' && $direction === 'asc') {
                     // Next attempt soonest: rows with a datetime first (soonest first), nulls last
