@@ -418,6 +418,17 @@ class SmsCampaignController extends Controller
         return redirect()->back()->with('message', 'Deleted Successfully');
     }
 
+    /**
+     * Show a single SMS campaign. Redirects to the campaign's job batches page (the campaign detail view).
+     */
+    public function showSmsCampaign(Project $project, SmsCampaign $smsCampaign)
+    {
+        return redirect()->route('show.sms.campaign.job.batches', [
+            'project' => $project,
+            'sms_campaign' => $smsCampaign,
+        ]);
+    }
+
     public function showSmsCampaignJobBatches(Project $project, SmsCampaign $smsCampaign)
     {
         //  Get the sms campaign job batches

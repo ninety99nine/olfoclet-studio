@@ -179,14 +179,14 @@
                                             <td class="py-3 px-4 text-slate-600">
                                                 <template v-if="schedule.next_message_date">
                                                     <span class="whitespace-nowrap">{{ formatScheduleDate(schedule.next_message_date) }}</span>
-                                                    <span
-                                                        v-if="getScheduleNextMessageMs(schedule) > 0"
-                                                        class="inline-flex items-center gap-1 text-[10px] text-violet-600 mt-0.5"
-                                                    >
-                                                        <Clock :size="10" />
-                                                        <Countdown :time="getScheduleNextMessageMs(schedule)" />
-                                                    </span>
-                                                    <span v-else class="block text-[10px] text-slate-400 mt-0.5">Past / due</span>
+                                                    <template v-if="getScheduleNextMessageMs(schedule) > 0">
+                                                        <span class="text-slate-300 mx-1" aria-hidden="true">·</span>
+                                                        <span class="inline-flex items-center gap-1 text-[10px] text-violet-600">
+                                                            <Clock :size="10" />
+                                                            <Countdown :time="getScheduleNextMessageMs(schedule)" />
+                                                        </span>
+                                                    </template>
+                                                    <span v-else class="text-[10px] text-slate-400 ml-1">(Past / due)</span>
                                                 </template>
                                                 <span v-else class="text-slate-400">—</span>
                                             </td>
