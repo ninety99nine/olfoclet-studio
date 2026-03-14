@@ -32,6 +32,11 @@
                         :style="{ width: progressPercent + '%' }"
                     />
                 </div>
+                <div v-if="progressData?.started_at" class="mt-3 pt-3 border-t border-slate-100 flex flex-wrap items-center gap-x-6 gap-y-1 text-xs text-slate-500">
+                    <span><span class="font-semibold text-slate-600">Started:</span> {{ formatProgressDate(progressData.started_at) }}</span>
+                    <span v-if="progressData?.ended_at"><span class="font-semibold text-slate-600">Ended:</span> {{ formatProgressDate(progressData.ended_at) }}</span>
+                    <span v-if="progressData?.duration_seconds != null"><span class="font-semibold text-slate-600">Duration:</span> {{ formatProgressDuration(progressData.duration_seconds) }}</span>
+                </div>
             </div>
 
             <!-- Idle: show big countdown to closest next run -->
@@ -551,6 +556,20 @@ export default defineComponent({
         },
         pad(n) {
             return String(n).padStart(2, '0');
+        },
+        formatProgressDate(isoString) {
+            return isoString ? moment(isoString).format('DD MMM YYYY, HH:mm') : '';
+        },
+        formatProgressDuration(seconds) {
+            if (seconds == null || seconds < 0) return '';
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            const parts = [];
+            if (h > 0) parts.push(`${h}h`);
+            if (m > 0) parts.push(`${m}m`);
+            if (s > 0 || parts.length === 0) parts.push(`${s}s`);
+            return parts.join(' ');
         },
         onCountdownEnd() {
             this.fetchSchedules(this.payload.current_page || 1);

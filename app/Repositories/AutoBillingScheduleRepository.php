@@ -142,9 +142,9 @@ class AutoBillingScheduleRepository
     }
 
     /**
-     * Get progress stats for auto billing: total subscribers due, processed count, batches, and next run datetime.
+     * Get progress stats for auto billing: total subscribers due, processed count, batches, next run datetime, and run timing.
      *
-     * @return array{total_due: int, processed: int, total_in_batches: int, next_run_at: string|null}
+     * @return array{total_due: int, processed: int, total_in_batches: int, next_run_at: string|null, started_at: string|null, ended_at: string|null, duration_seconds: int|null}
      */
     public function getAutoBillingProgress(): array
     {
@@ -166,6 +166,9 @@ class AutoBillingScheduleRepository
                 'processed'          => 0,
                 'total_in_batches'  => 0,
                 'next_run_at'       => $nextRunAt,
+                'started_at'        => null,
+                'ended_at'          => null,
+                'duration_seconds'  => null,
             ];
         }
 
@@ -177,11 +180,24 @@ class AutoBillingScheduleRepository
                 $q->whereNull('job_batches.finished_at')
                     ->orWhere('job_batches.created_at', '>=', $cutoff);
             })
-            ->selectRaw('SUM(job_batches.total_jobs) as total_jobs, SUM(job_batches.total_jobs - job_batches.pending_jobs) as processed_jobs')
+            ->selectRaw('
+                SUM(job_batches.total_jobs) as total_jobs,
+                SUM(job_batches.total_jobs - job_batches.pending_jobs) as processed_jobs,
+                MIN(job_batches.created_at) as started_at_raw,
+                MAX(job_batches.finished_at) as ended_at_raw
+            ')
             ->first();
 
         $totalInBatches = (int) ($batchStats->total_jobs ?? 0);
         $processed = (int) ($batchStats->processed_jobs ?? 0);
+
+        $startedAtRaw = isset($batchStats->started_at_raw) ? (int) $batchStats->started_at_raw : null;
+        $endedAtRaw = isset($batchStats->ended_at_raw) && $batchStats->ended_at_raw !== null ? (int) $batchStats->ended_at_raw : null;
+        $isRunComplete = $totalInBatches > 0 && $processed >= $totalInBatches;
+
+        $startedAt = $startedAtRaw ? Carbon::createFromTimestamp($startedAtRaw)->toIso8601String() : null;
+        $endedAt = ($isRunComplete && $endedAtRaw) ? Carbon::createFromTimestamp($endedAtRaw)->toIso8601String() : null;
+        $durationSeconds = ($startedAtRaw && $endedAtRaw && $isRunComplete) ? $endedAtRaw - $startedAtRaw : null;
 
         // Closest next run (enabled schedules with next_attempt_date in the future)
         $nextRunRaw = $this->project->autoBillingSchedules()
@@ -195,6 +211,9 @@ class AutoBillingScheduleRepository
             'processed'          => $processed,
             'total_in_batches'  => $totalInBatches,
             'next_run_at'       => $nextRunAt,
+            'started_at'        => $startedAt,
+            'ended_at'          => $endedAt,
+            'duration_seconds'  => $durationSeconds,
         ];
     }
 }
