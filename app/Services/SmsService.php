@@ -56,32 +56,66 @@ class SmsService
 
         try {
 
-            $status = true;
+            $status = false;
             $failureReason = null;
             $failureType = null;
-            $response = [
-                'status' => true,
-                'body' => [
-                    'outboundSMSMessageRequest' => [
-                        'deliveryInfoList' => [
-                            'resourceURL' => 'https://api.orange.com/smsmessaging/v1/outbound/tel:+26777479083/requests/req65f74d24d046b122fc077f8c/deliveryInfos',
-                            'deliveryInfo' => [
-                                [
-                                    'deliveryStatus' => 'MessageWaiting',
-                                ]
-                            ]
-                        ]
-                    ]
-                ]
-            ];
+            $deliveryStatusEndpoint = null;
+            $deliveryStatus = null;
+
+            $senderName = $project->settings['sms_sender_name'] ?? '';
+            $senderNumber = $project->settings['sms_sender_number'] ?? null;
+            $clientCredentials = $project->settings['sms_client_credentials'] ?? null;
+
+            if (! $senderNumber || ! $clientCredentials) {
+                $failureType = SendMessageFailureType::MessageSendingFailed;
+                $failureReason = 'Project SMS credentials missing (sms_sender_number or sms_client_credentials).';
+            } else {
+
+                $tokenResponse = self::requestSmsAccessToken($clientCredentials);
+
+                if (! ($tokenResponse['status'] ?? false)) {
+                    $failureType = SendMessageFailureType::TokenGenerationFailed;
+                    $failureReason = $tokenResponse['body']['error_description'] ?? json_encode($tokenResponse['body'] ?? []);
+                } else {
+
+                    $accessToken = $tokenResponse['body']['access_token'];
+                    $recipientNumber = $subscriber->msisdn;
+                    $clientCorrelator = (string) $subscriberMessage->id;
+
+                    $response = self::requestSendSms(
+                        $senderName,
+                        $senderNumber,
+                        $recipientNumber,
+                        $content,
+                        $clientCorrelator,
+                        $accessToken
+                    );
+
+                    if ($response['status'] ?? false) {
+                        $body = $response['body'] ?? [];
+                        $req = $body['outboundSMSMessageRequest'] ?? [];
+                        $deliveryList = $req['deliveryInfoList'] ?? [];
+                        $resourceURL = $deliveryList['resourceURL'] ?? null;
+                        $deliveryInfo = $deliveryList['deliveryInfo'][0] ?? null;
+
+                        $status = true;
+                        $deliveryStatusEndpoint = $resourceURL;
+                        $deliveryStatus = $deliveryInfo['deliveryStatus'] ?? 'MessageWaiting';
+                    } else {
+                        $failureType = SendMessageFailureType::MessageSendingFailed;
+                        $serviceEx = $response['body']['requestError']['serviceException'] ?? null;
+                        $failureReason = $serviceEx['text'] ?? $response['body']['message'] ?? json_encode($response['body'] ?? []);
+                    }
+                }
+            }
 
             //  Update the subscriber message record
             $subscriberMessage->update([
                 'is_successful' => $status,
-                'failure_reason' => isset($failureReason) ? $failureReason : null,
-                'failure_type' => isset($failureType) ? $failureType->value : null,
-                'delivery_status_endpoint' => $status ? $response['body']['outboundSMSMessageRequest']['deliveryInfoList']['resourceURL'] : null,
-                'delivery_status' => $status ? $response['body']['outboundSMSMessageRequest']['deliveryInfoList']['deliveryInfo'][0]['deliveryStatus'] : null,
+                'failure_reason' => $failureReason,
+                'failure_type' => $failureType?->value,
+                'delivery_status_endpoint' => $deliveryStatusEndpoint,
+                'delivery_status' => $deliveryStatus,
             ]);
 
             return $subscriberMessage;
