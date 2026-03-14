@@ -244,7 +244,6 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
             });
 
         } catch (Throwable $th) {
-            Log::error('StartSmsCampaign Job Failed: ' . $th->getMessage());
             throw $th;
         }
     }

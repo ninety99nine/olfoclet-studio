@@ -164,6 +164,11 @@
     box-shadow: none !important;
 }
 
+/* Modal buttons: prevent text wrapping (Clear sort, Done, Apply Filters, etc.) */
+.p-dialog button {
+    white-space: nowrap;
+}
+
 /* Inactive / Unsuccessful status: amber platform-wide (subscriptions, billing, messages) */
 .p-tag.p-tag-warn,
 .p-tag-warn,

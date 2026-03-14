@@ -163,7 +163,7 @@
                                     <td class="px-6 py-4 text-sm font-bold text-slate-800">{{ formatMoney(billingReport.our_share) }}</td>
                                     <td class="px-6 py-4 text-sm text-slate-700">{{ formatMoney(billingReport.their_share) }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap">
-                                        <span class="text-xs font-bold text-slate-600">{{ billingReport.created_at ? moment(billingReport.created_at).format('MMM YYYY, hh:mm A') : '—' }}</span>
+                                        <span class="text-xs font-bold text-slate-600">{{ billingReport.created_at ? moment(billingReport.created_at).format('MMM YYYY, HH:mm') : '—' }}</span>
                                     </td>
                                     <td class="px-8 py-4 text-right">
                                         <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">

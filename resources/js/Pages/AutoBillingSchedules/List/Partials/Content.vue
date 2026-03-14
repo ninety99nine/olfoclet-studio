@@ -209,7 +209,8 @@
                                     <tr
                                         v-for="row in scheduleList"
                                         :key="row.id"
-                                        class="group hover:bg-indigo-50/20 transition-colors"
+                                        class="group hover:bg-indigo-50/20 transition-colors cursor-pointer"
+                                        @click="goToAutoBillingSchedule(row.id)"
                                     >
                                         <td class="px-6 py-4">
                                             <div class="flex items-center gap-3">
@@ -307,6 +308,10 @@
                     <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Schedule status</label>
                     <Select v-model="tempFilters.up_for_schedule" :options="upForScheduleOptions" option-label="label" option-value="value" class="w-full" showClear placeholder="All schedules" />
                 </div>
+                <div class="space-y-1">
+                    <label class="text-[11px] font-black text-slate-500 uppercase tracking-widest ml-1 block">Billing history</label>
+                    <Select v-model="tempFilters.billing_history" :options="billingHistoryOptions" option-label="label" option-value="value" class="w-full" showClear placeholder="All" />
+                </div>
                 <button @click="hideFilterModal" class="w-full py-3.5 mt-1 bg-indigo-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-indigo-100">Apply Filters</button>
             </div>
         </Dialog>
@@ -345,6 +350,7 @@
 
 <script>
 import { defineComponent } from 'vue';
+import { router } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import Select from 'primevue/select';
 import debounce from 'lodash/debounce';
@@ -386,20 +392,31 @@ export default defineComponent({
             payload: { data: [], current_page: 1, last_page: 1, total: 0, links: [] },
             progressData: { total_due: 0, processed: 0, total_in_batches: 0 },
             searchQuery: '',
-            filters: { up_for_schedule: null },
-            tempFilters: { up_for_schedule: null },
+            filters: { up_for_schedule: null, billing_history: null },
+            tempFilters: { up_for_schedule: null, billing_history: null },
             filterModalVisible: false,
             sortModalVisible: false,
             selectedSortOptions: [],
             sortOptions: [
                 { label: 'Next attempt soonest', value: 'next_attempt_date:asc', group: 'next' },
-                { label: 'Next attempt latest', value: 'next_attempt_date:desc', group: 'next' },
+                { label: 'Next attempt furthest', value: 'next_attempt_date:desc', group: 'next' },
+                { label: 'Most attempts', value: 'overall_attempts:desc', group: 'attempts' },
+                { label: 'Least attempts', value: 'overall_attempts:asc', group: 'attempts' },
+                { label: 'Most successful attempts', value: 'overall_successful_attempts:desc', group: 'successful' },
+                { label: 'Least successful attempts', value: 'overall_successful_attempts:asc', group: 'successful' },
+                { label: 'Most failed attempts', value: 'overall_failed_attempts:desc', group: 'failed' },
+                { label: 'Least failed attempts', value: 'overall_failed_attempts:asc', group: 'failed' },
                 { label: 'ID descending', value: 'id:desc', group: 'id' },
                 { label: 'ID ascending', value: 'id:asc', group: 'id' },
             ],
             upForScheduleOptions: [
                 { label: 'All schedules', value: null },
                 { label: 'Up for schedule only', value: true },
+            ],
+            billingHistoryOptions: [
+                { label: 'All', value: null },
+                { label: 'Billed before', value: 'billed_before' },
+                { label: 'Not yet billed', value: 'not_billed_yet' },
             ],
         };
     },
@@ -448,12 +465,19 @@ export default defineComponent({
         hasActiveFilters() {
             return this.searchQuery.trim().length > 0 ||
                 this.filters.up_for_schedule === true ||
+                (this.filters.billing_history != null && this.filters.billing_history !== '') ||
                 this.selectedSortOptions.length > 0;
         },
         selectedFilterTags() {
             const tags = [];
             if (this.filters.up_for_schedule === true) {
                 tags.push({ key: 'up_for_schedule', label: 'Up for schedule only' });
+            }
+            if (this.filters.billing_history === 'billed_before') {
+                tags.push({ key: 'billing_history', label: 'Billed before' });
+            }
+            if (this.filters.billing_history === 'not_billed_yet') {
+                tags.push({ key: 'billing_history', label: 'Not yet billed' });
             }
             return tags;
         },
@@ -506,6 +530,7 @@ export default defineComponent({
                 per_page: 15,
                 msisdn: this.searchQuery.trim() || undefined,
                 up_for_schedule: this.filters.up_for_schedule === true ? true : undefined,
+                billing_history: this.filters.billing_history || undefined,
                 ...(sortParam ? { sort: sortParam } : {}),
             };
             const stopSpinner = () => {
@@ -536,7 +561,9 @@ export default defineComponent({
         clearAll() {
             this.searchQuery = '';
             this.filters.up_for_schedule = null;
+            this.filters.billing_history = null;
             this.tempFilters.up_for_schedule = null;
+            this.tempFilters.billing_history = null;
             this.selectedSortOptions = [];
             this.fetchSchedules(1);
         },
@@ -553,6 +580,10 @@ export default defineComponent({
             if (tag.key === 'up_for_schedule') {
                 this.filters.up_for_schedule = null;
                 this.tempFilters.up_for_schedule = null;
+            }
+            if (tag.key === 'billing_history') {
+                this.filters.billing_history = null;
+                this.tempFilters.billing_history = null;
             }
             this.fetchSchedules(1);
         },
@@ -587,6 +618,11 @@ export default defineComponent({
             this.selectedSortOptions = [];
             this.hideSortModal();
             this.fetchSchedules(1);
+        },
+        goToAutoBillingSchedule(scheduleId) {
+            const project = route().params?.project;
+            if (!project || !scheduleId) return;
+            router.visit(route('show.auto.billing.schedule', { project, auto_billing_schedule: scheduleId }));
         },
     },
 });

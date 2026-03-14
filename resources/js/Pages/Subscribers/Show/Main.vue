@@ -279,15 +279,26 @@
                                             <th class="text-left py-3 px-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Type</th>
                                             <th class="text-left py-3 px-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Content</th>
                                             <th class="text-left py-3 px-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Status</th>
+                                            <th class="text-left py-3 px-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Delivery</th>
                                             <th class="text-left py-3 px-2 text-[10px] font-black text-slate-400 uppercase tracking-wider">Date</th>
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100">
-                                        <tr v-for="msg in tabData.messages.data" :key="msg.id" class="hover:bg-slate-50/50">
-                                            <td class="py-3 px-2 font-medium text-slate-800">{{ msg.type ?? '—' }}</td>
+                                        <tr
+                                            v-for="msg in tabData.messages.data"
+                                            :key="msg.id"
+                                            class="hover:bg-slate-50/50 cursor-pointer transition-colors"
+                                            @click="goToSubscriberMessage(msg.id)"
+                                        >
+                                            <td class="py-3 px-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded text-xs font-medium bg-slate-100 text-slate-800 whitespace-nowrap">{{ formatMessageType(msg.type) }}</span>
+                                            </td>
                                             <td class="py-3 px-2 text-slate-600 max-w-md whitespace-normal break-words">{{ msg.content ?? '—' }}</td>
                                             <td class="py-3 px-2">
-                                                <Tag :value="msg.is_successful ? 'Success' : 'Failed'" :severity="msg.is_successful ? 'success' : 'warn'" :class="['text-xs', { 'tag-amber': !msg.is_successful }]" />
+                                                <SubscriberMessageStatusBadge :subscriber-message="msg" class="scale-90 origin-left" />
+                                            </td>
+                                            <td class="py-3 px-2">
+                                                <SubscriberMessageDeliveryStatusBadge :subscriber-message="msg" class="scale-90 origin-left" />
                                             </td>
                                             <td class="py-3 px-2 text-slate-500 text-xs">{{ formatDate(msg.created_at) }}</td>
                                         </tr>
@@ -508,6 +519,8 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import ManageSubscriberModal from '@/Pages/Subscribers/List/Partials/ManageSubscriberModal.vue';
 import SubscriptionStatusBadge from '@/Pages/Subscribers/List/Partials/SubscriptionStatusBadge.vue';
 import BillingStatusBadge from '@/Pages/Subscribers/List/Partials/BillingStatusBadge.vue';
+import SubscriberMessageStatusBadge from '@/Pages/SubscriberMessages/List/Partials/SubscriberMessageStatusBadge.vue';
+import SubscriberMessageDeliveryStatusBadge from '@/Pages/SubscriberMessages/List/Partials/SubscriberMessageDeliveryStatusBadge.vue';
 import Pagination from '@/Partials/Pagination.vue';
 import Dialog from 'primevue/dialog';
 import Button from 'primevue/button';
@@ -528,6 +541,8 @@ export default defineComponent({
         ManageSubscriberModal,
         SubscriptionStatusBadge,
         BillingStatusBadge,
+        SubscriberMessageStatusBadge,
+        SubscriberMessageDeliveryStatusBadge,
         Pagination,
         Dialog,
         Button,
@@ -649,6 +664,16 @@ export default defineComponent({
         formatDate(val) {
             if (!val) return '—';
             return moment(val).format('DD MMM YYYY HH:mm');
+        },
+        formatMessageType(type) {
+            if (!type) return '—';
+            const map = {
+                Content: 'Content',
+                PaymentConfirmation: 'Payment confirmation',
+                AutoBillingReminder: 'Auto billing reminder',
+                AutoBillingDisabled: 'Auto billing disabled',
+            };
+            return map[type] ?? type;
         },
         formatScheduleDate(isoString) {
             if (!isoString) return '—';
@@ -820,6 +845,10 @@ export default defineComponent({
         goToBillingTransaction(billingTransactionId) {
             if (!this.project?.id || !billingTransactionId) return;
             router.visit(route('show.transaction', { project: this.project.id, billing_transaction: billingTransactionId }));
+        },
+        goToSubscriberMessage(subscriberMessageId) {
+            if (!this.project?.id || !subscriberMessageId) return;
+            router.visit(route('show.subscriber.message', { project: this.project.id, subscriber_message: subscriberMessageId }));
         },
         onDeleted() {
             router.visit(route('show.subscribers', { project: this.project?.id }));

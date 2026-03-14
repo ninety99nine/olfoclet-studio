@@ -89,17 +89,7 @@ class StartCreatingBillingReports implements ShouldQueue
             });
 
         } catch (Throwable $th) {
-
-            Log::error('StartCreatingBillingReports Job Failed: '. $th->getMessage());
-
-            /**
-             * 3. CRITICAL FIX: Re-throw the Exception
-             * If you do not throw the exception, Laravel assumes the job finished successfully
-             * and discards it. Throwing it ensures the queue manager logs the failure properly
-             * and can trigger any job retry mechanisms if configured.
-             */
             throw $th;
-
         }
 
         Log::info('StartCreatingBillingReports: job completed');

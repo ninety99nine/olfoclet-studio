@@ -111,7 +111,7 @@
                                     </td>
                                     <!-- Last Sprint Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
-                                        {{ getLatestPricingPlanBatchJob(pricingPlan).created_at == null ? '...' : moment(getLatestPricingPlanBatchJob(pricingPlan).created_at).format('lll') }}
+                                        {{ getLatestPricingPlanBatchJob(pricingPlan).created_at == null ? '...' : moment(getLatestPricingPlanBatchJob(pricingPlan).created_at).format('DD MMM YYYY HH:mm') }}
                                     </td>
                                     <td class="px-6 py-3 whitespace-nowrap text-right text-sm font-medium">
                                         <a v-if="$inertia.page.props.projectPermissions.includes('View pricing plans')" href="#" @click.prevent="$inertia.get(route('show.auto.billing.pricing.plan.job.batches', { project: route().params.project, pricing_plan: pricingPlan.id }))" class="text-indigo-600 hover:text-indigo-900 mr-3">View</a>

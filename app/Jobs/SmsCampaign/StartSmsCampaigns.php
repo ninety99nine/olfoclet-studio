@@ -86,15 +86,6 @@ class StartSmsCampaigns implements ShouldQueue
                 });
 
         } catch (Throwable $th) {
-
-            Log::error('StartSmsCampaigns Job Failed', [
-                'message' => $th->getMessage(),
-                'file'    => $th->getFile(),
-                'line'    => $th->getLine(),
-                // Removed getTraceAsString() to prevent massive log file bloat during a crash
-            ]);
-
-            // Re-throw so the queue knows the Master Job failed
             throw $th;
         }
 

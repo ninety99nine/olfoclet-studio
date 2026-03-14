@@ -23,8 +23,8 @@ const navItems = ref([
         type: 'group',
         label: 'Schedules',
         children: [
-            { label: 'Auto Billing Schedules', routeName: 'show.auto.billing.schedules', activeRouteNames: ['show.auto.billing.schedules'], permission: 'View auto billing schedules' },
-            { label: 'SMS Schedules', routeName: 'show.sms.campaign.schedules', activeRouteNames: ['show.sms.campaign.schedules'], permission: 'View sms campaign schedules' },
+            { label: 'Auto Billing Schedules', routeName: 'show.auto.billing.schedules', activeRouteNames: ['show.auto.billing.schedules', 'show.auto.billing.schedule'], permission: 'View auto billing schedules' },
+            { label: 'SMS Schedules', routeName: 'show.sms.campaign.schedules', activeRouteNames: ['show.sms.campaign.schedules', 'show.sms.campaign.schedule'], permission: 'View sms campaign schedules' },
         ],
     },
     { type: 'link', label: 'Analytics', routeName: 'show.analytics', activeRouteNames: ['show.analytics'] },
@@ -94,18 +94,30 @@ function expandActiveGroup() {
 const page = usePage();
 const isLoggingOut = ref(false);
 
+// Match any project-scoped URL: /projects/1/... or /projects/123/...
+const projectUrlMatch = computed(() => {
+    const url = typeof page.url === 'string' ? page.url : '';
+    return url.match(/^\/projects\/(\d+)(?:\/|$)/);
+});
+const projectIdFromUrl = computed(() => (projectUrlMatch.value ? projectUrlMatch.value[1] : null));
+
 onMounted(expandActiveGroup);
 watch(() => page.url, expandActiveGroup);
 
 const isShowingProject = computed(() => {
-    return route().params.hasOwnProperty('project');
+    return (
+        route().params.hasOwnProperty('project') ||
+        page.props.project != null ||
+        projectIdFromUrl.value != null
+    );
 });
 
 const isProjectsListPage = computed(() => route().current('show.projects'));
 
 const canShowLink = (permission) => {
     if(permission == null) return true;
-    return page.props.projectPermissions.includes('*') || page.props.projectPermissions.includes(permission);
+    const perms = page.props.projectPermissions ?? [];
+    return perms.includes('*') || perms.includes(permission);
 };
 
 const activeLinkClasses = (activeRouteNames) => {
@@ -117,7 +129,9 @@ const activeLinkClasses = (activeRouteNames) => {
 };
 
 const navigateToNavMenu = (routeName) => {
-    const url = route(routeName, { project: route().params.project });
+    const projectId = page.props.project?.id ?? route().params?.project ?? projectIdFromUrl.value;
+    if (!projectId) return;
+    const url = route(routeName, { project: projectId });
     router.get(url);
 };
 

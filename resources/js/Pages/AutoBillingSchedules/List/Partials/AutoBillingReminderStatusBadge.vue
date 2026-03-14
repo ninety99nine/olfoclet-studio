@@ -14,7 +14,7 @@
                 <span>
                     Sent Date
                     <hr class="my-4">
-                    {{ moment(sentReminderAt()).format('lll') }}
+                    {{ moment(sentReminderAt()).format('DD MMM YYYY HH:mm') }}
                 </span>
             </template>
 

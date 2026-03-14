@@ -164,7 +164,7 @@
 
                                     <!-- Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 bg-teal-50 border-r border-dotted border-r-fuchsia-300">
-                                        {{ billingTransaction.created_at == null ? '...' : moment(billingTransaction.created_at).format('lll') }}
+                                        {{ billingTransaction.created_at == null ? '...' : moment(billingTransaction.created_at).format('DD MMM YYYY HH:mm') }}
                                     </td>
 
 
@@ -172,15 +172,15 @@
 
                                     <!-- Subscription Start Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        {{ billingTransaction.subscription == null ? '...' : moment(billingTransaction.subscription.start_at).format('lll') }}
+                                        {{ billingTransaction.subscription == null ? '...' : moment(billingTransaction.subscription.start_at).format('DD MMM YYYY HH:mm') }}
                                     </td>
                                     <!-- Subscription End Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        {{ billingTransaction.subscription == null ? '...' : moment(billingTransaction.subscription.end_at).format('lll') }}
+                                        {{ billingTransaction.subscription == null ? '...' : moment(billingTransaction.subscription.end_at).format('DD MMM YYYY HH:mm') }}
                                     </td>
                                     <!-- Subscription Cancelled Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50">
-                                        {{ billingTransaction.subscription == null || billingTransaction.subscription.cancelled_at == null ? '...' : moment(billingTransaction.subscription.cancelled_at).format('lll') }}
+                                        {{ billingTransaction.subscription == null || billingTransaction.subscription.cancelled_at == null ? '...' : moment(billingTransaction.subscription.cancelled_at).format('DD MMM YYYY HH:mm') }}
                                     </td>
                                     <!-- Subscription Status -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-center bg-fuchsia-50">
@@ -189,7 +189,7 @@
                                     </td>
                                     <!-- Subscription Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-fuchsia-50 border-r border-dotted border-r-violet-300">
-                                        {{ billingTransaction.subscription == null ? '...' : moment(billingTransaction.subscription.created_at).format('lll') }}
+                                        {{ billingTransaction.subscription == null ? '...' : moment(billingTransaction.subscription.created_at).format('DD MMM YYYY HH:mm') }}
                                     </td>
 
 
@@ -238,7 +238,7 @@
                                     <!-- Pricing Plan Created Date -->
                                     <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500 text-left bg-violet-50">
                                         <div v-if="billingTransaction.pricing_plan == null">...</div>
-                                        <div v-else>{{ billingTransaction.pricing_plan.created_at == null ? '...' : moment(billingTransaction.pricing_plan.created_at).format('lll') }}</div>
+                                        <div v-else>{{ billingTransaction.pricing_plan.created_at == null ? '...' : moment(billingTransaction.pricing_plan.created_at).format('DD MMM YYYY HH:mm') }}</div>
                                     </td>
 
                                 </tr>

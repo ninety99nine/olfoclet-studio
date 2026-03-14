@@ -288,7 +288,7 @@ export default defineComponent({
         },
         formatLastSprint(createdAt) {
             if (!createdAt) return '—';
-            return moment(createdAt).format('MMM D, YYYY h:mm A');
+            return moment(createdAt).format('MMM D, YYYY HH:mm');
         },
         showModal(smsCampaign, action) {
             this.smsCampaign = smsCampaign;

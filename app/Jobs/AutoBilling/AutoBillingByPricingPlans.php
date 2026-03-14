@@ -77,14 +77,6 @@ class AutoBillingByPricingPlans implements ShouldQueue
                 });
 
         } catch (\Throwable $th) {
-
-            Log::error('AutoBillingByPricingPlans Job Failed', [
-                'message' => $th->getMessage(),
-                'file' => $th->getFile(),
-                'line' => $th->getLine(),
-                // Removed getTraceAsString() as it can heavily bloat your log files on queue errors
-            ]);
-
             throw $th;
         }
 

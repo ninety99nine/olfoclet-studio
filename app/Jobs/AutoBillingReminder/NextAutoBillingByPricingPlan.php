@@ -10,7 +10,6 @@ use Illuminate\Bus\Queueable;
 use App\Models\PricingPlan;
 use Illuminate\Support\Facades\DB;
 use App\Models\AutoBillingReminder;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -184,16 +183,7 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
             });
 
         } catch (Throwable $th) {
-
-            Log::error('NextAutoBillingByPricingPlan Job Failed: ' . $th->getMessage());
-
-            /**
-             * CRITICAL FIX: The Retry Trap
-             * Returning 'false' marks the job as successfully completed in Laravel.
-             * You MUST throw the exception to trigger failure logging and retries.
-             */
             throw $th;
-
         }
     }
 }

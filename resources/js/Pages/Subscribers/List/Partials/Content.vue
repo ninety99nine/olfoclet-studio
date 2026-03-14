@@ -289,7 +289,7 @@
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <p class="text-xs font-bold text-slate-600">{{ row.created_at ? moment(row.created_at).format('DD MMM YY') : '—' }}</p>
-                                    <p class="text-[9px] font-medium text-slate-400">{{ row.created_at ? moment(row.created_at).format('hh:mm A') : '' }}</p>
+                                    <p class="text-[9px] font-medium text-slate-400">{{ row.created_at ? moment(row.created_at).format('HH:mm') : '' }}</p>
                                 </td>
                                 <td class="px-8 py-4 text-right">
                                     <div class="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">

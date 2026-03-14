@@ -158,7 +158,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 Route::get('/progress', [AutoBillingScheduleController::class, 'progress'])->name('auto.billing.schedules.progress');
 
                 Route::prefix('{auto_billing_schedule}')->group(function () {
-                    Route::get('/', [AutoBillingScheduleController::class, 'showAutoBillingSchedule']);
+                    Route::get('/', [AutoBillingScheduleController::class, 'showAutoBillingSchedule'])->name('show.auto.billing.schedule');
+                    Route::get('/transactions', [AutoBillingScheduleController::class, 'transactions'])->name('auto.billing.schedule.transactions');
                 });
             });
 
@@ -239,8 +240,8 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function () {
                 ->middleware(['project.permission:View sms campaign schedules'])->group(function () {
                 Route::get('/', [SmsCampaignScheduleController::class, 'showSmsCampaignSchedules'])->name('show.sms.campaign.schedules');
 
-                Route::prefix('{sms_campaign_schedules}')->group(function () {
-                    Route::get('/', [SmsCampaignScheduleController::class, 'showSmsCampaignSchedule']);
+                Route::prefix('{sms_campaign_schedule}')->group(function () {
+                    Route::get('/', [SmsCampaignScheduleController::class, 'showSmsCampaignSchedule'])->name('show.sms.campaign.schedule');
                 });
             });
 

@@ -44,9 +44,9 @@
                     <span class="text-gray-300 mx-4">|</span>
                     <span>Every {{ smsCampaign.recurring_duration }} {{ recurringFrequencyWord }}</span>
                     <span class="text-gray-300 mx-4">|</span>
-                    <span><span class="text-gray-400">Start: </span>{{ moment(smsCampaign.start_datetime).format('lll') }}</span>
+                    <span><span class="text-gray-400">Start: </span>{{ moment(smsCampaign.start_datetime).format('DD MMM YYYY HH:mm') }}</span>
                     <span class="text-gray-300 mx-4">|</span>
-                    <span><span class="text-gray-400">End: </span>{{ moment(smsCampaign.end_datetime).format('lll') }}</span>
+                    <span><span class="text-gray-400">End: </span>{{ moment(smsCampaign.end_datetime).format('DD MMM YYYY HH:mm') }}</span>
                 </span>
 
             </div>
@@ -117,7 +117,7 @@
                                 </td>
                                 <!-- Sprint Date -->
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ smsCampaignBatchJob.created_at == null ? '...' : moment(smsCampaignBatchJob.created_at).format('lll') }}
+                                    {{ smsCampaignBatchJob.created_at == null ? '...' : moment(smsCampaignBatchJob.created_at).format('DD MMM YYYY HH:mm') }}
                                 </td>
                             </tr>
 

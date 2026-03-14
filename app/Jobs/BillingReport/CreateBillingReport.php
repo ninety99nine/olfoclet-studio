@@ -169,14 +169,6 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
             unset($this->project, $billingReport);
 
         } catch (Throwable $th) {
-
-            Log::error('CreateBillingReport Job Failed: ' . $th->getMessage());
-
-            /**
-             * CRITICAL FIX: The Retry Mechanism
-             * Returning false silently kills the job. Throwing the exception ensures
-             * Laravel will retry it later if it failed due to a timeout or disk issue.
-             */
             throw $th;
         }
     }

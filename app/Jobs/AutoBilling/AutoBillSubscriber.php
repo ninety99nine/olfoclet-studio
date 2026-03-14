@@ -117,7 +117,8 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
             }
 
         } catch (\Throwable $th) {
-            Log::error("AutoBillSubscriber Crash: " . $th->getMessage());
+            // BillingService never throws; API/gateway failures return is_successful=false and are handled above.
+            // Only code/DB failures (e.g. SubscriptionRepository, DB) reach here; rethrow so they are reported.
             throw $th;
         } finally {
             // 4. ATOMIC RELEASE

@@ -102,18 +102,6 @@ class NextAutoBillingByPricingPlans implements ShouldQueue
             });
 
         } catch (Throwable $th) {
-
-            Log::error('NextAutoBillingByPricingPlans Job Failed', [
-                'message' => $th->getMessage(),
-                'file'    => $th->getFile(),
-                'line'    => $th->getLine(),
-                // Removed getTraceAsString() to prevent log bloat
-            ]);
-
-            /**
-             * 5. The Error Trap: Throw the exception so Laravel registers the failure
-             * and can trigger any retry or failed-job protocols.
-             */
             throw $th;
         }
 

@@ -82,12 +82,6 @@ done
 echo "==> 13. Verifying scheduler (no fatal error)..."
 sudo -u "$APP_USER" php artisan schedule:run
 
-echo "==> 14. Applying Logrotate Configuration..."
-# Copy the config and enforce strict root permissions
-cp "$APP_DIR/config/logrotate-telcoflo.conf" /etc/logrotate.d/telcoflo
-chown root:root /etc/logrotate.d/telcoflo
-chmod 644 /etc/logrotate.d/telcoflo
-
 echo ""
 echo "Deploy finished. Check the site: http://105.235.242.227"
 echo "Note: Ensure LOG_LEVEL=error (or warning) is set in your server's .env file."

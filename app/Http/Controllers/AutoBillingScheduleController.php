@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\Project;
+use App\Models\BillingTransaction;
 use App\Models\Pivots\AutoBillingSchedule;
 use App\Repositories\AutoBillingScheduleRepository;
 use App\Http\Requests\AutoBillingSchedules\ListAutoBillingSchedulesRequest;
@@ -35,6 +36,7 @@ class AutoBillingScheduleController extends Controller
             $filters = [
                 'msisdn'          => $validated['msisdn'] ?? null,
                 'up_for_schedule' => isset($validated['up_for_schedule']) ? (bool) $validated['up_for_schedule'] : null,
+                'billing_history' => $validated['billing_history'] ?? null,
                 'sort'            => $validated['sort'] ?? null,
                 'per_page'        => $validated['per_page'] ?? null,
                 'page'            => $validated['page'] ?? null,
@@ -59,9 +61,37 @@ class AutoBillingScheduleController extends Controller
 
     public function showAutoBillingSchedule()
     {
-        return Inertia::render('AutoBillingSchedule/List/Main', [
-            'autoBillingSchedule' => $this->autoBillingSchedule
+        if ($this->autoBillingSchedule === null) {
+            abort(404, 'Auto billing schedule not found.');
+        }
+
+        return Inertia::render('AutoBillingSchedule/Show/Main', [
+            'autoBillingSchedule' => $this->autoBillingSchedule,
+            'project' => $this->project,
         ]);
+    }
+
+    /**
+     * Paginated auto billing transactions for this schedule (JSON).
+     * Returns billing transactions for the schedule's subscriber + pricing plan that were created via auto billing.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function transactions(Request $request)
+    {
+        if ($this->autoBillingSchedule === null) {
+            abort(404, 'Auto billing schedule not found.');
+        }
+
+        $perPage = min((int) $request->get('per_page', 10), 50);
+        $payload = BillingTransaction::where('subscriber_id', $this->autoBillingSchedule->subscriber_id)
+            ->where('pricing_plan_id', $this->autoBillingSchedule->pricing_plan_id)
+            ->where('created_using_auto_billing', true)
+            ->with(['subscription', 'pricingPlan'])
+            ->latest()
+            ->paginate($perPage);
+
+        return response()->json(['data' => $payload]);
     }
 
     /**

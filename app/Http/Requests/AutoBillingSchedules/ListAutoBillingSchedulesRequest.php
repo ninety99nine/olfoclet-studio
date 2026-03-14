@@ -28,6 +28,7 @@ class ListAutoBillingSchedulesRequest extends FormRequest
         return [
             'msisdn'           => ['nullable', 'string', 'max:20'],
             'up_for_schedule'  => ['nullable', 'boolean'],
+            'billing_history'  => ['nullable', 'string', 'in:billed_before,not_billed_yet'],
             'page'             => ['nullable', 'integer', 'min:1'],
             'per_page'         => ['nullable', 'integer', 'min:1', 'max:100'],
             'sort'             => ['nullable', 'string', 'regex:/^[\w_]+:(asc|desc)$/'],

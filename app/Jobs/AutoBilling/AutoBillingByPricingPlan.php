@@ -108,7 +108,6 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
             });
 
         } catch (\Throwable $th) {
-            Log::error('AutoBillingByPricingPlan Failed: ' . $th->getMessage());
             throw $th;
         }
     }
