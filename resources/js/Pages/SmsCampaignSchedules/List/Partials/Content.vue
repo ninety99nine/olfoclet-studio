@@ -124,6 +124,7 @@
                                     <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Subscriber</th>
                                     <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Next message</th>
                                     <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-center">Messages sent</th>
+                                    <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Subscription</th>
                                     <th class="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] text-left">Campaign</th>
                                 </tr>
                             </thead>
@@ -133,6 +134,7 @@
                                         <td class="px-6 py-4"><div class="h-10 w-10 rounded-xl bg-slate-100" /></td>
                                         <td class="px-6 py-4"><div class="h-4 w-24 bg-slate-100 rounded" /></td>
                                         <td class="px-6 py-4"><div class="h-4 w-16 bg-slate-100 rounded mx-auto" /></td>
+                                        <td class="px-6 py-4"><div class="h-4 w-20 bg-slate-100 rounded" /></td>
                                         <td class="px-6 py-4"><div class="h-4 w-32 bg-slate-100 rounded" /></td>
                                     </tr>
                                 </template>
@@ -159,6 +161,9 @@
                                                 <span v-if="row.next_message_date_milli_seconds_left == null" class="text-slate-400 text-[10px]">—</span>
                                                 <Countdown v-else :time="row.next_message_date_milli_seconds_left" />
                                                 <span class="whitespace-nowrap text-[10px] text-slate-500">{{ row.next_message_date ? moment(row.next_message_date).format('DD MMM YY HH:mm') : '—' }}</span>
+                                                <p v-if="row.next_message_block_reason" class="text-[10px] text-amber-700 mt-1 font-medium" :title="row.next_message_block_reason">
+                                                    {{ row.next_message_block_reason }}
+                                                </p>
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 text-center whitespace-normal align-top">
@@ -172,6 +177,9 @@
                                                     <span class="text-slate-400"> failed</span>
                                                 </span>
                                             </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-top">
+                                            <span class="text-slate-700">{{ row.subscription_label ?? '—' }}</span>
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="flex flex-col gap-1">
