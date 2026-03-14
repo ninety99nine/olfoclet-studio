@@ -179,7 +179,34 @@
                                             </div>
                                         </td>
                                         <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-top">
-                                            <span class="text-slate-700">{{ row.subscription_label ?? '—' }}</span>
+                                            <span
+                                                v-if="getScheduleLatestSubscription(row)?.cancelled_at"
+                                                v-tooltip="{
+                                                    value: getSubscriptionTooltipHtml(getScheduleLatestSubscription(row)),
+                                                    escape: false,
+                                                    class: 'subscriber-detail-tooltip'
+                                                }"
+                                                class="inline-flex items-center px-2.5 py-1 rounded-md bg-amber-100 text-amber-800 text-[10px] font-bold cursor-pointer w-fit whitespace-nowrap"
+                                                @click.stop="openSubscriptionDetailModal(row)"
+                                            >
+                                                Cancelled {{ moment(getScheduleLatestSubscription(row).cancelled_at).format('DD MMM YY') }}
+                                            </span>
+                                            <span
+                                                v-else-if="getScheduleLatestSubscription(row)"
+                                                v-tooltip="{
+                                                    value: getSubscriptionTooltipHtml(getScheduleLatestSubscription(row)),
+                                                    escape: false,
+                                                    class: 'subscriber-detail-tooltip'
+                                                }"
+                                                class="inline-block cursor-pointer w-fit"
+                                                @click.stop="openSubscriptionDetailModal(row)"
+                                            >
+                                                <SubscriptionStatusBadge
+                                                    :is-active="!!getScheduleLatestSubscription(row).is_active"
+                                                    class="scale-90 origin-left"
+                                                />
+                                            </span>
+                                            <span v-else class="text-[9px] font-bold text-slate-300 uppercase">None</span>
                                         </td>
                                         <td class="px-6 py-4">
                                             <div class="flex flex-col gap-1">
@@ -265,6 +292,64 @@
                 </div>
             </template>
         </Dialog>
+
+        <!-- Subscription detail modal -->
+        <Dialog
+            v-model:visible="subscriptionDetailModalVisible"
+            :header="subscriptionDetailModalTitle"
+            :modal="true"
+            :dismissableMask="true"
+            :draggable="false"
+            :style="{ width: '420px' }"
+            :pt="{
+                root: { class: 'rounded-3xl border-none shadow-2xl overflow-hidden' },
+                header: { class: 'bg-white px-6 pt-5 pb-0 border-none text-indigo-900 font-black uppercase text-sm tracking-widest' },
+                pcCloseButton: { root: { class: 'h-8 w-8 bg-slate-50 text-slate-400 hover:text-rose-500 transition-all !border-0 !border-none shadow-none' } },
+                content: { class: 'pt-4 pb-6' }
+            }"
+            @hide="closeSubscriptionDetailModal"
+        >
+            <template v-if="subscriptionDetailRecord">
+                <div class="space-y-4">
+                    <div class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2.5 text-sm">
+                        <span class="text-slate-500 font-semibold uppercase text-xs">Plan</span>
+                        <span class="text-slate-800">{{ getSubscriptionPlanName(subscriptionDetailRecord) }}</span>
+                        <span class="text-slate-500 font-semibold uppercase text-xs">Start</span>
+                        <span class="text-slate-800">{{ formatSubscriptionDate(subscriptionDetailRecord.start_at) }}</span>
+                        <span class="text-slate-500 font-semibold uppercase text-xs">End</span>
+                        <span class="text-slate-800">{{ formatSubscriptionDate(subscriptionDetailRecord.end_at) }}</span>
+                        <span class="text-slate-500 font-semibold uppercase text-xs">Status</span>
+                        <span>
+                            <Tag :value="subscriptionDetailRecord.is_active ? 'Active' : 'Inactive'" :severity="subscriptionDetailRecord.is_active ? 'success' : 'warn'" :class="['text-xs', { 'tag-amber': !subscriptionDetailRecord.is_active }]" />
+                        </span>
+                        <template v-if="subscriptionDetailRecord.cancelled_at">
+                            <span class="text-slate-500 font-semibold uppercase text-xs">Cancelled</span>
+                            <span class="text-slate-800">{{ formatSubscriptionDate(subscriptionDetailRecord.cancelled_at) }}</span>
+                        </template>
+                        <template v-if="subscriptionDetailRecord.created_using_auto_billing">
+                            <span class="col-span-2 text-slate-500 italic text-xs">Created via auto billing</span>
+                        </template>
+                    </div>
+                    <div class="border-t border-slate-100 pt-4">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Quick actions</p>
+                        <div class="flex flex-wrap gap-2">
+                            <Button :label="copyFeedback === 'subscriptionId' ? 'Copied!' : 'Copy subscription ID'" size="small" text outlined class="text-xs detail-modal-copy-btn" @click="copyDetailValue(String(subscriptionDetailRecord.id), 'subscriptionId')">
+                                <template #icon><Copy :size="12" /></template>
+                            </Button>
+                            <Button :label="copyFeedback === 'plan' ? 'Copied!' : 'Copy plan name'" size="small" text outlined class="text-xs detail-modal-copy-btn" @click="copyDetailValue(getSubscriptionPlanName(subscriptionDetailRecord), 'plan')">
+                                <template #icon><Copy :size="12" /></template>
+                            </Button>
+                            <Button :label="copyFeedback === 'start' ? 'Copied!' : 'Copy start date'" size="small" text outlined class="text-xs detail-modal-copy-btn" @click="copyDetailValue(formatSubscriptionDate(subscriptionDetailRecord.start_at), 'start')">
+                                <template #icon><Copy :size="12" /></template>
+                            </Button>
+                            <Button :label="copyFeedback === 'end' ? 'Copied!' : 'Copy end date'" size="small" text outlined class="text-xs detail-modal-copy-btn" @click="copyDetailValue(formatSubscriptionDate(subscriptionDetailRecord.end_at), 'end')">
+                                <template #icon><Copy :size="12" /></template>
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </template>
+        </Dialog>
     </div>
 </template>
 
@@ -273,20 +358,25 @@ import { defineComponent } from 'vue';
 import { router } from '@inertiajs/vue3';
 import Dialog from 'primevue/dialog';
 import Select from 'primevue/select';
+import Button from 'primevue/button';
+import Tooltip from 'primevue/tooltip';
 import debounce from 'lodash/debounce';
 import Pagination from '@/Partials/Pagination.vue';
 import moment from 'moment';
-import { Search, Filter, RefreshCw, X, ChevronLeft, ChevronRight, Phone, CalendarClock, ArrowDownWideNarrow, Check } from 'lucide-vue-next';
+import { Search, Filter, RefreshCw, X, ChevronLeft, ChevronRight, Phone, CalendarClock, ArrowDownWideNarrow, Check, Copy } from 'lucide-vue-next';
 import Tag from 'primevue/tag';
 import Countdown from '@/Partials/Countdown.vue';
+import SubscriptionStatusBadge from '@/Pages/Subscribers/List/Partials/SubscriptionStatusBadge.vue';
 
 export default defineComponent({
     components: {
         Dialog,
         Select,
+        Button,
         Pagination,
         Tag,
         Countdown,
+        SubscriptionStatusBadge,
         RefreshCw,
         ChevronLeft,
         ChevronRight,
@@ -294,7 +384,9 @@ export default defineComponent({
         CalendarClock,
         ArrowDownWideNarrow,
         Check,
+        Copy,
     },
+    directives: { Tooltip },
     data() {
         return {
             moment,
@@ -317,9 +409,19 @@ export default defineComponent({
                 { label: 'All schedules', value: null },
                 { label: 'Up for message only', value: true },
             ],
+            subscriptionDetailModalVisible: false,
+            subscriptionDetailModalRow: null,
+            copyFeedback: null,
         };
     },
     computed: {
+        subscriptionDetailRecord() {
+            return this.getScheduleLatestSubscription(this.subscriptionDetailModalRow) ?? null;
+        },
+        subscriptionDetailModalTitle() {
+            const sub = this.subscriptionDetailRecord;
+            return sub?.id ? `Subscription #${sub.id}` : 'Subscription';
+        },
         showPaginationFooter() {
             const hasData = (this.payload?.data?.length ?? 0) > 0 || (this.payload?.total ?? 0) > 0;
             return hasData || (this.initialLoadComplete && this.loading);
@@ -464,6 +566,47 @@ export default defineComponent({
             if (!project || !scheduleId) return;
             router.visit(route('show.sms.campaign.schedule', { project, sms_campaign_schedule: scheduleId }));
         },
+        getScheduleLatestSubscription(row) {
+            if (!row?.subscriber) return null;
+            return row.subscriber.latest_subscription ?? row.subscriber.latestSubscription ?? null;
+        },
+        openSubscriptionDetailModal(row) {
+            this.subscriptionDetailModalRow = row;
+            this.subscriptionDetailModalVisible = true;
+            this.copyFeedback = null;
+        },
+        closeSubscriptionDetailModal() {
+            this.subscriptionDetailModalVisible = false;
+            this.subscriptionDetailModalRow = null;
+            this.copyFeedback = null;
+        },
+        getSubscriptionPlanName(sub) {
+            return sub?.pricing_plan?.name ?? '—';
+        },
+        formatSubscriptionDate(val) {
+            return val ? moment(val).format('DD MMM YYYY HH:mm') : '—';
+        },
+        getSubscriptionTooltipHtml(sub) {
+            if (!sub) return '';
+            const plan = this.getSubscriptionPlanName(sub);
+            const start = this.formatSubscriptionDate(sub.start_at);
+            const end = this.formatSubscriptionDate(sub.end_at);
+            const status = sub.is_active ? 'Active' : 'Inactive';
+            const statusClass = sub.is_active ? 'detail-tooltip__badge detail-tooltip__badge--success' : 'detail-tooltip__badge detail-tooltip__badge--warn';
+            let html = `<div class="detail-tooltip__title">Subscription #${sub.id}</div><div class="detail-tooltip__body"><div class="detail-tooltip__row"><span class="detail-tooltip__label">Plan</span><span class="detail-tooltip__value">${plan}</span></div><div class="detail-tooltip__row"><span class="detail-tooltip__label">Start</span><span class="detail-tooltip__value">${start}</span></div><div class="detail-tooltip__row"><span class="detail-tooltip__label">End</span><span class="detail-tooltip__value">${end}</span></div><div class="detail-tooltip__row"><span class="detail-tooltip__label">Status</span><span class="${statusClass}">${status}</span></div>`;
+            if (sub.cancelled_at) html += `<div class="detail-tooltip__row"><span class="detail-tooltip__label">Cancelled</span><span class="detail-tooltip__value">${this.formatSubscriptionDate(sub.cancelled_at)}</span></div>`;
+            if (sub.created_using_auto_billing) html += '<div class="detail-tooltip__meta">Created via auto billing</div>';
+            html += '</div><div class="detail-tooltip__click-hint">Click to view subscription</div>';
+            return html;
+        },
+        async copyDetailValue(text, key) {
+            if (text == null) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                this.copyFeedback = key;
+                setTimeout(() => { this.copyFeedback = null; }, 1800);
+            } catch (_) {}
+        },
     },
 });
 </script>
@@ -503,5 +646,101 @@ export default defineComponent({
 }
 :deep(.p-select-label) {
     @apply text-[10px] font-bold uppercase tracking-widest text-indigo-950 py-3.5 px-4;
+}
+</style>
+
+<!-- Unscoped: subscription detail tooltip (portaled) -->
+<style>
+.subscriber-detail-tooltip {
+    max-width: 380px;
+    min-width: 260px;
+    padding: 0;
+    border-radius: 12px;
+    background: #fff !important;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+}
+.subscriber-detail-tooltip .p-tooltip-arrow { display: none; }
+.subscriber-detail-tooltip .p-tooltip-text {
+    padding: 14px 16px;
+    overflow: hidden;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    text-align: left;
+}
+.subscriber-detail-tooltip .detail-tooltip__title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: #1e293b;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #e2e8f0;
+}
+.subscriber-detail-tooltip .detail-tooltip__body { display: flex; flex-direction: column; gap: 10px; }
+.subscriber-detail-tooltip .detail-tooltip__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 0.6875rem;
+}
+.subscriber-detail-tooltip .detail-tooltip__row--full { flex-direction: column; align-items: stretch; gap: 4px; }
+.subscriber-detail-tooltip .detail-tooltip__label {
+    flex-shrink: 0;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.subscriber-detail-tooltip .detail-tooltip__value {
+    color: #334155;
+    font-weight: 500;
+    word-break: break-word;
+    text-align: right;
+}
+.subscriber-detail-tooltip .detail-tooltip__value--wrap { text-align: left; line-height: 1.5; margin-top: 1px; }
+.subscriber-detail-tooltip .detail-tooltip__badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+.subscriber-detail-tooltip .detail-tooltip__badge--success { background: #d1fae5; color: #065f46; }
+.subscriber-detail-tooltip .detail-tooltip__badge--warn { background: #fef3c7; color: #92400e; }
+.subscriber-detail-tooltip .detail-tooltip__meta {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.625rem;
+    font-style: italic;
+    color: #64748b;
+}
+.subscriber-detail-tooltip .detail-tooltip__click-hint {
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #e2e8f0;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: #6366f1;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.subscriber-detail-tooltip .detail-tooltip__click-hint::before {
+    content: '';
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236366f1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14 4.1 12 6'/%3E%3Cpath d='m5.1 8-2.9-.8'/%3E%3Cpath d='m6 12-1.9 2'/%3E%3Cpath d='M7.2 2.2 8 5.1'/%3E%3Cpath d='M9.037 9.69a.5.5 0 0 1 .653-.653l11 4.5a.5.5 0 0 1-.074.949l-4.35 1.04a1 1 0 0 0-.74.74l-1.04 4.35a.5.5 0 0 1-.95.074z'/%3E%3C/svg%3E") center/contain no-repeat;
 }
 </style>
