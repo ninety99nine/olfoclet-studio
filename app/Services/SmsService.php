@@ -427,7 +427,9 @@ class SmsService
         ];
     }
     /**
-     *  Update the Subscriber Message delivery status
+     *  Update the Subscriber Message delivery status.
+     *  Uses cached token (requestSmsAccessToken); each message still requires its own delivery-status API call.
+     *  On failure the job retries silently via release() (no exception, no log).
      *
      *  @param Project $project - The project Model
      *  @param SubscriberMessage $subscriberMessage - The SubscriberMessage Model

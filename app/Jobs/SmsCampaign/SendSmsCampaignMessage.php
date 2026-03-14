@@ -2,8 +2,6 @@
 
 namespace App\Jobs\SmsCampaign;
 
-use Exception;
-use Throwable;
 use App\Models\Message;
 use App\Models\Project;
 use App\Enums\MessageType;
@@ -90,14 +88,17 @@ class SendSmsCampaignMessage implements ShouldQueue, ShouldBeUnique
             $this->updateSmsCampaignSubscriber($subscriberMessage);
 
             if (!$subscriberMessage->is_successful) {
-                throw new Exception('SMS provider rejected the message.');
+                if ($this->attempts() < $this->tries) {
+                    $this->release($this->retryAfter);
+
+                    return;
+                }
+
+                return;
             }
 
-        } catch (Throwable $th) {
-            Log::error('SendSmsCampaignMessage Job Failed: ' . $th->getMessage());
-
-            // EMERGENCY BUMP: If the service crashed before creating a message object,
-            // ensure the next_message_date is still updated to avoid spamming the user.
+        } catch (\Throwable $th) {
+            // Unexpected errors (e.g. DB, code): ensure schedule is bumped then re-throw so they are reported and retried.
             if (!$subscriberMessage) {
                 $this->emergencyUpdateSchedule();
             }

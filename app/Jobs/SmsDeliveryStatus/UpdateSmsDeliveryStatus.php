@@ -2,8 +2,6 @@
 
 namespace App\Jobs\SmsDeliveryStatus;
 
-use Exception;
-use Throwable;
 use App\Models\Project;
 use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
@@ -97,25 +95,22 @@ class UpdateSmsDeliveryStatus implements ShouldQueue, ShouldBeUnique
              */
             $updatedSubscriberMessage = SmsService::updateSmsDeliveryStatus($this->project, $this->subscriberMessage);
 
-            /**
-             * CRITICAL FIX: The Retry Mechanism
-             * Returning 'false' does NOT tell Laravel to retry the job. It marks it as successful and deletes it.
-             * To utilize $tries = 3 and $retryAfter = 3600, we MUST throw an exception on failure.
-             */
             if (!$updatedSubscriberMessage->delivery_status_update_is_successful) {
-                throw new Exception('SMS delivery status update failed or the provider API did not return a successful response.');
+                // Known API issue: retry silently with release(); no throw, so nothing is logged.
+                if ($this->attempts() < $this->tries) {
+                    $this->release($this->retryAfter);
+
+                    return;
+                }
+                // Max attempts reached; SubscriberMessage already has failure state for dashboard.
+                return;
             }
 
-            // Explicitly free memory for the daemon worker before it picks up the next job
             unset($this->project, $this->subscriberMessage, $updatedSubscriberMessage);
 
-        } catch (Throwable $th) {
-
-            Log::error('UpdateSmsDeliveryStatus Job Failed: '. $th->getMessage());
-
-            // Re-throw the exception so the queue worker registers the failure and schedules the retry
+        } catch (\Throwable $th) {
+            // Unexpected errors (e.g. DB, code) are still thrown so they are reported and retried.
             throw $th;
-
         }
     }
 }

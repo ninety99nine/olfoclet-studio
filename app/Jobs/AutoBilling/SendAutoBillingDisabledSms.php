@@ -2,7 +2,6 @@
 
 namespace App\Jobs\AutoBilling;
 
-use Exception;
 use App\Models\Project;
 use App\Enums\MessageType;
 use App\Models\Subscriber;
@@ -10,7 +9,6 @@ use App\Services\SmsService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Models\PricingPlan;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Models\Pivots\SubscriberMessage;
@@ -103,25 +101,20 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
                 $messageType
             );
 
-            /**
-             * If the SMS was NOT sent successfully, we throw an exception.
-             * This explicitly tells Laravel the job failed, triggering your
-             * $tries = 3 and $retryAfter = 3600 logic.
-             */
             if (!$subscriberMessage->is_successful) {
-                throw new Exception('SMS sending failed or was rejected by the provider.');
+                if ($this->attempts() < $this->tries) {
+                    $this->release($this->retryAfter);
+
+                    return;
+                }
+
+                return;
             }
 
-            // Explicitly free memory for the daemon worker before picking up the next job
             unset($this->project, $this->subscriber, $this->pricingPlan, $subscriberMessage);
 
         } catch (\Throwable $th) {
-
-            Log::error('SendAutoBillingDisabledSms Job Failed: ' . $th->getMessage());
-
-            // Re-throw the exception so the queue worker logs the failure and schedules the retry
             throw $th;
-
         }
     }
 }

@@ -2,8 +2,6 @@
 
 namespace App\Jobs\AutoBillingReminder;
 
-use Exception;
-use Throwable;
 use App\Models\Project;
 use App\Enums\MessageType;
 use App\Models\Subscriber;
@@ -13,7 +11,6 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Bus\Batchable;
 use App\Models\PricingPlan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 use App\Models\AutoBillingReminder;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
@@ -145,26 +142,19 @@ class SendAutoBillingReminderSms implements ShouldQueue, ShouldBeUnique
                 }
 
             } else {
+                if ($this->attempts() < $this->tries) {
+                    $this->release($this->retryAfter);
 
-                /**
-                 * CRITICAL FIX: The Retry Mechanism
-                 * Throwing an exception guarantees Laravel will use your $tries = 3
-                 * and $retryAfter = 3600 configuration.
-                 */
-                throw new Exception('Auto Billing Reminder SMS failed to send or was rejected by the provider.');
+                    return;
+                }
 
+                return;
             }
 
-            // Explicitly free memory for the daemon worker before it picks up the next job
             unset($this->project, $this->subscriber, $this->pricingPlan, $this->autoBillingReminder, $subscriberMessage, $subscriptionWithFurthestEndAt);
 
-        } catch (Throwable $th) {
-
-            Log::error('SendAutoBillingReminderSms Job Failed: ' . $th->getMessage());
-
-            // Re-throw the exception so the queue worker registers the failure and schedules the retry
+        } catch (\Throwable $th) {
             throw $th;
-
         }
     }
 }
