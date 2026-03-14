@@ -145,7 +145,7 @@
                                         class="group hover:bg-indigo-50/20 transition-colors cursor-pointer"
                                         @click="goToSmsCampaignSchedule(row.id)"
                                     >
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 align-middle">
                                             <div class="flex items-center gap-3">
                                                 <div class="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-400 group-hover:text-indigo-600 group-hover:border-indigo-100 transition-all">
                                                     <Phone :size="14" class="text-xs" />
@@ -156,14 +156,17 @@
                                                 </div>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-top">
-                                            <div class="flex flex-col gap-1">
+                                        <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-middle">
+                                            <template v-if="!getScheduleLatestSubscription(row) || !getScheduleLatestSubscription(row).is_active">
+                                                <span class="text-slate-400">—</span>
+                                            </template>
+                                            <div v-else class="flex flex-col gap-1">
                                                 <span v-if="row.next_message_date_milli_seconds_left == null" class="text-slate-400 text-[10px]">—</span>
                                                 <Countdown v-else :time="row.next_message_date_milli_seconds_left" />
                                                 <span class="whitespace-nowrap text-[10px] text-slate-500">{{ row.next_message_date ? moment(row.next_message_date).format('DD MMM YY HH:mm') : '—' }}</span>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-center whitespace-normal align-top">
+                                        <td class="px-6 py-4 text-center whitespace-normal align-middle">
                                             <div class="flex flex-col items-center gap-0.5">
                                                 <span class="text-sm font-bold text-slate-800 tabular-nums">{{ row.attempts ?? '—' }}</span>
                                                 <span class="text-[10px] text-slate-500 tabular-nums">
@@ -175,7 +178,7 @@
                                                 </span>
                                             </div>
                                         </td>
-                                        <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-top">
+                                        <td class="px-6 py-4 text-xs text-slate-600 whitespace-normal align-middle">
                                             <span
                                                 v-if="getScheduleLatestSubscription(row)?.cancelled_at"
                                                 v-tooltip="{
@@ -205,7 +208,7 @@
                                             </span>
                                             <span v-else class="text-[9px] font-bold text-slate-300 uppercase">None</span>
                                         </td>
-                                        <td class="px-6 py-4">
+                                        <td class="px-6 py-4 align-middle">
                                             <div class="flex flex-col gap-1">
                                                 <span class="text-sm font-medium text-slate-800">{{ row.sms_campaign?.name ?? '—' }}</span>
                                                 <span class="campaign-status-badge inline-block w-fit">
