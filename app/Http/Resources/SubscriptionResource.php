@@ -26,7 +26,7 @@ class SubscriptionResource extends JsonResource
             'pricingPlan' => new PricingPlanResource(
                 $this->pricingPlan
             ),
-            'latestBillingTransaction' => $this->latestBillingTransaction ? new BillingTransactionResource(
+            'transaction' => $this->latestBillingTransaction ? new BillingTransactionResource(
                 $this->latestBillingTransaction
             ) : null,
             'links' => [
