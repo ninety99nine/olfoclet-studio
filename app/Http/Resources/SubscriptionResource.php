@@ -26,6 +26,9 @@ class SubscriptionResource extends JsonResource
             'pricingPlan' => new PricingPlanResource(
                 $this->pricingPlan
             ),
+            'latestBillingTransaction' => $this->latestBillingTransaction ? new BillingTransactionResource(
+                $this->latestBillingTransaction
+            ) : null,
             'links' => [
                 'self' => route('api.show.subscription', ['project' => $this->project_id, 'subscription' => $this->id]),
                 'cancelSubscription' => route('api.cancel.subscription', ['project' => $this->project_id, 'subscription' => $this->id]),
