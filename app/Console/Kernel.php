@@ -78,13 +78,13 @@ class Kernel extends ConsoleKernel
         // Clear stale Auto Billing locks (4-hour window)
         $schedule->command('billing:clear-stale-locks')
             ->name('ClearStaleBillingLocks')
-            ->withoutOverlapping()
+            ->withoutOverlapping(10)
             ->hourly();
 
         // Clear stale SMS Campaign locks (4-hour window)
         $schedule->command('sms:clear-stale-locks')
             ->name('ClearStaleSmsLocks')
-            ->withoutOverlapping()
+            ->withoutOverlapping(10)
             ->hourly();
 
         //  If we can create Billing Reports
@@ -93,7 +93,7 @@ class Kernel extends ConsoleKernel
                 ->name('StartCreatingBillingReports')
                 ->hourly()
                 ->between('00:00', '06:00')
-                ->withoutOverlapping();
+                ->withoutOverlapping(10);
         }
 
         //  If we can run Auto Billing
@@ -101,12 +101,12 @@ class Kernel extends ConsoleKernel
             $schedule->job(new AutoBillingByPricingPlans)
                 ->name('AutoBillingByPricingPlansJob')
                 ->everyMinute()
-                ->withoutOverlapping();
+                ->withoutOverlapping(10);
 
             $schedule->job(new NextAutoBillingByPricingPlans)
                 ->name('NextAutoBillingByPricingPlansJob')
                 ->everyMinute()
-                ->withoutOverlapping();
+                ->withoutOverlapping(10);
         }
 
         //  If we can run SMS campaigns
@@ -114,14 +114,14 @@ class Kernel extends ConsoleKernel
             $schedule->job(new StartSmsCampaigns)
                 ->name('StartSmsCampaignsJob')
                 ->everyMinute()
-                ->withoutOverlapping();
+                ->withoutOverlapping(10);
         }
 
         if(config('app.CAN_RUN_AUTO_BILLING') || config('app.CAN_RUN_SMS_CAMPAIGNS')) {
             $schedule->job(new StartSmsDeliveryStatusUpdate)
                 ->name('StartSmsDeliveryStatusUpdateJob')
                 ->everyMinute()
-                ->withoutOverlapping();
+                ->withoutOverlapping(10);
         }
     }
 

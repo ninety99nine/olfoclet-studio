@@ -58,6 +58,14 @@ class CreateBillingReport implements ShouldQueue, ShouldBeUnique
     public $retryAfter = 600; // 10 minutes (File generation might take a while)
 
     /**
+     * Seconds before the ShouldBeUnique lock auto-releases so an orphaned lock
+     * (worker killed mid-run) can't silently block dispatch forever.
+     *
+     * @var int
+     */
+    public $uniqueFor = 14400; // 4 hours
+
+    /**
      * The unique ID of the job.
      *
      * @return string

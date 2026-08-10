@@ -30,6 +30,14 @@ class StartSmsCampaign implements ShouldQueue, ShouldBeUnique
     protected $smsCampaign;
     protected $smsCampaignBatchJobsCount;
 
+    /**
+     * Seconds before the ShouldBeUnique lock auto-releases so an orphaned lock
+     * (worker killed mid-run) can't silently block dispatch forever.
+     *
+     * @var int
+     */
+    public $uniqueFor = 14400; // 4 hours
+
     public function uniqueId()
     {
         return $this->smsCampaign->id;

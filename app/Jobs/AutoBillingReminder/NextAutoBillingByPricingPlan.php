@@ -52,6 +52,15 @@ class NextAutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
     protected $autoBillingReminderJobBatchesCount;
 
     /**
+     * Seconds before the ShouldBeUnique lock auto-releases so an orphaned lock
+     * (worker killed mid-run) can't silently block dispatch forever. 4h matches
+     * the stale-lock window and exceeds max in-flight (tries*retryAfter).
+     *
+     * @var int
+     */
+    public $uniqueFor = 14400; // 4 hours
+
+    /**
      * The unique ID of the job.
      *
      * @return string

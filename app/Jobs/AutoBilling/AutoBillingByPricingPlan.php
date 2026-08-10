@@ -28,6 +28,17 @@ class AutoBillingByPricingPlan implements ShouldQueue, ShouldBeUnique
     protected $pricingPlan;
     protected $autoBillingJobBatchesCount;
 
+    /**
+     * Seconds before the ShouldBeUnique lock auto-releases. Without it the lock
+     * never expires, so a worker killed mid-run leaves an orphaned lock that
+     * silently blocks every future dispatch (root cause of the 2026-07 outage).
+     * 4h matches the ClearStaleBillingLocks window and safely exceeds the max
+     * in-flight time (tries * retryAfter).
+     *
+     * @var int
+     */
+    public $uniqueFor = 14400; // 4 hours
+
     public function uniqueId()
     {
         return $this->pricingPlan->id;

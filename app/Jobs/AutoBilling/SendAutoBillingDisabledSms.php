@@ -40,6 +40,15 @@ class SendAutoBillingDisabledSms implements ShouldQueue, ShouldBeUnique
     public $retryAfter = 3600; // 3600 seconds = 1 hour
 
     /**
+     * Seconds before the ShouldBeUnique lock auto-releases so an orphaned lock
+     * (worker killed mid-run) can't silently block dispatch forever. 4h matches
+     * the ClearStaleBillingLocks window and exceeds max in-flight (tries*retryAfter).
+     *
+     * @var int
+     */
+    public $uniqueFor = 14400; // 4 hours
+
+    /**
      * Create a new job instance.
      *
      * @return void

@@ -33,6 +33,17 @@ class AutoBillSubscriber implements ShouldQueue, ShouldBeUnique
     public $tries = 3;
     public $retryAfter = 3600;
 
+    /**
+     * Seconds before the ShouldBeUnique lock auto-releases. Without it the lock
+     * never expires, so a worker killed mid-run leaves an orphaned lock that
+     * silently blocks every future dispatch (root cause of the 2026-07 outage).
+     * 4h matches the ClearStaleBillingLocks window and safely exceeds the max
+     * in-flight time (tries * retryAfter = 3h).
+     *
+     * @var int
+     */
+    public $uniqueFor = 14400; // 4 hours
+
     public function __construct(Project $project, Subscriber $subscriber, PricingPlan $pricingPlan, string $token)
     {
         $this->onQueue('billing');
